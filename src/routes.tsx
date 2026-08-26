@@ -14,7 +14,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import type { ComponentType } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
-import { getEdition } from './config/editions';
+import { getEdition, getExtraEdition } from './config/editions';
 import type { EditionExtraRoute } from './config/editions';
 import { AccessGuard } from './components/AccessGuard';
 import { AuthGuard } from './components/AuthGuard';
@@ -79,7 +79,7 @@ function ExtraRoute({ route }: { route: EditionExtraRoute }) {
   return Comp ? <Comp /> : <PageLoading />;
 }
 
-const EXTRA_ROUTES = getEdition().extraRoutes ?? [];
+const EXTRA_ROUTES = getExtraEdition().extraRoutes ?? [];
 
 export const routes = (
   <Suspense fallback={<PageLoading />}>

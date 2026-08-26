@@ -118,6 +118,20 @@ export function editionConfigFromTenant(tenantEdition?: string | null): EditionC
   return id in EDITIONS ? EDITIONS[id as EditionId] : EDITIONS.generic;
 }
 
+/**
+ * 客户仓注入的 Edition 增强（extraRoutes 等 · 2026-09 客户聚合仓模式）.
+ * 独立仓库（无客户仓）glob 不匹配 → 空；客户仓 deploy:prepare 生成 `*.extra.ts` 后自动合并。
+ */
+const EXTRA_MODULES = import.meta.glob<{ default?: Partial<EditionConfig> }>('./*.extra.ts', {
+  eager: true,
+});
+
+export function getExtraEdition(): Partial<EditionConfig> {
+  return Object.values(EXTRA_MODULES)
+    .map((m) => m.default ?? {})
+    .reduce<Partial<EditionConfig>>((acc, cur) => ({ ...acc, ...cur }), {});
+}
+
 /** 行业版入口导航（通用门户用）：指向各行业版域名 */
 export interface IndustryEntry {
   edition: EditionId;
