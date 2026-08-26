@@ -24,7 +24,7 @@ import { legalmindEdition } from './legalmind';
 import { zhiyeEdition } from './zhiye';
 import type { EditionConfig, EditionId } from './types';
 
-export type { EditionConfig, EditionCta, EditionFaq, EditionFeature, EditionId, EditionStat } from './types';
+export type { EditionConfig, EditionCta, EditionExtraRoute, EditionFaq, EditionFeature, EditionId, EditionStat } from './types';
 
 /** 部署版别环境变量（构建期注入，如 VITE_EDITION=zhiye） */
 const EDITION_ENV_KEY = 'VITE_EDITION';

@@ -10,9 +10,12 @@
  * dwjk 功能裁剪 EditionGuard（CRM/线索/进销存/财务按版别隐藏）；旧 IoT 路由
  * （/iot/device/list 等）已被主仓库新页面取代，不再保留。
  */
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
+import type { ComponentType } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
+import { getEdition } from './config/editions';
+import type { EditionExtraRoute } from './config/editions';
 import { AccessGuard } from './components/AccessGuard';
 import { AuthGuard } from './components/AuthGuard';
 import { EditionGuard } from './components/EditionGuard';
@@ -63,6 +66,20 @@ const RoleList = lazy(() => import('./pages/Role/List'));
 const TenantList = lazy(() => import('./pages/Tenant/List'));
 const UserList = lazy(() => import('./pages/User/List'));
 const Welcome = lazy(() => import('./pages/Welcome'));
+
+/** 客户专属路由槽（extraRoutes · 2026-09 客户聚合仓）：内容由客户仓注入 */
+function ExtraRoute({ route }: { route: EditionExtraRoute }) {
+  const [Comp, setComp] = useState<ComponentType | null>(null);
+  useEffect(() => {
+    route
+      .load()
+      .then((m) => setComp(() => m.default))
+      .catch(() => setComp(null));
+  }, [route]);
+  return Comp ? <Comp /> : <PageLoading />;
+}
+
+const EXTRA_ROUTES = getEdition().extraRoutes ?? [];
 
 export const routes = (
   <Suspense fallback={<PageLoading />}>
@@ -348,6 +365,9 @@ export const routes = (
             </EditionGuard>
           }
         />
+        {EXTRA_ROUTES.map((r) => (
+          <Route key={r.path} path={r.path} element={<ExtraRoute route={r} />} />
+        ))}
         <Route path="/403" element={<Forbidden />} />
         <Route path="*" element={<NotFound />} />
       </Route>

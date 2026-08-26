@@ -10,6 +10,7 @@
  *       Edition 不再隐含行业语义（如 legalmind 不再等于 legal），
  *       而是声明 industries: ['legal'] 并叠加客户定制。
  */
+import type { ComponentType } from 'react';
 import type { IndustryId } from '@lieshoucloud/types';
 
 export type EditionId = 'generic' | 'layer' | 'zhiye' | 'jmzz' | 'legalmind' | 'dwjk';
@@ -36,6 +37,21 @@ export interface EditionCta {
   title: string;
   desc: string;
   buttonText: string;
+}
+
+/**
+ * 客户专属路由（extraRoutes · 2026-09 客户聚合仓模式）.
+ * 机制在平台（admin-web 渲染），内容由客户仓注入（
+ * 客户仓 deploy 生成各端 editions/<client>.extra.ts，指向 @lieshoucloud/legalmind 客户包）。
+ */
+export interface EditionExtraRoute {
+  path: string;
+  /** 懒加载组件工厂（客户包模块） */
+  load: () => Promise<{ default: ComponentType }>;
+  /** 客户版菜单声明（后续客户仓注入到菜单） */
+  menu?: { name: string; icon?: string; order?: number };
+  /** 权限码（缺省 = 登录可见） */
+  accessKey?: string;
 }
 
 export interface EditionConfig {
@@ -66,6 +82,11 @@ export interface EditionConfig {
    * 与菜单路径一致（去掉前导 '/'）。可跨行业组合（如律所 + 设备监控）。
    */
   capabilities?: string[];
+  /**
+   * 客户专属路由（客户聚合仓模式 · 2026-09）。
+   * 由客户仓 deploy 生成注入（各端 editions/<client>.extra.ts），平台只渲染槽位。
+   */
+  extraRoutes?: EditionExtraRoute[];
   /** 单租户版：隐藏登录/注册表单的租户输入，固定用 defaultTenantCode（如 dwjk 电网监控版） */
   hideTenantInput?: boolean;
   /** 隐藏菜单路径前缀（如 '/customer' 隐藏 CRM 菜单与路由；ADR-0035 配置层裁剪） */
