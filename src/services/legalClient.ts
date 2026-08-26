@@ -1,55 +1,73 @@
 /**
- * openapi-fetch 类型化客户端实例（Phase 5 · OpenAPI typed client · ADR-0016）.
+ * legal 模块类型化客户端 —— openapi-fetch 兼容适配层（L0-2 · Bottom-Up）
  *
- * - 由 SpringDoc spec 生成（packages/api-client/generated.legal.ts）驱动完整请求/响应类型
- * - 路径已含 /api 前缀（spec 路径），baseUrl 必须为空 —— 与 vite proxy / nginx /api 反代直接匹配
- * - middleware：自动注入 JWT（Bearer）+ 统一错误体（{error,message} → ApiError）+ 401 登出
- * - 用法：`const { data } = await legalClient.GET('/api/legal/cases', ...)`；错误统一 throw（调用方 catch → handleError）
+ * - 底层为共享 @lieshoucloud/api-client 实例（JWT 注入 + 401 单飞 refresh + 标准化错误体 throw）
+ * - 对外保持 openapi-fetch 调用形态：GET(path, { params })/POST(path, { body })/PUT/DELETE
+ *   → services/legal.ts 74 处调用零改动
+ * - 路径含 /api 前缀,baseUrl 为空 —— 与 vite proxy / nginx /api 反代直接匹配
  *
- * @see .ai/decisions/0016-springdoc-openapi.md
+ * @see BOTTOM_UP.md · L0-2
  */
 
-import createClient from 'openapi-fetch';
-import type { paths } from '@lieshoucloud/api-client/generated.legal';
-
+import { createApiClient } from '@lieshoucloud/api-client';
 import { useAuthStore } from '../stores/auth';
-import { ApiError, AuthError } from '../utils/errors';
 
-/** baseUrl 必须为空：spec 路径已含 /api 前缀（不再叠加 VITE_API_BASE_URL，避免 /api/api 双前缀） */
-export const legalClient = createClient<paths>({ baseUrl: '' });
+export const legalClient = createClientLike();
 
-legalClient.use({
-  /** 注入 JWT（与 services/api.ts 一致） */
-  onRequest({ request }) {
-    const token = useAuthStore.getState().accessToken;
-    if (token) request.headers.set('Authorization', `Bearer ${token}`);
-  },
-  /**
-   * 统一错误处理：非 2xx 解析后端标准化错误体 → ApiError；
-   * 401 直接登出（BasicLayout 注册的 unauthorizedHandler 已在 AuthError 路径处理）。
-   */
-  onResponse({ response }) {
-    if (response.status === 401) {
-      throw new AuthError('UNAUTHORIZED', '登录已过期，请重新登录', 401);
-    }
-    if (!response.ok && response.status !== 204) {
-      return response.text().then((text) => {
-        let code: string | undefined;
-        let message: string | undefined;
+function createClientLike() {
+  const client = createApiClient({
+    baseUrl: '',
+    hooks: {
+      getAccessToken: () => useAuthStore.getState().accessToken,
+      refreshTokens: async () => {
         try {
-          const body = JSON.parse(text) as { error?: string; message?: string };
-          code = body.error;
-          message = body.message;
+          await useAuthStore.getState().refresh();
+          return true;
         } catch {
-          // 非 JSON 错误体（如网关 502）走兜底
+          useAuthStore.getState().logout();
+          return false;
         }
-        throw new ApiError(
-          code ?? `HTTP_${response.status}`,
-          message ?? `HTTP ${response.status} ${response.statusText}`,
-          response.status,
-        );
-      });
+      },
+    },
+  });
+
+  type PathParams = Record<string, string | number>;
+  interface OpenApiOpts {
+    params?: { query?: Record<string, unknown>; path?: PathParams };
+    body?: unknown;
+  }
+
+  /** openapi-fetch 风格：/api/legal/cases/{id} + path params → /api/legal/cases/5 */
+  function resolve(template: string, opts?: OpenApiOpts): string {
+    let p = template;
+    if (opts?.params?.path) {
+      for (const [k, v] of Object.entries(opts.params.path)) {
+        p = p.replace(`{${k}}`, String(v));
+      }
     }
-    return undefined;
-  },
-});
+    return p;
+  }
+
+  function queryOf(opts?: OpenApiOpts): Record<string, string | number | boolean | undefined> | undefined {
+    return opts?.params?.query as Record<string, string | number | boolean | undefined> | undefined;
+  }
+
+  return {
+    GET: async <T>(path: string, opts?: OpenApiOpts): Promise<{ data?: T }> => {
+      const data = await client.get<T>(resolve(path, opts));
+      return { data };
+    },
+    POST: async <T>(path: string, opts?: OpenApiOpts): Promise<{ data?: T }> => {
+      const data = await client.post<T>(resolve(path, opts), opts?.body);
+      return { data };
+    },
+    PUT: async <T>(path: string, opts?: OpenApiOpts): Promise<{ data?: T }> => {
+      const data = await client.put<T>(resolve(path, opts), opts?.body);
+      return { data };
+    },
+    DELETE: async <T>(path: string, opts?: OpenApiOpts): Promise<{ data?: T }> => {
+      const data = await client.delete<T>(resolve(path, opts));
+      return { data };
+    },
+  };
+}
