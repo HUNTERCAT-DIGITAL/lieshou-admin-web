@@ -19,6 +19,7 @@ import type { IndustryId } from '@lieshoucloud/types';
 import { dwjkEdition } from './dwjk';
 import { genericEdition } from './generic';
 import { haizanEdition } from './haizan';
+import { huntercatEdition } from './huntercat';
 import { jmzzEdition } from './jmzz';
 import { layerEdition } from './layer';
 import { legalmindEdition } from './legalmind';
@@ -38,6 +39,7 @@ export const EDITIONS: Record<EditionId, EditionConfig> = {
   legalmind: legalmindEdition,
   dwjk: dwjkEdition,
   haizan: haizanEdition,
+  huntercat: huntercatEdition,
 };
 
 /** 从 VITE_EDITION 环境变量解析版别（非法值回退 undefined → 继续走域名推断） */
@@ -58,6 +60,7 @@ function editionFromHostname(host: string): EditionId {
   if (host.startsWith('jmzz.') || host.includes('.jmzz.')) return 'jmzz';
   if (host.startsWith('dwjk.')) return 'dwjk';
   if (host.startsWith('haizan.')) return 'haizan';
+  if (host.startsWith('huntercat.')) return 'huntercat';
   return 'generic';
 }
 
