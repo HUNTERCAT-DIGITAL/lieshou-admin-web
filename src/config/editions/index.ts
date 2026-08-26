@@ -20,6 +20,7 @@ import { dwjkEdition } from './dwjk';
 import { genericEdition } from './generic';
 import { haizanEdition } from './haizan';
 import { huntercatEdition } from './huntercat';
+import { hekerenEdition } from './hekeren';
 import { linkesecurityEdition } from './linkesecurity';
 import { jmzzEdition } from './jmzz';
 import { layerEdition } from './layer';
@@ -42,6 +43,7 @@ export const EDITIONS: Record<EditionId, EditionConfig> = {
   haizan: haizanEdition,
   huntercat: huntercatEdition,
   linkesecurity: linkesecurityEdition,
+  hekeren: hekerenEdition,
 };
 
 /** 从 VITE_EDITION 环境变量解析版别（非法值回退 undefined → 继续走域名推断） */
@@ -64,6 +66,7 @@ function editionFromHostname(host: string): EditionId {
   if (host.startsWith('haizan.')) return 'haizan';
   if (host.startsWith('huntercat.')) return 'huntercat';
   if (host.startsWith('linkesecurity.')) return 'linkesecurity';
+  if (host.startsWith('hekeren.')) return 'hekeren';
   return 'generic';
 }
 
