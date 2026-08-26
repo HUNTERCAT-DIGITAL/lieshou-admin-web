@@ -77,7 +77,7 @@ import {
   type IotDevice,
   type IotProduct,
   type ProductDetail,
-} from '../../types/iot';
+} from '@lieshoucloud/types/business/iot';
 
 interface DeviceFormValues {
   name: string;

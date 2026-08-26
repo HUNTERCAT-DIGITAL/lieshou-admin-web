@@ -5,7 +5,7 @@
  * 30 天客户创建趋势用确定性 mock（同一租户每次看到相同曲线）。
  * 后续后端提供时间序列接口时，只换 `getCustomerCreatedSeries` 实现即可。
  */
-import type { Customer, CustomerStatus } from '../types/customer';
+import type { Customer, CustomerStatus } from '@lieshoucloud/types/business/customer';
 
 /** 桶：YYYY-MM-DD → 当天创建的客户数 */
 export type DailyBucket = { date: string; count: number };

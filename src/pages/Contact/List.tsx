@@ -26,7 +26,7 @@ import {
   updateContact,
 } from '../../services/contact';
 import { listCustomers } from '../../services/crm';
-import type { Contact } from '../../types/contact';
+import type { Contact } from '@lieshoucloud/types/business/contact';
 
 /** 新建/编辑表单值 */
 interface FormValues {

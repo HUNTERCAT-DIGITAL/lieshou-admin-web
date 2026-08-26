@@ -17,7 +17,7 @@ import AlertPanel from './cockpit/panels/AlertPanel';
 import { useCockpitData } from './cockpit/hooks/useCockpitData';
 
 import { getIotDeviceDetail } from '../../services/iot';
-import type { DeviceDetail, DeviceHealth, IotDevice } from '../../types/iot';
+import type { DeviceDetail, DeviceHealth, IotDevice } from '@lieshoucloud/types/business/iot';
 
 export default function IotCockpitPage() {
   const navigate = useNavigate();

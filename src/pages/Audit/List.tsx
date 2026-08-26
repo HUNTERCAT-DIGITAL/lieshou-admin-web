@@ -15,7 +15,7 @@ import {
   AUDIT_OUTCOME_TEXT,
   AUDIT_RESOURCE_TEXT,
   type AuditLog,
-} from '../../types/audit';
+} from '@lieshoucloud/types/business/audit';
 
 const ACTION_COLOR: Record<string, string> = {
   CREATE: 'green',

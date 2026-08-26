@@ -6,7 +6,7 @@ import {
   TEMPERATURE_LEVEL_COLOR,
   temperatureLevel,
   type TemperatureLevel,
-} from '../../../../types/iot';
+} from '@lieshoucloud/types/business/iot';
 import type { NodeTemperatureRow } from '../hooks/useCockpitData';
 
 interface TemperaturePanelProps {

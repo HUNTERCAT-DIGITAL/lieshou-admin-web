@@ -12,7 +12,7 @@ import {
   parseRuleActions,
   temperatureLevel,
   type IotRule,
-} from '../../types/iot';
+} from '@lieshoucloud/types/business/iot';
 import { ruleActionSummary, ruleConditionSummary, parseRuleConditions } from './Rules';
 import { toLinePoints } from './LineChart';
 import { mergePositions } from './Topo';

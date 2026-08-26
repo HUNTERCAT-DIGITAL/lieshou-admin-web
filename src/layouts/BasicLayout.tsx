@@ -38,7 +38,7 @@ import { setUnauthorizedHandler } from '../services/api';
 import { getApprovalCounts } from '../services/approval';
 import { fetchUserMenus } from '../services/menu';
 import { useAuthStore } from '../stores/auth';
-import type { MenuNode } from '../types/menu';
+import type { MenuNode } from '@lieshoucloud/types/business/menu';
 import { AuthError, getErrorMessage } from '../utils/errors';
 import { useThemeStore } from '../stores/theme';
 import defaultProps from './_defaultProps';

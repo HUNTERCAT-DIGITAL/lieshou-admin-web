@@ -41,7 +41,7 @@ import {
   type LegalCase,
   type RecentWorkItem,
   type WorkbenchSummary,
-} from '../../types/legal';
+} from '@lieshoucloud/types/business/legal';
 
 const { Text, Title } = Typography;
 

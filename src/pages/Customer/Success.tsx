@@ -81,7 +81,7 @@ import {
   type ResponseStatus,
   type ResponseType,
   type UpdateResponseRequest,
-} from '../../types/customerSuccess';
+} from '@lieshoucloud/types/business/customerSuccess';
 
 const { Text } = Typography;
 

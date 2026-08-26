@@ -5,7 +5,7 @@
  */
 import { DatavPanel, DatavPanelBadge, datavTheme, type ZoomInfo } from '@lieshoucloud/ui';
 import MiniTopo from './MiniTopo';
-import type { IotDevice, IotTopo } from '../../../types/iot';
+import type { IotDevice, IotTopo } from '@lieshoucloud/types/business/iot';
 
 export interface TopoViewProps {
   devices: IotDevice[];

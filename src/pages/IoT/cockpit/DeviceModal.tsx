@@ -9,7 +9,7 @@ import {
   temperatureLevel,
   type DeviceDetail,
   type DeviceHealth,
-} from '../../../types/iot';
+} from '@lieshoucloud/types/business/iot';
 
 interface DeviceModalProps {
   detailDev: DeviceHealth | null;

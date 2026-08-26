@@ -5,7 +5,7 @@
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { fillTemplatePlaceholder, followUpTone } from '../types/customerSuccess';
+import { fillTemplatePlaceholder, followUpTone } from '@lieshoucloud/types/business/customerSuccess';
 
 const { apiGet, apiPost, apiPut, apiDelete } = vi.hoisted(() => ({
   apiGet: vi.fn(),

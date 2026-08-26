@@ -10,7 +10,7 @@ import {
   seriesExtent,
   seriesTotal,
 } from './analytics';
-import type { Customer } from '../types/customer';
+import type { Customer } from '@lieshoucloud/types/business/customer';
 
 function customer(overrides: Partial<Customer>): Customer {
   return {

@@ -102,7 +102,7 @@ import {
   type TimeEntry,
   type TimeEntryRequest,
   type TimeEntrySummary,
-} from '../../types/legal';
+} from '@lieshoucloud/types/business/legal';
 
 const EVENT_OPTIONS = (Object.keys(EVENT_TYPE_META) as EventType[]).map((t) => ({
   label: EVENT_TYPE_META[t].text,

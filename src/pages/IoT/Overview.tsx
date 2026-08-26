@@ -35,7 +35,7 @@ import {
   TEMPERATURE_LEVEL_COLOR,
   temperatureLevel,
   type IotOverview,
-} from '../../types/iot';
+} from '@lieshoucloud/types/business/iot';
 
 export default function IotOverviewPage() {
   const navigate = useNavigate();

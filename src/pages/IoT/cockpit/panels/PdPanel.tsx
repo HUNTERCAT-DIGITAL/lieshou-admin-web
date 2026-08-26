@@ -2,7 +2,7 @@
  * 局放监测面板（设备列表：超声 / 地电波峰值 · 按峰值降序）.
  */
 import { DatavPanel, DatavPanelBadge, datavTheme, type ZoomInfo } from '@lieshoucloud/ui';
-import type { DeviceHealth } from '../../../../types/iot';
+import type { DeviceHealth } from '@lieshoucloud/types/business/iot';
 
 /** 超声峰值超标阈值（dBuv） */
 const ULTRASONIC_OVER = 30;

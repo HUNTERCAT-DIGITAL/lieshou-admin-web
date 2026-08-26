@@ -11,7 +11,7 @@ import type {
   MemberLevel,
   MemberStatus,
   UpdateMemberRequest,
-} from '../types/member';
+} from '@lieshoucloud/types/business/member';
 
 /** GET /api/members — 租户内会员列表（可选 customerId / level / status / keyword 过滤） */
 export async function listMembers(

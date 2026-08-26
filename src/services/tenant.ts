@@ -14,7 +14,7 @@ import type {
   Tenant,
   TenantInvite,
   UpdateTenantRequest,
-} from '../types/tenant';
+} from '@lieshoucloud/types/business/tenant';
 
 /** GET /api/tenants — 全量列表 */
 export async function listTenants(): Promise<Tenant[]> {

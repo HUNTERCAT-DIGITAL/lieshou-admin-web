@@ -57,7 +57,7 @@ import {
   type ClientValueRecord,
   type ClientValueType,
   type LegalClient,
-} from '../../types/legal';
+} from '@lieshoucloud/types/business/legal';
 
 const { Paragraph, Text } = Typography;
 

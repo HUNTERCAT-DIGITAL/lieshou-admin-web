@@ -56,7 +56,7 @@ import {
   type IotProduct,
   type IotRule,
   type RuleAction,
-} from '../../types/iot';
+} from '@lieshoucloud/types/business/iot';
 
 interface RuleFormValues {
   name: string;

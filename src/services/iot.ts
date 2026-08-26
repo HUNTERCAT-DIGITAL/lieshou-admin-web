@@ -24,7 +24,7 @@ import type {
   ProductDetail,
   ProductProperty,
   TopoNodePosition,
-} from '../types/iot';
+} from '@lieshoucloud/types/business/iot';
 
 // ────────────────────────── 产品物模型 ──────────────────────────
 

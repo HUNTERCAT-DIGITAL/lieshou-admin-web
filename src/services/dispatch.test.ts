@@ -28,7 +28,7 @@ import {
   getDispatch,
   listDispatches,
 } from './dispatch';
-import { STATUS_META, formatSlot } from '../types/dispatch';
+import { STATUS_META, formatSlot } from '@lieshoucloud/types/business/dispatch';
 
 describe('dispatch service', () => {
   beforeEach(() => {

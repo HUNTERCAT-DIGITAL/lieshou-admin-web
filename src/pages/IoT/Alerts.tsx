@@ -17,7 +17,7 @@ import {
 
 import { useApiError } from '../../hooks/useApiError';
 import { ackIotAlert, listIotAlerts, listIotDevices } from '../../services/iot';
-import { IOT_ALERT_STATUS_META, IOT_SEVERITY_META, type IotAlert } from '../../types/iot';
+import { IOT_ALERT_STATUS_META, IOT_SEVERITY_META, type IotAlert } from '@lieshoucloud/types/business/iot';
 
 /** 设备名映射（告警实体只有 deviceId，列表展示需设备名） */
 function useDeviceNameMap() {

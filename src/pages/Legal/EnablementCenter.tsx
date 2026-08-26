@@ -47,7 +47,7 @@ import {
   type OrgSignal,
   type OrgSignalType,
   type TeamMember,
-} from '../../types/legal';
+} from '@lieshoucloud/types/business/legal';
 
 const { Paragraph, Text } = Typography;
 

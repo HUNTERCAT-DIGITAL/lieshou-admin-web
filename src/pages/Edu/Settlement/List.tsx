@@ -42,7 +42,7 @@ import {
   type Settlement,
   type SettlementStatus,
   type SettleCycle,
-} from '../../../types/supply';
+} from '@lieshoucloud/types/business/supply';
 
 /** 概览统计（客户端聚合） */
 interface SettlementStats {

@@ -53,7 +53,7 @@ import { countIotDevices, listIotProducts } from '../services/iot';
 import { countUsers } from '../services/user';
 import { listTenants } from '../services/tenant';
 import { getCustomerSuccessSummary } from '../services/customerSuccess';
-import type { CustomerSuccessSummary } from '../types/customerSuccess';
+import type { CustomerSuccessSummary } from '@lieshoucloud/types/business/customerSuccess';
 import { useAuthStore } from '../stores/auth';
 import {
   aggregateFunnel,
@@ -62,7 +62,7 @@ import {
   getCustomerCreatedSeries,
   seriesTotal,
 } from '../utils/analytics';
-import { STATUS_META } from '../types/customer';
+import { STATUS_META } from '@lieshoucloud/types/business/customer';
 
 const { Title, Text } = Typography;
 

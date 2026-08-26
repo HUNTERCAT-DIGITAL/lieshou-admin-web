@@ -14,7 +14,7 @@ import {
 
 import { useApiError } from '../../hooks/useApiError';
 import { createRole, deleteRole, listRoles, updateRole } from '../../services/role';
-import { ROLE_SCOPE_META, type Role } from '../../types/role';
+import { ROLE_SCOPE_META, type Role } from '@lieshoucloud/types/business/role';
 
 interface FormValues {
   code?: string;

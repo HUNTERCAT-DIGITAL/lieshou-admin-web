@@ -11,7 +11,7 @@ import type {
   Teacher,
   TeacherStatus,
   UpdateTeacherRequest,
-} from '../types/teacher';
+} from '@lieshoucloud/types/business/teacher';
 
 /** GET /api/teachers — 租户内师资列表（可选 keyword / status 过滤；后端未分页） */
 export async function listTeachers(keyword?: string, status?: TeacherStatus): Promise<Teacher[]> {

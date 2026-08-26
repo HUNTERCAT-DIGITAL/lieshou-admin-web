@@ -11,7 +11,7 @@ import type {
   Customer,
   CustomerStatus,
   UpdateCustomerRequest,
-} from '../types/customer';
+} from '@lieshoucloud/types/business/customer';
 
 /** GET /api/customers — 租户内客户列表（可选 keyword / status 过滤；后端未分页） */
 export async function listCustomers(

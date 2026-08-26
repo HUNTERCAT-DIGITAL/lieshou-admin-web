@@ -48,7 +48,7 @@ import {
   type KnowledgeCardRequest,
   type KnowledgeCardStatus,
   type KnowledgeCardType,
-} from '../../types/legal';
+} from '@lieshoucloud/types/business/legal';
 import { usePaged } from '../../hooks/usePaged';
 
 const { Text } = Typography;

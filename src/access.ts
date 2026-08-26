@@ -6,7 +6,7 @@
  * 兼容：permissions 缺失（旧 token / 旧后端）时回退角色推导（Phase 8 逻辑）。
  */
 
-import type { CurrentUser } from './types/auth';
+import type { CurrentUser } from '@lieshoucloud/types/business/auth';
 
 export type Access = {
   /** 通用管理后台（登录即可见） */

@@ -52,7 +52,7 @@ import {
   type MatterCalendarSummary,
   type MatterSchedule,
   type ScheduleRequest,
-} from '../../types/legal';
+} from '@lieshoucloud/types/business/legal';
 
 const { Paragraph, Text } = Typography;
 

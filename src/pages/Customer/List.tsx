@@ -34,7 +34,7 @@ import {
   updateCustomer,
 } from '../../services/crm';
 import { listUsers } from '../../services/user';
-import { STATUS_META, type Customer, type CustomerStatus } from '../../types/customer';
+import { STATUS_META, type Customer, type CustomerStatus } from '@lieshoucloud/types/business/customer';
 import { runBatch } from '../../utils/batch';
 import { CUSTOMER_TEMPLATE } from '../../utils/csv';
 import ImportModal from '../../components/ImportModal';

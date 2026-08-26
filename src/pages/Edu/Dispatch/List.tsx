@@ -36,7 +36,7 @@ import {
 import { listCustomers } from '../../../services/crm';
 import { listProducts } from '../../../services/inventory';
 import { listTeachers } from '../../../services/teacher';
-import { STATUS_META, formatSlot, type DispatchRecord, type DispatchStatus } from '../../../types/dispatch';
+import { STATUS_META, formatSlot, type DispatchRecord, type DispatchStatus } from '@lieshoucloud/types/business/dispatch';
 
 /** 概览统计（总数 + 各状态，客户端聚合） */
 interface DispatchStats {

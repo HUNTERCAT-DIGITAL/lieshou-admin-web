@@ -14,7 +14,7 @@ import {
 import { useApiError } from '../../hooks/useApiError';
 import { StatusTag, RoleTag } from '@lieshoucloud/ui';
 import { createUser, deleteUser, listUsers, updateUser } from '../../services/user';
-import { STATUS_META, type User } from '../../types/user';
+import { STATUS_META, type User } from '@lieshoucloud/types/business/user';
 import { filterByKeywordAndStatus } from '../../utils/list-filter';
 import { runBatch } from '../../utils/batch';
 

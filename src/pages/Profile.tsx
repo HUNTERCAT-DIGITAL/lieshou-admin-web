@@ -12,7 +12,7 @@ import { useApiError } from '../hooks/useApiError';
 import { useAuthStore } from '../stores/auth';
 import { RoleTag } from '@lieshoucloud/ui';
 import { getEdition } from '../config/editions';
-import type { CurrentUser } from '../types/auth';
+import type { CurrentUser } from '@lieshoucloud/types/business/auth';
 
 const { Text } = Typography;
 

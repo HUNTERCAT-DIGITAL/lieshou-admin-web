@@ -2,7 +2,7 @@
  * 告警占比面板（单主题：预警/严重 饼图 + 总数）.
  */
 import { DatavPanel, DatavPanelBadge, DatavDvRing, datavTheme, type ZoomInfo } from '@lieshoucloud/ui';
-import type { IotAlert } from '../../../../types/iot';
+import type { IotAlert } from '@lieshoucloud/types/business/iot';
 
 interface AlertPanelProps {
   alerts7d: IotAlert[];

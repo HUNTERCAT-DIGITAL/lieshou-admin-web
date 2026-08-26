@@ -12,7 +12,7 @@ import type {
   InspectionType,
   ProductTrace,
   QualityInspection,
-} from '../types/quality';
+} from '@lieshoucloud/types/business/quality';
 
 /** GET /api/batches — 批次列表（可选 productId / keyword） */
 export async function listBatches(

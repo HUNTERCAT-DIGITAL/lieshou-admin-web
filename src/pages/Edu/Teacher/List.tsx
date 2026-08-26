@@ -36,7 +36,7 @@ import {
   SUBJECT_OPTIONS,
   type Teacher,
   type TeacherStatus,
-} from '../../../types/teacher';
+} from '@lieshoucloud/types/business/teacher';
 
 const STATUS_OPTIONS = (Object.keys(STATUS_META) as TeacherStatus[]).map((s) => ({
   label: STATUS_META[s].text,

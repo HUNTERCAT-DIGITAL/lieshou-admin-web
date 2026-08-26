@@ -12,7 +12,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { useApiError } from '../../hooks/useApiError';
 import { growthSummary } from '../../services/legal';
-import type { GrowthSummary } from '../../types/legal';
+import type { GrowthSummary } from '@lieshoucloud/types/business/legal';
 
 const { Paragraph, Text } = Typography;
 

@@ -20,7 +20,7 @@ import dayjs from 'dayjs';
 import { useApiError } from '../../../hooks/useApiError';
 import { createConsumption, listConsumptions } from '../../../services/supply';
 import { listSupplyOrders } from '../../../services/supply';
-import { formatMoney, type ConsumptionRecord } from '../../../types/supply';
+import { formatMoney, type ConsumptionRecord } from '@lieshoucloud/types/business/supply';
 
 /** 概览统计（客户端聚合） */
 interface ConsumptionStats {

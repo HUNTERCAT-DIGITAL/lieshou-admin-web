@@ -34,7 +34,7 @@ import {
   type Gate,
   type GateStatus,
   type LegalCase,
-} from '../../types/legal';
+} from '@lieshoucloud/types/business/legal';
 import { intakeGateSummary, listCaseGates, updateCase, updateGate } from '../../services/legal';
 import { useApiError } from '../../hooks/useApiError';
 

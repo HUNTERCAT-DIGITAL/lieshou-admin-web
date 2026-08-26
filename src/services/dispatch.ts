@@ -11,7 +11,7 @@ import type {
   CreateDispatchRequest,
   DispatchRecord,
   DispatchStatus,
-} from '../types/dispatch';
+} from '@lieshoucloud/types/business/dispatch';
 
 /** GET /api/dispatches — 租户内派遣单列表（可选 keyword / status / teacherId 过滤；后端未分页） */
 export async function listDispatches(

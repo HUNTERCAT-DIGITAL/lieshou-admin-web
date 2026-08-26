@@ -47,7 +47,7 @@ import {
   type GovernanceItem,
   type GovernanceRule,
   type GovernanceSummary,
-} from '../../types/legal';
+} from '@lieshoucloud/types/business/legal';
 
 const { Paragraph, Text } = Typography;
 

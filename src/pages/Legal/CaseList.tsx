@@ -38,7 +38,7 @@ import {
   type CaseType,
   type CreateCaseRequest,
   type LegalCase,
-} from '../../types/legal';
+} from '@lieshoucloud/types/business/legal';
 
 const STATUS_OPTIONS = (Object.keys(CASE_STATUS_META) as CaseStatus[]).map((s) => ({
   label: CASE_STATUS_META[s].text,

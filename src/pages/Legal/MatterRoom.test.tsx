@@ -8,7 +8,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import MatterRoom from './MatterRoom';
-import { CASE_STAGE_FLOW, stageIndex, type LegalCase } from '../../types/legal';
+import { CASE_STAGE_FLOW, stageIndex, type LegalCase } from '@lieshoucloud/types/business/legal';
 import { updateCase } from '../../services/legal';
 
 vi.mock('../../services/legal', async () => {

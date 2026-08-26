@@ -37,7 +37,7 @@ import {
   temperatureLevel,
   type IotDevice,
   type IotTopo,
-} from '../../types/iot';
+} from '@lieshoucloud/types/business/iot';
 
 interface Pos {
   x: number;

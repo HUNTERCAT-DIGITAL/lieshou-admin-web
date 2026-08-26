@@ -48,10 +48,6 @@ function createClientLike() {
     return p;
   }
 
-  function queryOf(opts?: OpenApiOpts): Record<string, string | number | boolean | undefined> | undefined {
-    return opts?.params?.query as Record<string, string | number | boolean | undefined> | undefined;
-  }
-
   return {
     GET: async <T>(path: string, opts?: OpenApiOpts): Promise<{ data?: T }> => {
       const data = await client.get<T>(resolve(path, opts));

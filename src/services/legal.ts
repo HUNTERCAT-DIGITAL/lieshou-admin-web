@@ -67,7 +67,7 @@ import type {
   GovernanceRule,
   AuditEvent,
   GovernanceStatus,
-} from '../types/legal';
+} from '@lieshoucloud/types/business/legal';
 
 // ============================================================
 // 案件
@@ -348,7 +348,7 @@ export async function workbenchRecent(limit = 6): Promise<RecentWorkItem[]> {
 // 案件闸门（V35 可信业务链）
 // ============================================================
 
-import type { Gate, GateStatus } from '../types/legal';
+import type { Gate, GateStatus } from '@lieshoucloud/types/business/legal';
 
 /** GET /api/legal/cases/{id}/gates — 八闸门（立项四门 + 结案四门） */
 export async function listCaseGates(caseId: number): Promise<Gate[]> {

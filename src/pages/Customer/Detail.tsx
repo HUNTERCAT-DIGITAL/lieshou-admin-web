@@ -16,7 +16,7 @@ import { useApiError } from '../../hooks/useApiError';
 import { getEdition } from '../../config/editions';
 import { deleteCustomer, getCustomer, updateCustomer } from '../../services/crm';
 import { listUsers } from '../../services/user';
-import { STATUS_META, type Customer, type CustomerStatus } from '../../types/customer';
+import { STATUS_META, type Customer, type CustomerStatus } from '@lieshoucloud/types/business/customer';
 
 const { Text } = Typography;
 

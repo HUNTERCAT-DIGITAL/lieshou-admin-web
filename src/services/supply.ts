@@ -16,7 +16,7 @@ import type {
   SettlementStatus,
   SupplyOrder,
   SupplyOrderStatus,
-} from '../types/supply';
+} from '@lieshoucloud/types/business/supply';
 
 // ---------- 供应单 ----------
 

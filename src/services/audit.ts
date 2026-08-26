@@ -6,7 +6,7 @@
  */
 
 import { api } from './api';
-import type { AuditAction, AuditLog } from '../types/audit';
+import type { AuditAction, AuditLog } from '@lieshoucloud/types/business/audit';
 
 export interface AuditQuery {
   action?: AuditAction;

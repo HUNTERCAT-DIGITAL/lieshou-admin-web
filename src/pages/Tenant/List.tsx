@@ -28,7 +28,7 @@ import {
   revokeInvite,
   updateTenant,
 } from '../../services/tenant';
-import { TENANT_STATUS_META, type Tenant, type TenantInvite } from '../../types/tenant';
+import { TENANT_STATUS_META, type Tenant, type TenantInvite } from '@lieshoucloud/types/business/tenant';
 import { filterByKeywordAndStatus } from '../../utils/list-filter';
 
 /** 关键字模糊匹配范围（后端暂无搜索 API） */

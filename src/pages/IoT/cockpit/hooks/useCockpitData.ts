@@ -20,7 +20,7 @@ import {
   type IotDevice,
   type IotOverview,
   type IotTopo,
-} from '../../../../types/iot';
+} from '@lieshoucloud/types/business/iot';
 
 export interface CockpitData {
   overview: IotOverview | null;

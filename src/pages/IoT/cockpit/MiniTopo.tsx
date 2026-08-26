@@ -9,7 +9,7 @@
  */
 import { useMemo } from 'react';
 import { EChart, datavTheme, useElementSize } from '@lieshoucloud/ui';
-import { temperatureLevel, type IotDevice, type IotTopo } from '../../../types/iot';
+import { temperatureLevel, type IotDevice, type IotTopo } from '@lieshoucloud/types/business/iot';
 import { mergePositions } from '../Topo';
 
 interface MiniTopoProps {

@@ -43,7 +43,7 @@ import {
   type CreateSupplyOrderRequest,
   type SupplyOrder,
   type SupplyOrderStatus,
-} from '../../../types/supply';
+} from '@lieshoucloud/types/business/supply';
 
 /** 概览统计（总数 + 各状态，客户端聚合） */
 interface SupplyStats {
