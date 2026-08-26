@@ -1,79 +1,53 @@
 /**
- * 管理首页 · 数据看板（Phase 9 · BI 雏形 · 2026-08-25 分版）.
+ * 管理首页 · 数据看板（开源版 · 2026-08-27 开源数据源重构）.
  *
- * - 非 dwjk（通用/法律/教育/制造版）：租户/用户/客户/进销存/财务/审批看板
- * - dwjk（物联网云平台）：精简工作台——用户数 + 物联网概况 + 监控快捷入口
- *   （客户/进销存/财务/审批与电网监控无关，不展示也不请求）
+ * - 数据全部来自开源服务：user（租户/用户/审计/通知）+ approval（审批）
+ * - 闭源商业模块（CRM/进销存/财务）不再请求（开源交付包未部署）
+ * - dwjk（物联网云平台）：精简工作台——只看用户数（兼容既有版别）
  *
- * 数据：dwjk 只请求 countUsers + iot；非 dwjk 走全量概览。
+ * 布局：统计卡片（租户/用户/审批待办/我发起/审计/未读通知）
+ *      + 审批类型分布（环形图）+ 最近审计动态
  */
 import {
-  AccountBookOutlined,
-  AlertOutlined,
   AuditOutlined,
+  BellOutlined,
   CheckCircleOutlined,
-  ClockCircleOutlined,
   ClusterOutlined,
-  ContactsOutlined,
-  DollarOutlined,
-  FallOutlined,
-  MailOutlined,
-  MessageOutlined,
-  PlusOutlined,
+  FileSearchOutlined,
   ReloadOutlined,
-  RiseOutlined,
   SendOutlined,
-  ShopOutlined,
   TeamOutlined,
   UserOutlined,
-  WarningOutlined,
 } from '@ant-design/icons';
 import { PageContainer, ProCard, StatisticCard } from '@ant-design/pro-components';
-import { Avatar, Button, Space, Tag, Typography } from 'antd';
+import { Button, List, Space, Tag, Typography } from 'antd';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { DatavDvRing, type DvRingDatum } from '@lieshoucloud/ui';
 import { ROLE_PLATFORM_ADMIN } from '../access';
-import BarChart from '../components/charts/BarChart';
-import { RoleTag } from '@lieshoucloud/ui';
 import { useApiError } from '../hooks/useApiError';
 import { getEdition } from '../config/editions';
-import { listCustomers } from '../services/crm';
-import { getApprovalCounts } from '../services/approval';
-import { getLedgerSummary } from '../services/finance';
-import { listProducts } from '../services/inventory';
+import { getApprovalCounts, listApprovals } from '../services/approval';
+import { APPROVAL_TYPE_META, type ApprovalType } from '@lieshoucloud/types/business/approval';
+import { countAuditLogs, listAuditLogs } from '../services/audit';
+import { unreadNotificationCount } from '../services/notification';
 import { countUsers } from '../services/user';
 import { listTenants } from '../services/tenant';
-import { getCustomerSuccessSummary } from '../services/customerSuccess';
-import type { CustomerSuccessSummary } from '@lieshoucloud/types/business/customerSuccess';
+import type { AuditLog } from '@lieshoucloud/types/business/audit';
 import { useAuthStore } from '../stores/auth';
-import {
-  aggregateFunnel,
-  aggregateStatus,
-  FUNNEL_ORDER,
-  getCustomerCreatedSeries,
-  seriesTotal,
-} from '../utils/analytics';
-import { STATUS_META } from '@lieshoucloud/types/business/customer';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
-/** 概览统计 */
+/** 概览统计（全部来自开源服务） */
 interface Overview {
   tenants: number | null;
   users: number;
-  customers: number;
-  products: number;
-  stockValue: number;
-  lowStock: number;
-  monthIncome: number;
-  monthExpense: number;
   approvalInbox: number;
+  approvalMine: number;
+  auditCount: number;
+  unread: number;
 }
-
-const LOW_STOCK_THRESHOLD = 5;
-
-/** dwjk 精简工作台（只看用户 + 物联网监控） */
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -87,459 +61,178 @@ export default function Admin() {
   const [overview, setOverview] = useState<Overview>({
     tenants: null,
     users: 0,
-    customers: 0,
-    products: 0,
-    stockValue: 0,
-    lowStock: 0,
-    monthIncome: 0,
-    monthExpense: 0,
     approvalInbox: 0,
+    approvalMine: 0,
+    auditCount: 0,
+    unread: 0,
   });
-  const [statusDist, setStatusDist] = useState(aggregateStatus([]));
-  const [funnel, setFunnel] = useState(aggregateFunnel([]));
-  const [series, setSeries] = useState(getCustomerCreatedSeries(user?.tenantCode ?? 'default'));
-  const [recent, setRecent] = useState<Awaited<ReturnType<typeof listCustomers>>>([]);
-  const [success, setSuccess] = useState<CustomerSuccessSummary>({
-    totalLetters: 0,
-    draftLetters: 0,
-    sentLetters: 0,
-    completedLetters: 0,
-    totalResponses: 0,
-    openResponses: 0,
-    resolvedResponses: 0,
-    negativeResponses: 0,
-    weekResponses: 0,
-    followUpOverdue: 0,
-    followUpDueToday: 0,
-  });
+  const [approvalTypeDist, setApprovalTypeDist] = useState<DvRingDatum[]>([]);
+  const [recentAudits, setRecentAudits] = useState<AuditLog[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [users] = await Promise.all([countUsers()]);
+      const users = await countUsers();
       const tenants = isPlatformAdmin ? (await listTenants()).length : null;
-
-      // 值班员控制台：跳过 CRM/进销存/财务/审批概览（与行业版核心业务无关）
-      let customerList: Awaited<ReturnType<typeof listCustomers>> = [];
-      let products: Awaited<ReturnType<typeof listProducts>> = [];
-      let monthIncome = 0;
-      let monthExpense = 0;
-      let approvalInbox = 0;
-      if (!dutyConsole) {
-        const [cl, pl] = await Promise.all([listCustomers(), listProducts()]);
-        customerList = cl;
-        products = pl;
-        const now = new Date();
-        const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-        const ledger = await getLedgerSummary({ from: monthStart, to: today });
-        monthIncome = ledger.income;
-        monthExpense = ledger.expense;
-        approvalInbox = (await getApprovalCounts()).inbox;
-        setStatusDist(aggregateStatus(customerList));
-        setFunnel(aggregateFunnel(customerList));
-        setSeries(getCustomerCreatedSeries(user?.tenantCode ?? 'default'));
-        const sorted = [...customerList].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-        setRecent(sorted.slice(0, 5));
-        // 客户成功中心概览（工作台第 4 卡）：失败静默降级，不阻塞看板
-        try {
-          setSuccess(await getCustomerSuccessSummary());
-        } catch {
-          // crm 不可达时保持零值
-        }
-      }
+      const counts = await getApprovalCounts();
+      const auditCount = await countAuditLogs();
+      const unread = await unreadNotificationCount();
 
       setOverview({
         tenants,
         users,
-        customers: customerList.length,
-        products: products.length,
-        stockValue: products.reduce((sum, p) => sum + (p.price ?? 0) * p.stockQuantity, 0),
-        lowStock: products.filter((p) => p.stockQuantity <= LOW_STOCK_THRESHOLD).length,
-        monthIncome,
-        monthExpense,
-        approvalInbox,
+        approvalInbox: counts.inbox,
+        approvalMine: counts.mine,
+        auditCount,
+        unread,
       });
+
+      if (!dutyConsole) {
+        // 审批类型分布（环形图）
+        const approvals = await listApprovals({});
+        const byType = new Map<string, number>();
+        for (const a of approvals) {
+          byType.set(a.type, (byType.get(a.type) ?? 0) + 1);
+        }
+        setApprovalTypeDist(
+          [...byType.entries()].map(([t, value]) => ({
+            name: APPROVAL_TYPE_META[t as ApprovalType]?.text ?? t,
+            value,
+            color: APPROVAL_TYPE_META[t as ApprovalType]?.color,
+          })),
+        );
+        // 最近审计动态
+        setRecentAudits(await listAuditLogs({ limit: 8 }));
+      }
     } catch (e) {
       handleError(e);
     } finally {
       setLoading(false);
     }
-  }, [handleError, isPlatformAdmin, dutyConsole, user?.tenantCode]);
+  }, [handleError, isPlatformAdmin, dutyConsole]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
-  const total7d = seriesTotal(series, 7);
-  const total30d = seriesTotal(series, 30);
-
-
   return (
     <PageContainer
       title="数据看板"
-      extra={[
-        <Button
-          key="reload"
-          icon={<ReloadOutlined />}
-          onClick={() => void load()}
-          loading={loading}
-        >
+      subTitle="开源版：租户 / 用户 / 审批 / 审计 / 通知 全景"
+      extra={
+        <Button icon={<ReloadOutlined />} onClick={() => void load()} loading={loading}>
           刷新
-        </Button>,
-      ]}
+        </Button>
+      }
     >
-      <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-        {/* 欢迎条 */}
-        <ProCard bordered>
-          <Space size="middle">
-            <Avatar size={56} icon={<UserOutlined />} style={{ background: '#1677ff' }}>
-              {user?.username?.charAt(0).toUpperCase()}
-            </Avatar>
-            <div>
-              <Title level={4} style={{ margin: 0 }}>
-                {user?.username ?? '访客'}，欢迎回来
-              </Title>
-              <Text type="secondary">
-                {user?.tenantCode && <Tag color="geekblue">租户 {user.tenantCode}</Tag>}
-                {roles.map((r) => (
-                  <RoleTag key={r} role={r} />
-                ))}
-              </Text>
-            </div>
-          </Space>
-        </ProCard>
+      {/* ===== 第一行：平台规模 ===== */}
+      <ProCard split="vertical" bordered bodyStyle={{ padding: '12px 0' }}>
+        <StatisticCard
+          statistic={{ title: '租户数', value: overview.tenants ?? '-', icon: <ClusterOutlined /> }}
+        />
+        <StatisticCard
+          statistic={{ title: '用户数', value: overview.users, icon: <TeamOutlined /> }}
+        />
+        <StatisticCard
+          statistic={{
+            title: '审批待办',
+            value: overview.approvalInbox,
+            icon: <BellOutlined />,
+            suffix: '条',
+          }}
+          onClick={() => navigate('/approval/list')}
+        />
+      </ProCard>
 
-        {/* 概览统计 */}
-        <ProCard split="vertical" bordered bodyStyle={{ padding: '12px 0' }}>
-          {isPlatformAdmin && overview.tenants !== null && (
-            <StatisticCard
-              statistic={{
-                title: '租户总数',
-                value: overview.tenants,
-                prefix: <ClusterOutlined />,
-              }}
-            />
-          )}
-          <StatisticCard
-            statistic={{
-              title: isPlatformAdmin ? '平台用户数' : '本租户用户',
-              value: overview.users,
-              prefix: <TeamOutlined />,
-            }}
-          />
-          <StatisticCard
-            statistic={{
-              title: isPlatformAdmin ? '租户客户总数' : '本租户客户',
-              value: overview.customers,
-              prefix: <ContactsOutlined />,
-            }}
-          />
-        </ProCard>
-
-        {/* 业务经营统计（进销存 + 财务） */}
+      {/* ===== 第二行：业务动态 ===== */}
+      {!dutyConsole && (
         <ProCard split="vertical" bordered bodyStyle={{ padding: '12px 0' }}>
           <StatisticCard
             statistic={{
-              title: '商品数',
-              value: overview.products,
-              prefix: <ShopOutlined />,
+              title: '我发起的审批',
+              value: overview.approvalMine,
+              icon: <SendOutlined />,
+              suffix: '条',
             }}
+            onClick={() => navigate('/approval/list')}
           />
           <StatisticCard
             statistic={{
-              title: '库存总值（¥）',
-              value: overview.stockValue.toFixed(0),
-              prefix: <DollarOutlined />,
+              title: '审计日志',
+              value: overview.auditCount,
+              icon: <AuditOutlined />,
+              suffix: '条',
             }}
+            onClick={() => navigate('/audit/list')}
           />
           <StatisticCard
             statistic={{
-              title: '低库存预警（≤' + LOW_STOCK_THRESHOLD + '）',
-              value: overview.lowStock,
-              prefix: <WarningOutlined />,
-              valueStyle: { color: overview.lowStock > 0 ? '#f5222d' : '#52c41a' },
+              title: '未读通知',
+              value: overview.unread,
+              icon: <BellOutlined />,
+              suffix: '条',
             }}
-          />
-          <StatisticCard
-            statistic={{
-              title: '本月收入（¥）',
-              value: overview.monthIncome.toFixed(0),
-              prefix: <RiseOutlined />,
-              valueStyle: { color: '#52c41a' },
-            }}
-          />
-          <StatisticCard
-            statistic={{
-              title: '本月支出（¥）',
-              value: overview.monthExpense.toFixed(0),
-              prefix: <FallOutlined />,
-              valueStyle: { color: '#f5222d' },
-            }}
-          />
-          <StatisticCard
-            statistic={{
-              title: '本月结余（¥）',
-              value: (overview.monthIncome - overview.monthExpense).toFixed(0),
-              prefix: <AccountBookOutlined />,
-              valueStyle: {
-                color: overview.monthIncome - overview.monthExpense >= 0 ? '#1677ff' : '#f5222d',
-              },
-            }}
-          />
-          <StatisticCard
-            statistic={{
-              title: '待我审批',
-              value: overview.approvalInbox,
-              prefix: <AuditOutlined />,
-              valueStyle: {
-                color: overview.approvalInbox > 0 ? '#fa8c16' : '#52c41a',
-              },
-            }}
+            onClick={() => navigate('/notification')}
           />
         </ProCard>
+      )}
 
-        {/* 客户成功中心（工作台第 4 卡 · 售后闭环概览） */}
-        <ProCard
-          title="客户成功中心"
-          bordered
-          extra={
-            <Button icon={<ContactsOutlined />} onClick={() => navigate('/customer/success')}>
-              进入客户成功中心
-            </Button>
-          }
-        >
-          {loading ? (
-            <div style={{ padding: 24 }}>加载中…</div>
-          ) : (
-            <ProCard split="vertical" bodyStyle={{ padding: '12px 0' }}>
-              <StatisticCard
-                statistic={{
-                  title: '待发送联系函',
-                  value: success.draftLetters,
-                  prefix: <MailOutlined />,
-                  valueStyle: { color: '#fa8c16' },
-                }}
-              />
-              <StatisticCard
-                statistic={{
-                  title: '已发送待响应',
-                  value: success.sentLetters,
-                  prefix: <SendOutlined />,
-                  valueStyle: { color: '#1677ff' },
-                }}
-              />
-              <StatisticCard
-                statistic={{
-                  title: '待跟进响应',
-                  value: success.openResponses,
-                  prefix: <MessageOutlined />,
-                  valueStyle: { color: '#faad14' },
-                }}
-              />
-              <StatisticCard
-                statistic={{
-                  title: '已逾期跟进',
-                  value: success.followUpOverdue,
-                  prefix: <ClockCircleOutlined />,
-                  valueStyle: { color: success.followUpOverdue > 0 ? '#f5222d' : '#52c41a' },
-                }}
-                hoverable
-                onClick={() => navigate('/customer/success?tab=responses&followUp=overdue')}
-              />
-              <StatisticCard
-                statistic={{
-                  title: '今日到期跟进',
-                  value: success.followUpDueToday,
-                  prefix: <WarningOutlined />,
-                  valueStyle: { color: success.followUpDueToday > 0 ? '#fa8c16' : '#52c41a' },
-                }}
-                hoverable
-                onClick={() => navigate('/customer/success?tab=responses&followUp=dueToday')}
-              />
-              <StatisticCard
-                statistic={{
-                  title: '消极响应',
-                  value: success.negativeResponses,
-                  prefix: <AlertOutlined />,
-                  valueStyle: { color: success.negativeResponses > 0 ? '#f5222d' : '#52c41a' },
-                }}
-              />
-              <StatisticCard
-                statistic={{
-                  title: '近 7 天响应',
-                  value: success.weekResponses,
-                  prefix: <RiseOutlined />,
-                  valueStyle: { color: '#52c41a' },
-                }}
-              />
-              <StatisticCard
-                statistic={{
-                  title: '响应闭环率',
-                  value:
-                    success.totalResponses > 0
-                      ? `${Math.round((success.resolvedResponses / success.totalResponses) * 100)}%`
-                      : '—',
-                  prefix: <CheckCircleOutlined />,
-                }}
-              />
-            </ProCard>
-          )}
-        </ProCard>
-
+      {/* ===== 第三行：审批分布 + 最近审计 ===== */}
+      {!dutyConsole && (
         <ProCard gutter={16} wrap>
-          {/* 30 天客户创建趋势 */}
-          <ProCard
-            title="30 天客户创建趋势"
-            colSpan={{ xs: 24, lg: 14 }}
-            loading={loading}
-            extra={
-              <Space size="small">
-                <Tag color="blue">近 7 天 {total7d} 条</Tag>
-                <Tag color="geekblue">近 30 天 {total30d} 条</Tag>
-              </Space>
-            }
-          >
-            <BarChart data={series} />
-          </ProCard>
-
-          {/* 状态分布 + 漏斗 */}
-          <ProCard title="客户状态分布" colSpan={{ xs: 24, lg: 10 }} loading={loading}>
-            <Space direction="vertical" style={{ width: '100%' }} size="middle">
-              {statusDist.map((b) => (
-                <div key={b.status}>
-                  <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                    <Text strong>
-                      <Tag color={STATUS_META[b.status].color} style={{ marginRight: 8 }}>
-                        {STATUS_META[b.status].text}
-                      </Tag>
-                    </Text>
-                    <Text type="secondary">
-                      {b.count} 条 · {b.pct}%
-                    </Text>
-                  </Space>
-                  <div
-                    style={{
-                      background: '#f5f5f5',
-                      borderRadius: 4,
-                      height: 8,
-                      marginTop: 4,
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: `${b.pct}%`,
-                        height: '100%',
-                        background: STATUS_META[b.status].color,
-                        transition: 'width 0.4s',
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </Space>
-          </ProCard>
-        </ProCard>
-
-        <ProCard gutter={16} wrap>
-          {/* 跟进漏斗 */}
-          <ProCard title="客户生命周期漏斗" colSpan={{ xs: 24, lg: 14 }} loading={loading}>
-            <Space direction="vertical" style={{ width: '100%' }} size="middle">
-              {funnel.map((b, i) => {
-                const prev = i > 0 ? funnel[i - 1] : null;
-                const widthPct = Math.max(20, b.pct);
-                const conversion =
-                  prev && prev.count > 0 ? Math.round((b.count / prev.count) * 100) : null;
-                return (
-                  <div key={b.status}>
-                    <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                      <Text strong>
-                        {FUNNEL_ORDER.indexOf(b.status) + 1}. {STATUS_META[b.status].text}
-                      </Text>
-                      <Text type="secondary">
-                        {b.count} 条 · {b.pct}%
-                        {conversion !== null && prev && (
-                          <Tag
-                            color={conversion >= 50 ? 'green' : 'orange'}
-                            style={{ marginLeft: 8 }}
-                          >
-                            转化率 {conversion}%
-                          </Tag>
-                        )}
-                      </Text>
-                    </Space>
-                    <div
-                      style={{
-                        background: '#fafafa',
-                        border: '1px solid #f0f0f0',
-                        borderRadius: 6,
-                        height: 36,
-                        marginTop: 4,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: `${widthPct}%`,
-                          height: '100%',
-                          background: `${STATUS_META[b.status].color}22`,
-                          borderLeft: `4px solid ${STATUS_META[b.status].color}`,
-                          transition: 'width 0.4s',
-                        }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </Space>
-          </ProCard>
-
-          {/* 快捷入口 + 最近客户 */}
-          <ProCard title="快捷入口" colSpan={{ xs: 24, lg: 10 }}>
-            <Space wrap size={[12, 12]}>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => navigate('/customer/list')}
-              >
-                CRM 客户管理
-              </Button>
-              {isPlatformAdmin && (
-                <Button icon={<ClusterOutlined />} onClick={() => navigate('/tenant/list')}>
-                  租户管理
-                </Button>
-              )}
-              <Button icon={<TeamOutlined />} onClick={() => navigate('/user/list')}>
-                用户管理
-              </Button>
-              <Button icon={<UserOutlined />} onClick={() => navigate('/profile')}>
-                个人中心
-              </Button>
-            </Space>
-            {recent.length > 0 && (
-              <>
-                <Title level={5} style={{ marginTop: 16, marginBottom: 8 }}>
-                  最近客户
-                </Title>
-                <Space direction="vertical" size={4} style={{ width: '100%' }}>
-                  {recent.map((c) => (
-                    <Space key={c.id} style={{ width: '100%', justifyContent: 'space-between' }}>
-                      <Text>{c.name}</Text>
-                      <Text type="secondary" style={{ fontSize: 12 }}>
-                        <Tag color={STATUS_META[c.status].color}>{STATUS_META[c.status].text}</Tag>
-                        {c.createdAt}
-                      </Text>
-                    </Space>
-                  ))}
-                </Space>
-              </>
+          <ProCard title="审批类型分布" colSpan={{ xs: 24, lg: 10 }} loading={loading}>
+            {approvalTypeDist.length > 0 ? (
+              <DatavDvRing data={approvalTypeDist} type="ring" height={200} />
+            ) : (
+              <Text type="secondary">暂无审批数据</Text>
             )}
           </ProCard>
+          <ProCard title="最近审计动态" colSpan={{ xs: 24, lg: 14 }} loading={loading}>
+            <List
+              size="small"
+              dataSource={recentAudits}
+              locale={{ emptyText: '暂无审计记录' }}
+              renderItem={(l) => (
+                <List.Item>
+                  <Space>
+                    <Tag>{l.action}</Tag>
+                    <Text>{l.resourceType}</Text>
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                      #{l.resourceId ?? '-'}
+                    </Text>
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                      {new Date(l.createdAt).toLocaleString('zh-CN', {
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </Text>
+                  </Space>
+                </List.Item>
+              )}
+            />
+          </ProCard>
         </ProCard>
-      </Space>
+      )}
+
+      {/* ===== 快捷入口 ===== */}
+      <ProCard gutter={16} wrap style={{ marginTop: 16 }}>
+        <Space size="middle" wrap>
+          <Button icon={<FileSearchOutlined />} onClick={() => navigate('/audit/list')}>
+            审计日志
+          </Button>
+          <Button icon={<CheckCircleOutlined />} onClick={() => navigate('/approval/list')}>
+            审批中心
+          </Button>
+          <Button icon={<BellOutlined />} onClick={() => navigate('/notification')}>
+            通知中心
+          </Button>
+          <Button icon={<UserOutlined />} onClick={() => navigate('/profile')}>
+            个人中心
+          </Button>
+        </Space>
+      </ProCard>
     </PageContainer>
   );
 }

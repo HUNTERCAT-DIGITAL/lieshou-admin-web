@@ -2,6 +2,7 @@ import {
   ApartmentOutlined,
   ApiOutlined,
   AuditOutlined,
+  BellOutlined,
   BookOutlined,
   BulbOutlined,
   ClusterOutlined,
@@ -51,6 +52,12 @@ const defaultProps: ProLayoutProps = {
         path: '/profile',
         name: '个人中心',
         icon: <UserOutlined />,
+        accessKey: null,
+      },
+      {
+        path: '/notification',
+        name: '通知中心',
+        icon: <BellOutlined />,
         accessKey: null,
       },
       ...(getEdition().showLegal === true

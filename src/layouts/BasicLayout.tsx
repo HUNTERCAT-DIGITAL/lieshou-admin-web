@@ -31,6 +31,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { createAccess, type Access } from '../access';
 import { getEdition, getEditionHiddenMenus, isPathCapabilityEnabled } from '../config/editions';
 import DevTools from '../components/DevTools';
+import NotificationBell from '../components/NotificationBell';
 import { ErrorBoundary, PageLoading } from '@lieshoucloud/ui';
 import { useThemeMode } from '../hooks/useThemeMode';
 import { setUnauthorizedHandler } from '../services/api';
@@ -317,6 +318,8 @@ export default function BasicLayout() {
          需要 menuItemRender 用 <Link> 包叶子项（保留右键新标签页 + a11y） */
         menuItemRender={(item, dom) => (item.path ? <Link to={item.path}>{dom}</Link> : dom)}
         actionsRender={() => [
+          /* 通知铃铛（未读数轮询 30s）—— 值班员也可见（通知与审批无关） */
+          <NotificationBell key="notification-bell" />,
           /* 审批待办红点（每分钟轮询）—— 值班员控制台隐藏（通知功能未开发，值班员无审批） */
           ...(getEdition().dutyConsole
             ? []

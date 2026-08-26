@@ -1,5 +1,7 @@
 /**
- * Admin 数据看板单测（Phase 9 · BI 雏形）.
+ * Admin 数据看板单测（开源版 · 2026-08-27）.
+ *
+ * 数据源全部为开源服务：user（租户/用户/审计/通知）+ approval（审批）。
  */
 import { render, screen, waitFor } from '@testing-library/react';
 import { ConfigProvider, App as AntdApp } from 'antd';
@@ -17,52 +19,45 @@ beforeEach(() => {
     isAuthenticated: false,
   });
   vi.restoreAllMocks();
-  // 新业务统计默认值
-  listProducts.mockResolvedValue([]);
-  getLedgerSummary.mockResolvedValue({ income: 0, expense: 0, balance: 0, count: 0 });
-  // 审批待办默认值（ADR-0032）
+  countUsers.mockResolvedValue(0);
+  listTenants.mockResolvedValue([]);
   getApprovalCounts.mockResolvedValue({ inbox: 0, mine: 0 });
-  // 客户成功中心汇总默认值（工作台第 4 卡）
-  getCustomerSuccessSummary.mockResolvedValue({
-    totalLetters: 0,
-    draftLetters: 0,
-    sentLetters: 0,
-    completedLetters: 0,
-    totalResponses: 0,
-    openResponses: 0,
-    resolvedResponses: 0,
-    negativeResponses: 0,
-    weekResponses: 0,
-    followUpOverdue: 0,
-    followUpDueToday: 0,
-  });
+  countAuditLogs.mockResolvedValue(0);
+  unreadNotificationCount.mockResolvedValue(0);
+  listApprovals.mockResolvedValue([]);
+  listAuditLogs.mockResolvedValue([]);
 });
 
 const {
   countUsers,
   listTenants,
-  listCustomers,
-  listProducts,
-  getLedgerSummary,
   getApprovalCounts,
-  getCustomerSuccessSummary,
+  countAuditLogs,
+  unreadNotificationCount,
+  listApprovals,
+  listAuditLogs,
 } = vi.hoisted(() => ({
   countUsers: vi.fn(),
   listTenants: vi.fn(),
-  listCustomers: vi.fn(),
-  listProducts: vi.fn(),
-  getLedgerSummary: vi.fn(),
   getApprovalCounts: vi.fn(),
-  getCustomerSuccessSummary: vi.fn(),
+  countAuditLogs: vi.fn(),
+  unreadNotificationCount: vi.fn(),
+  listApprovals: vi.fn(),
+  listAuditLogs: vi.fn(),
 }));
 
 vi.mock('../../services/user', () => ({ countUsers }));
 vi.mock('../../services/tenant', () => ({ listTenants }));
-vi.mock('../../services/crm', () => ({ listCustomers }));
-vi.mock('../../services/inventory', () => ({ listProducts }));
-vi.mock('../../services/finance', () => ({ getLedgerSummary }));
-vi.mock('../../services/approval', () => ({ getApprovalCounts }));
-vi.mock('../../services/customerSuccess', () => ({ getCustomerSuccessSummary }));
+vi.mock('../../services/approval', () => ({ getApprovalCounts, listApprovals }));
+vi.mock('../../services/audit', () => ({ countAuditLogs, listAuditLogs }));
+vi.mock('../../services/notification', () => ({ unreadNotificationCount }));
+// ECharts 环形图在 jsdom 不可渲染，mock 为轻量占位；useApiError 一并 mock（来自同一包）
+vi.mock('@lieshoucloud/ui', () => ({
+  DatavDvRing: ({ data }: { data: { name: string; value: number }[] }) => (
+    <div data-testid="dvring">{data.map((d) => `${d.name}:${d.value}`).join(',')}</div>
+  ),
+  useApiError: () => () => {},
+}));
 
 import Admin from '../Admin';
 
@@ -74,13 +69,19 @@ const wrap = ({ children }: { children: React.ReactNode }) => (
   </ConfigProvider>
 );
 
-describe('Admin 数据看板', () => {
-  it('PLATFORM_ADMIN 登录：3 张统计卡 + 趋势卡 + 状态分布 + 漏斗', async () => {
+describe('Admin 数据看板（开源版）', () => {
+  it('PLATFORM_ADMIN：6 张统计卡 + 审批分布 + 最近审计 + 快捷入口', async () => {
     countUsers.mockResolvedValue(100);
     listTenants.mockResolvedValue([{}, {}, {}]);
-    listCustomers.mockResolvedValue([
-      { id: 1, name: 'A', contactName: null, status: 'NEW', createdAt: '2026-08-23' },
-      { id: 2, name: 'B', status: 'CONVERTED', createdAt: '2026-08-22' },
+    getApprovalCounts.mockResolvedValue({ inbox: 4, mine: 2 });
+    countAuditLogs.mockResolvedValue(88);
+    unreadNotificationCount.mockResolvedValue(7);
+    listApprovals.mockResolvedValue([
+      { id: 1, type: 'EXPENSE', title: '报销', status: 'PENDING' },
+      { id: 2, type: 'PURCHASE', title: '采购', status: 'APPROVED' },
+    ]);
+    listAuditLogs.mockResolvedValue([
+      { id: 1, action: 'CREATE', resourceType: 'USER', resourceId: 5, createdAt: '2026-08-27T00:00:00Z' },
     ]);
     useAuthStore.setState({
       accessToken: 't',
@@ -91,62 +92,33 @@ describe('Admin 数据看板', () => {
     render(<Admin />, { wrapper: wrap });
 
     await waitFor(() => {
-      expect(screen.getByText('租户总数')).toBeInTheDocument();
+      expect(screen.getByText('租户数')).toBeInTheDocument();
     });
-    expect(screen.getByText('平台用户数')).toBeInTheDocument();
-    expect(screen.getByText('租户客户总数')).toBeInTheDocument();
-    expect(screen.getByText('100')).toBeInTheDocument();
+    expect(screen.getByText('用户数')).toBeInTheDocument();
+    expect(screen.getByText('审批待办')).toBeInTheDocument();
+    expect(screen.getByText('我发起的审批')).toBeInTheDocument();
+    expect(screen.getAllByText('审计日志').length).toBeGreaterThan(0);
+    expect(screen.getByText('未读通知')).toBeInTheDocument();
+    // 数值
     expect(screen.getByText('3')).toBeInTheDocument(); // 租户数
-    expect(screen.getByText('30 天客户创建趋势')).toBeInTheDocument();
-    expect(screen.getByText('客户状态分布')).toBeInTheDocument();
-    expect(screen.getByText('客户生命周期漏斗')).toBeInTheDocument();
-    expect(screen.getByText('快捷入口')).toBeInTheDocument();
-    expect(screen.getByText('租户管理')).toBeInTheDocument();
+    expect(screen.getByText('100')).toBeInTheDocument(); // 用户数
+    expect(screen.getByText('4')).toBeInTheDocument(); // 审批待办
+    expect(screen.getByText('88')).toBeInTheDocument(); // 审计
+    expect(screen.getByText('7')).toBeInTheDocument(); // 未读通知
+    // 审批类型分布（ECharts mock 占位）
+    expect(screen.getByTestId('dvring').textContent).toContain('支出报销');
+    // 最近审计动态
+    expect(screen.getByText('最近审计动态')).toBeInTheDocument();
+    expect(screen.getByText('CREATE')).toBeInTheDocument();
+    expect(screen.getByText('USER')).toBeInTheDocument();
+    // 快捷入口
+    expect(screen.getByText('审批中心')).toBeInTheDocument();
+    expect(screen.getByText('通知中心')).toBeInTheDocument();
+    expect(listTenants).toHaveBeenCalled();
   });
 
-  it('客户成功中心（工作台第 4 卡）：汇总统计 + 进入入口', async () => {
-    countUsers.mockResolvedValue(0);
-    listTenants.mockResolvedValue([]);
-    listCustomers.mockResolvedValue([]);
-    getCustomerSuccessSummary.mockResolvedValue({
-      totalLetters: 6,
-      draftLetters: 2,
-      sentLetters: 3,
-      completedLetters: 1,
-      totalResponses: 10,
-      openResponses: 4,
-      resolvedResponses: 7,
-      negativeResponses: 2,
-      weekResponses: 5,
-      followUpOverdue: 3,
-      followUpDueToday: 1,
-    });
-    useAuthStore.setState({
-      accessToken: 't',
-      refreshToken: 'r',
-      user: { userId: 4, username: 'ops', roles: ['PLATFORM_ADMIN'] },
-      isAuthenticated: true,
-    });
-    render(<Admin />, { wrapper: wrap });
-
-    await waitFor(() => {
-      expect(screen.getByText('客户成功中心')).toBeInTheDocument();
-    });
-    expect(screen.getByText('待发送联系函')).toBeInTheDocument();
-    expect(screen.getByText('已发送待响应')).toBeInTheDocument();
-    expect(screen.getByText('待跟进响应')).toBeInTheDocument();
-    expect(screen.getByText('消极响应')).toBeInTheDocument();
-    expect(screen.getByText('近 7 天响应')).toBeInTheDocument();
-    expect(screen.getByText('响应闭环率')).toBeInTheDocument();
-    expect(screen.getByText('70%')).toBeInTheDocument(); // 7/10 闭环率
-    expect(screen.getByText('已逾期跟进')).toBeInTheDocument();
-    expect(screen.getByText('今日到期跟进')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /进入客户成功中心/ })).toBeInTheDocument();
-  });
-
-  it('非平台：只显示 2 个统计卡 + 不调 listTenants', async () => {
+  it('非平台管理员：租户数为空占位 + 不调 listTenants', async () => {
     countUsers.mockResolvedValue(5);
-    listCustomers.mockResolvedValue([]);
     useAuthStore.setState({
       accessToken: 't',
       refreshToken: 'r',
@@ -156,69 +128,25 @@ describe('Admin 数据看板', () => {
     render(<Admin />, { wrapper: wrap });
 
     await waitFor(() => {
-      expect(screen.getByText('本租户用户')).toBeInTheDocument();
+      expect(screen.getByText('用户数')).toBeInTheDocument();
     });
-    expect(screen.getByText('本租户客户')).toBeInTheDocument();
-    expect(screen.queryByText('租户总数')).not.toBeInTheDocument();
-    expect(screen.queryByText('租户管理')).not.toBeInTheDocument();
     expect(listTenants).not.toHaveBeenCalled();
+    // 租户卡显示 '-'（null）
+    expect(screen.getByText('租户数')).toBeInTheDocument();
+    expect(screen.getByText('-')).toBeInTheDocument();
   });
 
-  it('最近客户：按 createdAt 倒序取最新条目', async () => {
-    countUsers.mockResolvedValue(0);
-    listTenants.mockResolvedValue([]);
-    listCustomers.mockResolvedValue([
-      { id: 1, name: '最新', contactName: null, status: 'NEW', createdAt: '2026-08-23' },
-      { id: 2, name: '较早', status: 'FOLLOWING', createdAt: '2026-08-22' },
-    ]);
+  it('审批为空：环形图占位提示', async () => {
     useAuthStore.setState({
       accessToken: 't',
       refreshToken: 'r',
-      user: { userId: 3, username: 'u', roles: ['PLATFORM_ADMIN'] },
+      user: { userId: 1, username: 'ops', roles: ['PLATFORM_ADMIN'] },
       isAuthenticated: true,
     });
     render(<Admin />, { wrapper: wrap });
 
     await waitFor(() => {
-      expect(screen.getByText('最新')).toBeInTheDocument();
+      expect(screen.getByText('暂无审批数据')).toBeInTheDocument();
     });
-    expect(screen.getByText('较早')).toBeInTheDocument();
-    expect(screen.getByText('最近客户')).toBeInTheDocument();
-  });
-
-  it('业务经营统计：商品数/库存总值/低库存/本月收支', async () => {
-    countUsers.mockResolvedValue(0);
-    listTenants.mockResolvedValue([]);
-    listCustomers.mockResolvedValue([]);
-    // 2 个商品：A(10 个 ×10 元 = 100)，B(2 个 ×50 元 = 100，低库存)
-    listProducts.mockResolvedValue([
-      { id: 1, name: 'A', price: 10, stockQuantity: 10 },
-      { id: 2, name: 'B', price: 50, stockQuantity: 2 },
-    ]);
-    getLedgerSummary.mockResolvedValue({ income: 8000, expense: 3000, balance: 5000, count: 5 });
-    useAuthStore.setState({
-      accessToken: 't',
-      refreshToken: 'r',
-      user: { userId: 4, username: 'boss', roles: ['PLATFORM_ADMIN'] },
-      isAuthenticated: true,
-    });
-    render(<Admin />, { wrapper: wrap });
-
-    await waitFor(() => {
-      expect(screen.getByText('商品数')).toBeInTheDocument();
-    });
-    // 商品数 = 2
-    expect(screen.getByText('2')).toBeInTheDocument();
-    // 库存总值 = 100 + 100 = 200
-    expect(screen.getByText('200')).toBeInTheDocument();
-    // 低库存 = 1（B）
-    expect(screen.getByText('1')).toBeInTheDocument();
-    // 本月收入 8000 / 支出 3000 / 结余 5000（antd Statistic 千分位）
-    expect(screen.getByText('8,000')).toBeInTheDocument();
-    expect(screen.getByText('3,000')).toBeInTheDocument();
-    expect(screen.getByText('5,000')).toBeInTheDocument();
-    expect(getLedgerSummary).toHaveBeenCalledWith(
-      expect.objectContaining({ from: expect.any(String), to: expect.any(String) }),
-    );
   });
 });

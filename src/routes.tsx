@@ -40,6 +40,7 @@ const QualityList = lazy(() => import('./pages/Quality/List'));
 const Login = lazy(() => import('./pages/Login'));
 const RegisterTenant = lazy(() => import('./pages/RegisterTenant'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const NotificationList = lazy(() => import('./pages/Notification/List'));
 const Portal = lazy(() => import('./pages/Portal'));
 const Profile = lazy(() => import('./pages/Profile'));
 const RoleList = lazy(() => import('./pages/Role/List'));
@@ -86,6 +87,7 @@ export const routes = (
         <Route path="/welcome" element={<Welcome />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/notification" element={<NotificationList />} />
         <Route
           path="/tenant/list"
           element={
