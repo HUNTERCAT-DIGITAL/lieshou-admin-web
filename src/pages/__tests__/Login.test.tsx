@@ -63,7 +63,7 @@ const wrap = ({ children }: { children: React.ReactNode }) => (
 describe('Login 页', () => {
   it('渲染：品牌 + 登录标题 + 密码表单', () => {
     render(<Login />, { wrapper: wrap });
-    expect(screen.getByText('猎手云 Pro')).toBeInTheDocument();
+    expect(screen.getByText('LieShouCloud')).toBeInTheDocument();
     expect(screen.getByText('登录')).toBeInTheDocument();
     // 去验证码（2026-08-25）：仅账号密码登录，无 Tabs
     expect(screen.getByPlaceholderText('futurewl')).toBeInTheDocument();

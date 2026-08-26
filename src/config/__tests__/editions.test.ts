@@ -119,7 +119,14 @@ describe('功能裁剪（hiddenMenus）', () => {
     expect(EDITIONS.layer.showLegal).toBe(true);
   });
 
-  it('generic 版不裁剪（多租户 SaaS 全功能）', () => {
-    expect(EDITIONS.generic.hiddenMenus).toBeUndefined();
+  it('generic 版（开源演示）裁剪闭源商业模块', () => {
+    // 开源交付包不含 crm/inventory/finance/iot/legal 服务，演示端隐藏对应入口
+    expect(EDITIONS.generic.hiddenMenus).toEqual([
+      '/customer',
+      '/inventory',
+      '/finance',
+      '/iot',
+      '/legal',
+    ]);
   });
 });

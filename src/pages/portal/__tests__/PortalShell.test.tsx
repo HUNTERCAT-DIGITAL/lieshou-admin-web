@@ -38,7 +38,7 @@ describe('PortalNav', () => {
       { wrapper: wrap },
     );
     // 品牌
-    expect(screen.getAllByText('猎手云 Pro').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('LieShouCloud').length).toBeGreaterThan(0);
     // 锚点菜单
     expect(screen.getByText('核心能力').closest('a')).toHaveAttribute('href', '#capability');
     expect(screen.getByText('关于我们').closest('a')).toHaveAttribute('href', '#about');

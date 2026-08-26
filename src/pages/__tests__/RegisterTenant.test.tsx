@@ -36,7 +36,7 @@ const wrap = ({ children }: { children: React.ReactNode }) => (
 describe('RegisterTenant 租户自助开通页', () => {
   it('渲染：品牌 + 表单字段（租户/编码/管理员/密码）', () => {
     render(<RegisterTenant />, { wrapper: wrap });
-    expect(screen.getAllByText(/猎手云 Pro/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/LieShouCloud/).length).toBeGreaterThan(0);
     expect(screen.getByText('免费开通')).toBeInTheDocument();
     expect(screen.getByText('公司 / 组织名称')).toBeInTheDocument();
     expect(screen.getByText('租户编码（登录用）')).toBeInTheDocument();

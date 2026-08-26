@@ -7,6 +7,9 @@ import type { EditionConfig } from './types';
 export const genericEdition: EditionConfig = {
     id: 'generic',
     industries: [],
+    // 开源交付包只提供开源服务模块（user/admin/auth/approval + 基础）；
+    // CRM/进销存/财务/IoT/案件等闭源商业模块不在交付包内，演示端隐藏入口（gateway 侧同步配置开关）
+    hiddenMenus: ['/customer', '/inventory', '/finance', '/iot', '/legal'],
     brandName: 'LieShouCloud',
     slogan: '开源的数字化平台 · 全栈演示项目',
     heroDesc:
@@ -37,7 +40,7 @@ export const genericEdition: EditionConfig = {
       },
       {
         title: '业务模块',
-        desc: 'CRM 客户管理、进销存、财务记账、审批流、数据看板等模块开箱即用。',
+        desc: '多租户开租户、RBAC 权限、审批流、审计日志等模块开箱即用；CRM/进销存/财务等商业模块可扩展接入。',
         done: true,
         icon: 'appstore',
       },
@@ -51,7 +54,7 @@ export const genericEdition: EditionConfig = {
     faq: [
       {
         q: 'LieShouCloud 是什么？',
-        a: 'LieShouCloud（猎手云）是开源的数字化平台演示项目：多租户 SaaS 底座 + CRM / 进销存 / 财务 / 审批流等业务模块，前后端代码全部开源（Apache-2.0），可一键自部署。',
+        a: 'LieShouCloud（猎手云）是开源的数字化平台演示项目：多租户 SaaS 底座 + 租户/用户/RBAC/审批流/审计等模块，前后端代码全部开源（Apache-2.0），可一键自部署；CRM/进销存/财务等商业模块可扩展接入。',
       },
       {
         q: '如何体验？',
