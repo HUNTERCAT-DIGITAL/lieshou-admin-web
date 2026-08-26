@@ -14,7 +14,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import type { ComponentType } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
-import { getEdition, getExtraEdition } from './config/editions';
+import { getExtraEdition } from './config/editions';
 import type { EditionExtraRoute } from './config/editions';
 import { AccessGuard } from './components/AccessGuard';
 import { AuthGuard } from './components/AuthGuard';
