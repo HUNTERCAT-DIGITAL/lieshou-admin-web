@@ -7,7 +7,7 @@ import type { EditionConfig } from './types';
 export const layerEdition: EditionConfig = {
     id: 'layer',
     industries: ['legal'],
-    brandName: '猎手云 Pro · 法律版',
+    brandName: 'LieShouCloud · 法律版',
     slogan: '让每一家律所都拥有数字化办案平台',
     heroDesc:
       '面向律所与事务所的数字化协作平台：客户线索、案件管理、卷宗文书、计时计费、审批留痕，全流程在线。',

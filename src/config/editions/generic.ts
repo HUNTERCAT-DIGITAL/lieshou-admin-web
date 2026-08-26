@@ -7,15 +7,15 @@ import type { EditionConfig } from './types';
 export const genericEdition: EditionConfig = {
     id: 'generic',
     industries: [],
-    brandName: '猎手云 Pro',
-    slogan: '让每一家企业都拥有自己的数字化平台',
+    brandName: 'LieShouCloud',
+    slogan: '开源的数字化平台 · 全栈演示项目',
     heroDesc:
-      '多租户 SaaS 平台：线下成交 → 一键开租户 → 客户在租户内使用业务全流程数字化模块。一个平台，服务所有客户。',
+      'LieShouCloud（猎手云）开源版演示项目：多租户 SaaS 数字化平台，前后端全栈开源（Apache-2.0），支持 Web / 桌面 / 移动 / 小程序四端，一键自部署即可体验。',
     logo: '/logo.png',
     primaryColor: '#1677ff',
     defaultTenantCode: 'jxlkas',
     allowRegister: true,
-    industriesText: ['诊所·药店', '新零售·商超', '制衣·制造', '代账·财税', '教育机构', '律所·事务所'],
+    industriesText: ['多租户 SaaS', 'CRM 客户管理', '进销存', '财务记账', '审批流', '四端覆盖'],
     features: [
       {
         title: '多租户',
@@ -36,26 +36,26 @@ export const genericEdition: EditionConfig = {
         icon: 'team',
       },
       {
-        title: '业务模块（规划）',
-        desc: 'CRM 客户管理、进销存、财务记账、数据看板即将上线，一体化经营。',
-        done: false,
+        title: '业务模块',
+        desc: 'CRM 客户管理、进销存、财务记账、审批流、数据看板等模块开箱即用。',
+        done: true,
         icon: 'appstore',
       },
     ],
     stats: [
-      { label: '已上线模块', value: '8+' },
-      { label: '覆盖行业', value: '6+' },
+      { label: '开源组件仓', value: '16' },
+      { label: '后端服务', value: '5' },
       { label: '多端支持', value: '4' },
-      { label: '数据隔离', value: '100%' },
+      { label: '开源协议', value: 'Apache-2.0' },
     ],
     faq: [
       {
-        q: '猎手云 Pro 是什么？',
-        a: '面向 B 端的多租户 SaaS 平台：客户线下成交后，平台一键开租户，客户在租户内使用 CRM、进销存、财务等数字化模块。',
+        q: 'LieShouCloud 是什么？',
+        a: 'LieShouCloud（猎手云）是开源的数字化平台演示项目：多租户 SaaS 底座 + CRM / 进销存 / 财务 / 审批流等业务模块，前后端代码全部开源（Apache-2.0），可一键自部署。',
       },
       {
-        q: '如何开通并使用？',
-        a: '通用版支持自助开通：门户/登录页「免费开通」→ 填写租户与管理员 → 立即创建租户并登录；也可在登录页注册体验（通用版默认租户 jxlkas）。',
+        q: '如何体验？',
+        a: '开源版支持自助开通：门户/登录页「免费开通」→ 填写租户与管理员 → 立即创建租户并登录；也可在登录页注册体验（默认租户 jxlkas）。',
       },
       {
         q: '多租户数据安全吗？',
@@ -67,8 +67,8 @@ export const genericEdition: EditionConfig = {
       },
     ],
     cta: {
-      title: '立即开启你的数字化平台',
-      desc: '从开租户到团队上线，最快当天跑通第一个业务。',
+      title: '立即体验开源演示',
+      desc: '从开租户到跑通第一个业务，最快当天完成，全部开源可自部署。',
       buttonText: '免费注册体验',
     },
   };

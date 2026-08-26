@@ -29,6 +29,7 @@ import {
 import { Button, Collapse, Space, Tag, Typography } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 
+import { BeianFooter } from '../../components/BeianFooter';
 import type {
   EditionConfig,
   EditionCta,
@@ -98,8 +99,11 @@ export function PortalFooter({ brandName }: { brandName?: string }) {
   return (
     <div style={styles.footer}>
       <Typography.Text style={{ color: 'rgba(255,255,255,0.65)' }}>
-        {brandName ? `© 2026 ${brandName}` : '© 2026 南昌猎手猫数字科技有限公司 · 猎手云 Pro · All rights reserved.'}
+        {brandName ? `© 2026 ${brandName}` : '© 2026 LieShouCloud 开源版 · Apache-2.0'}
       </Typography.Text>
+      <div style={{ marginTop: 8 }}>
+        <BeianFooter dark />
+      </div>
     </div>
   );
 }

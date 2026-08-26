@@ -23,6 +23,7 @@ import { Alert, Button, Card, Form, Input, Modal, Select, Space, Spin, Typograph
 import { useCallback, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
+import { BeianFooter } from '../components/BeianFooter';
 import {
   AuthError,
   oauthAuthorize,
@@ -421,9 +422,12 @@ export default function Login() {
       />
       <RegisterModal open={registerOpen} onClose={() => setRegisterOpen(false)} onGo={go} />
       <ResetModal open={resetOpen} onClose={() => setResetOpen(false)} />
-      {/* 登录页底部署名（凌科安时定制） */}
+      {/* 登录页底部统一署名（开源演示版）+ 备案信息 */}
       <div style={styles.footer}>
-        <Text type="secondary">由 猎手云强力驱动</Text>
+        <Text type="secondary">LieShouCloud 开源版 · 演示项目</Text>
+        <div style={{ marginTop: 4 }}>
+          <BeianFooter />
+        </div>
       </div>
     </div>
   );

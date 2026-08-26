@@ -56,7 +56,7 @@ export interface EditionExtraRoute {
 
 export interface EditionConfig {
   id: EditionId;
-  /** 门户/登录品牌名（如「猎手云 Pro · 教育版」） */
+  /** 门户/登录品牌名（如「LieShouCloud · 开源版」） */
   brandName: string;
   /** 版权署名的公司主体（缺省回退 brandName；如凌科安时律师事务所） */
   companyName?: string;

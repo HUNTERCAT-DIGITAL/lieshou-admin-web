@@ -31,7 +31,7 @@ import { getEdition } from '../config/editions';
  * url / iconfont 前缀 / ReactNode，纯字符串会静默丢弃（见 .ai/conversations/2026-08-23-sidebar-icons.md）。
  */
 const defaultProps: ProLayoutProps = {
-  // 标题/logo 跟随版别（ADR-0035）：legalmind 部署显示「LegalMind · 智法云枢」+ 定制 logo
+  // 标题/logo 跟随版别（ADR-0035）：generic 显示「LieShouCloud」+ 默认 logo；客户 Edition 可注入定制品牌
   title: getEdition().brandName,
   logo: getEdition().logo,
   navTheme: 'light',

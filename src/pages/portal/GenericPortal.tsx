@@ -1,5 +1,5 @@
 /**
- * 通用门户（generic · 猎手云 Pro 默认门户）.
+ * 通用门户（generic · LieShouCloud 开源版默认门户）.
  *
  * 结构：Nav → Hero → 数据统计 → 平台核心能力 → 平台流程（成交→开租户→使用→增长）
  *      → 覆盖行业 → 行业版入口导航 → FAQ → CTA → 关于我们 → Footer。
@@ -168,10 +168,12 @@ export default function GenericPortal() {
         <FadeIn>
           <SectionHeader eyebrow="ABOUT US" title="关于我们" />
         </FadeIn>
-        <Paragraph style={{ maxWidth: 720, margin: '16px auto 0', textAlign: 'center' }}>
-          南昌猎手猫数字科技有限公司，隶属深圳海赞数字智能科技有限公司关联企业体系，
-          为教育、传媒、科技、法律、财税、制造、代账等多元行业提供数字化 SaaS 服务。
-        </Paragraph>
+          <Paragraph style={{ maxWidth: 720, margin: '16px auto 0', textAlign: 'center' }}>
+            LieShouCloud（猎手云）是开源的数字化平台演示项目：Java 21 + Spring Cloud 全栈后端、
+            React 19 前端、四端覆盖（Web / 桌面 / 移动 / 小程序），代码全部开源（Apache-2.0），
+            支持一键自部署体验多租户 SaaS、CRM、进销存、财务等完整模块。
+            本站为开源版演示环境，欢迎体验。
+          </Paragraph>
         <div style={{ textAlign: 'center', marginTop: 24 }}>
           <Button size="large" onClick={onRegister}>
             立即体验 <LinkOutlined />
