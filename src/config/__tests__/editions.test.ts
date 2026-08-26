@@ -18,7 +18,7 @@ describe('版别配置表', () => {
       expect(e.defaultTenantCode).toBeTruthy();
       expect(e.primaryColor).toBeTruthy();
       expect(e.features.length).toBeGreaterThanOrEqual(4);
-      expect(e.industries.length).toBeGreaterThan(0);
+      expect(e.industriesText.length).toBeGreaterThan(0);
       expect(e.logo).toMatch(/^\//);
     }
   });

@@ -94,7 +94,7 @@ export default function LegalPortal() {
           <SectionHeader eyebrow="WHO IT SERVES" title="服务对象" />
         </FadeIn>
         <Row gutter={[16, 16]} style={{ marginTop: 32 }} justify="center">
-          {edition.industries.map((ind, i) => (
+          {edition.industriesText.map((ind, i) => (
             <Col key={ind}>
               <FadeIn delay={i * 60}>
                 <Card style={{ minWidth: 160, textAlign: 'center' }}>
