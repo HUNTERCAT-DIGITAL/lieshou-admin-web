@@ -1,0 +1,15 @@
+{
+  "extends": "./open/packages/config/tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["vitest/globals", "@testing-library/jest-dom", "node"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@lieshoucloud/api-client": ["./open/packages/api-client/src"],
+      "@lieshoucloud/types": ["./open/packages/types/src"],
+      "@lieshoucloud/ui": ["./open/packages/ui/src"]
+    }
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}

@@ -1,0 +1,31 @@
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+
+# 日志
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# 编辑器
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 依赖锁目录
+.pnp.*
+
+# tsc -b build info (composite)
+*.tsbuildinfo
