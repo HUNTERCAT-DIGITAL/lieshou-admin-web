@@ -60,6 +60,12 @@ export interface EditionConfig {
    * 行业菜单/路由的显隐由此派生（替代旧 showLegal/eduTeacher 硬编码语义）。
    */
   industries?: IndustryId[];
+  /**
+   * 启用的能力清单（模块级组合 · 2026-09，缺省 = industries 对应行业全量）。
+   * 约定 CapabilityId = `${industry}/${module}`（如 'legal/cases'、'iot/devices'、'edu/teacher'），
+   * 与菜单路径一致（去掉前导 '/'）。可跨行业组合（如律所 + 设备监控）。
+   */
+  capabilities?: string[];
   /** 单租户版：隐藏登录/注册表单的租户输入，固定用 defaultTenantCode（如 dwjk 电网监控版） */
   hideTenantInput?: boolean;
   /** 隐藏菜单路径前缀（如 '/customer' 隐藏 CRM 菜单与路由；ADR-0035 配置层裁剪） */

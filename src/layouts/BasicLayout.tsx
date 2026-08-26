@@ -29,7 +29,7 @@ import { Suspense, useCallback, useEffect, useState, type ReactNode } from 'reac
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { createAccess, type Access } from '../access';
-import { getEdition, getEditionHiddenMenus } from '../config/editions';
+import { getEdition, getEditionHiddenMenus, isPathCapabilityEnabled } from '../config/editions';
 import DevTools from '../components/DevTools';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import PageLoading from '../components/PageLoading';
@@ -106,6 +106,8 @@ function filterRoutes(
     .filter((r) => {
       const p = r.path ?? '';
       if (hiddenMenus.some((h) => p === h || p.startsWith(h + '/'))) return false;
+      // 客户能力组合（2026-09）：capabilities 声明行业子集时，按能力前缀匹配裁剪
+      if (!isPathCapabilityEnabled(getEdition(), p)) return false;
       // 法律能力域（ADR-0036）：仅 layer/legalmind 版显示案件菜单
       if (p === '/legal' && !showLegal) return false;
       // 权限码驱动：菜单项声明 accessKey → 检查当前用户 permissions；缺省 = 登录即可见
@@ -227,7 +229,8 @@ export default function BasicLayout() {
   // 远程菜单树 → ProLayout route 格式（版别裁剪兜底 + 图标映射）
   const isEditionHidden = (p: string) =>
     hiddenMenus.some((h) => p === h || p.startsWith(h + '/')) ||
-    (p.startsWith('/legal') && !showLegal);
+    (p.startsWith('/legal') && !showLegal) ||
+    !isPathCapabilityEnabled(getEdition(), p);
   const toRoute = (
     n: MenuNode,
   ): { path: string; name: string; icon: ReactNode; routes?: unknown[] } | null => {

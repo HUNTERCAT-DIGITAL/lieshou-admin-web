@@ -3,11 +3,35 @@
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { EDITIONS, editionConfigFromTenant, resolveEditionId, INDUSTRY_ENTRIES } from '../editions';
+import type { EditionConfig } from '../editions';
+import { EDITIONS, editionConfigFromTenant, getEnabledCapabilities, isPathCapabilityEnabled, resolveEditionId, INDUSTRY_ENTRIES } from '../editions';
 
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
+});
+
+describe('能力组合（capabilities 模块级 · 跨行业）', () => {
+  it('legalmind 未声明 capabilities → 行业全量（不过滤）', () => {
+    expect(getEnabledCapabilities(EDITIONS.legalmind, 'legal')).toBeNull();
+    expect(isPathCapabilityEnabled(EDITIONS.legalmind, '/legal/cases')).toBe(true);
+  });
+
+  it('客户声明能力子集 → 精确组合（跨行业：案件/计时 + 设备监控）', () => {
+    const custom: EditionConfig = {
+      ...EDITIONS.legalmind,
+      industries: ['legal', 'iot'],
+      capabilities: ['legal/cases', 'legal/time', 'iot/devices'],
+    };
+    expect(getEnabledCapabilities(custom, 'legal')).toEqual(['legal/cases', 'legal/time']);
+    expect(getEnabledCapabilities(custom, 'iot')).toEqual(['iot/devices']);
+    expect(isPathCapabilityEnabled(custom, '/legal/cases')).toBe(true);
+    expect(isPathCapabilityEnabled(custom, '/legal/cases/1')).toBe(true); // 子页面
+    expect(isPathCapabilityEnabled(custom, '/legal/knowledge')).toBe(false); // 未启用
+    expect(isPathCapabilityEnabled(custom, '/iot/devices')).toBe(true);
+    expect(isPathCapabilityEnabled(custom, '/iot/alerts')).toBe(false);
+    expect(isPathCapabilityEnabled(custom, '/customer/list')).toBe(true); // 通用路径不过滤
+  });
 });
 
 describe('版别配置表', () => {

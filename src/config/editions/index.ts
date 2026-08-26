@@ -81,6 +81,27 @@ export function getEditionIndustries(edition: EditionConfig): IndustryId[] {
 }
 
 /**
+ * 客户在某行业启用的能力清单（模块级组合 · 2026-09）。
+ * - capabilities 已声明 → 精确匹配该行业子集；
+ * - 未声明（null）→ 行业全量。
+ */
+export function getEnabledCapabilities(edition: EditionConfig, industry: string): string[] | null {
+  const caps = edition.capabilities ?? [];
+  if (caps.length === 0) return null;
+  return caps.filter((c) => c.startsWith(`${industry}/`));
+}
+
+/** 某菜单路径是否被客户能力裁剪（行业子集声明时按能力前缀匹配） */
+export function isPathCapabilityEnabled(edition: EditionConfig, path: string): boolean {
+  const seg = path.split('/');
+  const industry = seg[1]; // '/legal/cases' → 'legal'
+  if (!industry || !['legal', 'iot', 'edu'].includes(industry)) return true; // 通用路径不过滤
+  const caps = getEnabledCapabilities(edition, industry);
+  if (caps === null) return true; // 行业全量
+  return caps.some((c) => path === `/${c}` || path.startsWith(`/${c}/`));
+}
+
+/**
  * 版别隐藏菜单前缀：配置 hiddenMenus + 条件性隐藏（ADR-0035 配置层）.
  *
  * 例如非 zhiye 版别（未开启 eduTeacher）→ 师资档案 /edu 菜单与路由一并隐藏。
