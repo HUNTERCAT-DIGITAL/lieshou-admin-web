@@ -11,7 +11,9 @@ import { createApiClient } from '@lieshoucloud/api-client';
 import { useAuthStore } from '../stores/auth';
 import { pushDevLog } from '../utils/devtools';
 
-const BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '';
+import { resolveApiBase } from '@lieshoucloud/config';
+
+const BASE = resolveApiBase({ key: 'API_BASE_URL', defaultBase: '' });
 
 /**
  * 登录过期后的 UI 出口（由 BasicLayout 注册：提示 + logout + 跳 /login）.

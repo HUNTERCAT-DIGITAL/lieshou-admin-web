@@ -17,6 +17,9 @@ importers:
       '@lieshoucloud/api-client':
         specifier: workspace:*
         version: link:open/packages/api-client
+      '@lieshoucloud/config':
+        specifier: workspace:*
+        version: link:open/packages/config
       '@lieshoucloud/types':
         specifier: workspace:*
         version: link:open/packages/types
@@ -144,6 +147,12 @@ importers:
       antd:
         specifier: 5.22.0
         version: 5.22.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      echarts:
+        specifier: ^5.6.0
+        version: 5.6.0
+      framer-motion:
+        specifier: ^11.18.2
+        version: 11.18.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       react:
         specifier: 19.0.0
         version: 19.0.0
