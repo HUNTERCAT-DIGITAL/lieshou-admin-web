@@ -54,24 +54,23 @@ function renderAt(path: string) {
     </MemoryRouter>,
   );
 }
-
 describe('EditionGuard（版别路由裁剪）', () => {
   it('generic 版不裁剪，任何路径都渲染内容', () => {
     renderAt('/customer/list');
     expect(screen.getByText('guard-content')).toBeTruthy();
   });
 
-  it('dwjk 版命中隐藏前缀 → 渲染 404', () => {
+  it('layer 版命中隐藏前缀（/customer 等）→ 渲染 404', () => {
     mockedGetEdition.mockReturnValue({
-      id: 'dwjk',
+      id: 'layer',
       brandName: 'test',
       slogan: '',
       heroDesc: '',
       logo: '',
-      primaryColor: '#1677ff',
-      defaultTenantCode: 'dwjk',
+      primaryColor: '#722ed1',
+      defaultTenantCode: 'layer',
       allowRegister: false,
-      hiddenMenus: ['/customer', '/lead', '/inventory', '/finance', '/approval'],
+      hiddenMenus: ['/tenant', '/customer', '/lead', '/inventory', '/finance', '/approval', '/iot'],
       industriesText: [],
       features: [],
       stats: [],
@@ -82,50 +81,29 @@ describe('EditionGuard（版别路由裁剪）', () => {
     expect(screen.queryByText('guard-content')).toBeNull();
   });
 
-  it('非 eduTeacher 版别命中 /edu 师资档案 → 渲染 404（zhiye 独有 · 配置层）', () => {
+  it('非 eduTeacher 版别命中 /edu 师资档案 → 渲染 404（配置层条件性隐藏）', () => {
     renderAt('/edu/teacher/list');
     expect(screen.queryByText('guard-content')).toBeNull();
   });
 
-  it('eduTeacher 版别（zhiye）访问 /edu → 正常渲染', () => {
+  it('layer 版未命中隐藏前缀（/user）→ 正常渲染', () => {
     mockedGetEdition.mockReturnValue({
-      id: 'zhiye',
+      id: 'layer',
       brandName: 'test',
       slogan: '',
       heroDesc: '',
       logo: '',
-      primaryColor: '#13c2c2',
-      defaultTenantCode: 'zhiye',
-      allowRegister: true,
-      eduTeacher: true,
-      industriesText: [],
-      features: [],
-      stats: [],
-      faq: [],
-      cta: { title: '', desc: '', buttonText: '' },
-    });
-    renderAt('/edu/teacher/list');
-    expect(screen.getByText('guard-content')).toBeTruthy();
-  });
-
-  it('dwjk 版未命中隐藏前缀（/iot）→ 正常渲染', () => {
-    mockedGetEdition.mockReturnValue({
-      id: 'dwjk',
-      brandName: 'test',
-      slogan: '',
-      heroDesc: '',
-      logo: '',
-      primaryColor: '#1677ff',
-      defaultTenantCode: 'dwjk',
+      primaryColor: '#722ed1',
+      defaultTenantCode: 'layer',
       allowRegister: false,
-      hiddenMenus: ['/customer', '/lead', '/inventory', '/finance', '/approval'],
+      hiddenMenus: ['/tenant', '/customer', '/lead', '/inventory', '/finance', '/approval', '/iot'],
       industriesText: [],
       features: [],
       stats: [],
       faq: [],
       cta: { title: '', desc: '', buttonText: '' },
     });
-    renderAt('/iot/device/list');
+    renderAt('/user/list');
     expect(screen.getByText('guard-content')).toBeTruthy();
   });
 });

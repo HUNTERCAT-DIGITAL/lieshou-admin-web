@@ -27,10 +27,11 @@ export default defineConfig({
         find: '@lieshoucloud/ui',
         replacement: path.resolve(__dirname, 'open/ui/src'),
       },
+      // @lieshoucloud/config 经 pnpm workspace 链接解析(入口 runtime.ts,无 src/index)
       // 客户包兜底：@lieshoucloud/<client>[/<subpath>] → ../packages/<client>/src[/<subpath>]
       // （正则捕获组 + $1/$2 由 String.replace 展开）
       {
-        find: /^@lieshoucloud\/([a-z-]+)(\/.*)?$/,
+        find: /^@lieshoucloud\/(?!api-client|config|types|ui)([a-z-]+)(\/.*)?$/,
         replacement: path.resolve(__dirname, '../packages/$1/src$2'),
       },
     ],

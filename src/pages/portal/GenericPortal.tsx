@@ -45,7 +45,6 @@ const NAV_MENU = [
 export default function GenericPortal() {
   const navigate = useNavigate();
   const edition = getEdition();
-  const isDwjk = edition.id === 'dwjk';
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   // 版别开放自助开通（issue #24）→ 直达 /register；否则回退登录页注册 Modal
@@ -117,7 +116,7 @@ export default function GenericPortal() {
       </div>
 
       {/* ===== 行业版入口导航（ADR-0035 · 行业版门户） ===== */}
-      {!isDwjk && (
+      {(
       <div style={{ ...styles.section, background: '#f0f5ff' }} id="editions">
         <FadeIn>
           <SectionHeader
@@ -164,7 +163,7 @@ export default function GenericPortal() {
       <PortalCta cta={edition.cta} primaryColor={edition.primaryColor} onAction={onRegister} />
 
       {/* ===== 关于我们（dwjk 不展示公司/商业信息） ===== */}
-      {!isDwjk && (
+      {(
       <div style={styles.section} id="about">
         <FadeIn>
           <SectionHeader eyebrow="ABOUT US" title="关于我们" />
@@ -181,7 +180,7 @@ export default function GenericPortal() {
       </div>
 
       )}
-      <PortalFooter brandName={isDwjk ? edition.brandName : undefined} />
+      <PortalFooter />
     </div>
   );
 }

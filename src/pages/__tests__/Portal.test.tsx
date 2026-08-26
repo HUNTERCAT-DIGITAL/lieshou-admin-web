@@ -73,12 +73,10 @@ describe('Portal 门户页', () => {
     expect(screen.getByText('如何开通并使用？')).toBeInTheDocument();
   });
 
-  it('渲染：行业版入口导航（法律/教育/精密制造）', () => {
+  it('渲染：行业版入口导航（layer 法律版）', () => {
     render(<Portal />, { wrapper: wrap });
     expect(screen.getByText('行业版入口')).toBeInTheDocument();
     expect(screen.getByText('法律行业版')).toBeInTheDocument();
-    expect(screen.getByText('教育行业版')).toBeInTheDocument();
-    expect(screen.getByText('精密制造版')).toBeInTheDocument();
   });
 
   it('未登录：CTA 注册按钮可点击', () => {

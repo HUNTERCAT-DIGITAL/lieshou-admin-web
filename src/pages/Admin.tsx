@@ -10,27 +10,21 @@
 import {
   AccountBookOutlined,
   AlertOutlined,
-  ApiOutlined,
-  ApartmentOutlined,
   AuditOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
   ClusterOutlined,
   ContactsOutlined,
-  DashboardOutlined,
   DollarOutlined,
   FallOutlined,
-  HddOutlined,
   MailOutlined,
   MessageOutlined,
   PlusOutlined,
-  RadarChartOutlined,
   ReloadOutlined,
   RiseOutlined,
   SendOutlined,
   ShopOutlined,
   TeamOutlined,
-  ThunderboltOutlined,
   UserOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
@@ -44,12 +38,10 @@ import BarChart from '../components/charts/BarChart';
 import { RoleTag } from '@lieshoucloud/ui';
 import { useApiError } from '../hooks/useApiError';
 import { getEdition } from '../config/editions';
-import LegalMindDashboard from './Legal/LegalMindDashboard';
 import { listCustomers } from '../services/crm';
 import { getApprovalCounts } from '../services/approval';
 import { getLedgerSummary } from '../services/finance';
 import { listProducts } from '../services/inventory';
-import { countIotDevices, listIotProducts } from '../services/iot';
 import { countUsers } from '../services/user';
 import { listTenants } from '../services/tenant';
 import { getCustomerSuccessSummary } from '../services/customerSuccess';
@@ -77,99 +69,11 @@ interface Overview {
   monthIncome: number;
   monthExpense: number;
   approvalInbox: number;
-  iotProducts: number;
-  iotDevices: number;
-  iotOnline: number;
 }
 
 const LOW_STOCK_THRESHOLD = 5;
 
 /** dwjk 精简工作台（只看用户 + 物联网监控） */
-function DwjkDashboard({ overview, loading }: { overview: Overview; loading: boolean }) {
-  const navigate = useNavigate();
-  const user = useAuthStore((s) => s.user);
-  return (
-    <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-      <ProCard bordered>
-        <Space size="middle">
-          <Avatar size={56} icon={<UserOutlined />} style={{ background: '#1677ff' }}>
-            {user?.username?.charAt(0).toUpperCase()}
-          </Avatar>
-          <div>
-            <Title level={4} style={{ margin: 0 }}>
-              {user?.username ?? '访客'}，欢迎回来
-            </Title>
-            <Text type="secondary">
-              {/* dwjk 单租户：不显示租户编码标签；角色显示中文名（如 值班员） */}
-              {(user?.roles ?? []).map((r) => (
-                <RoleTag key={r} role={r} />
-              ))}
-            </Text>
-          </div>
-        </Space>
-      </ProCard>
-
-      <ProCard split="vertical" bordered bodyStyle={{ padding: '12px 0' }}>
-        <StatisticCard
-          statistic={{
-            title: '设备总数',
-            value: overview.iotDevices,
-            prefix: <HddOutlined />,
-          }}
-        />
-        <StatisticCard
-          statistic={{
-            title: '在线设备',
-            value: overview.iotOnline,
-            prefix: <ApiOutlined />,
-            valueStyle: { color: '#52c41a' },
-          }}
-        />
-        <StatisticCard
-          statistic={{
-            title: '设备在线率',
-            value:
-              overview.iotDevices > 0
-                ? `${Math.round((overview.iotOnline / overview.iotDevices) * 100)}%`
-                : '—',
-            prefix: <ThunderboltOutlined />,
-            valueStyle: {
-              color:
-                overview.iotDevices > 0 && overview.iotOnline / overview.iotDevices < 0.9
-                  ? '#fa8c16'
-                  : '#1677ff',
-            },
-          }}
-        />
-      </ProCard>
-
-      <ProCard title="监控快捷入口" bordered>
-        <Space wrap size={[12, 12]}>
-          <Button
-            type="primary"
-            icon={<RadarChartOutlined />}
-            onClick={() => navigate('/iot/cockpit')}
-          >
-            监控驾驶舱
-          </Button>
-          <Button icon={<DashboardOutlined />} onClick={() => navigate('/iot/overview')}>
-            监控总览
-          </Button>
-          <Button icon={<ApartmentOutlined />} onClick={() => navigate('/iot/topo')}>
-            电网拓扑
-          </Button>
-          <Button icon={<AlertOutlined />} onClick={() => navigate('/iot/alerts')}>
-            告警中心
-          </Button>
-          <Button icon={<UserOutlined />} onClick={() => navigate('/profile')}>
-            个人中心
-          </Button>
-        </Space>
-        {loading && <div style={{ marginTop: 12 }}>加载中…</div>}
-      </ProCard>
-    </Space>
-  );
-}
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -178,7 +82,6 @@ export default function Admin() {
   const roles = user?.roles ?? [];
   const isPlatformAdmin = roles.includes(ROLE_PLATFORM_ADMIN);
   const dutyConsole = getEdition().dutyConsole;
-  const showLegalWorkbench = getEdition().showLegal === true && !dutyConsole;
 
   const [loading, setLoading] = useState(false);
   const [overview, setOverview] = useState<Overview>({
@@ -191,9 +94,6 @@ export default function Admin() {
     monthIncome: 0,
     monthExpense: 0,
     approvalInbox: 0,
-    iotProducts: 0,
-    iotDevices: 0,
-    iotOnline: 0,
   });
   const [statusDist, setStatusDist] = useState(aggregateStatus([]));
   const [funnel, setFunnel] = useState(aggregateFunnel([]));
@@ -249,24 +149,6 @@ export default function Admin() {
         }
       }
 
-      // 物联网概况（值班员控制台版）
-      let iotProducts = 0;
-      let iotDevices = 0;
-      let iotOnline = 0;
-      if (dutyConsole) {
-        try {
-          const [iotProductList, iotCounts] = await Promise.all([
-            listIotProducts(),
-            countIotDevices(),
-          ]);
-          iotProducts = iotProductList.length;
-          iotDevices = iotCounts.total;
-          iotOnline = iotCounts.online;
-        } catch {
-          // iot 服务不可达时静默降级
-        }
-      }
-
       setOverview({
         tenants,
         users,
@@ -277,9 +159,6 @@ export default function Admin() {
         monthIncome,
         monthExpense,
         approvalInbox,
-        iotProducts,
-        iotDevices,
-        iotOnline,
       });
     } catch (e) {
       handleError(e);
@@ -295,31 +174,6 @@ export default function Admin() {
   const total7d = seriesTotal(series, 7);
   const total30d = seriesTotal(series, 30);
 
-  // 法律版（layer/legalmind）：今日作战台（LegalMind Unity TODAY COMMAND）
-  if (showLegalWorkbench) {
-    return <LegalMindDashboard />;
-  }
-
-  // 值班员控制台：精简工作台（只展示行业版核心看板）
-  if (dutyConsole) {
-    return (
-      <PageContainer
-        title="数据看板"
-        extra={[
-          <Button
-            key="reload"
-            icon={<ReloadOutlined />}
-            onClick={() => void load()}
-            loading={loading}
-          >
-            刷新
-          </Button>,
-        ]}
-      >
-        <DwjkDashboard overview={overview} loading={loading} />
-      </PageContainer>
-    );
-  }
 
   return (
     <PageContainer

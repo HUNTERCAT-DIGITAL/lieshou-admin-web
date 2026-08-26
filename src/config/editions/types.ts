@@ -13,7 +13,7 @@
 import type { ComponentType } from 'react';
 import type { IndustryId } from '@lieshoucloud/types';
 
-export type EditionId = 'generic' | 'layer' | 'zhiye' | 'jmzz' | 'legalmind' | 'dwjk' | 'haizan' | 'huntercat' | 'linkesecurity' | 'hekeren';
+export type EditionId = 'generic' | 'layer';
 
 export interface EditionFeature {
   title: string;

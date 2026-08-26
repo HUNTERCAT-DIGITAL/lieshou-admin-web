@@ -28,7 +28,7 @@ function flatten(routes: MenuRoute[]): MenuRoute[] {
 }
 
 /** 以指定版别动态加载 _defaultProps（模块级 getEdition() 在导入时求值） */
-async function loadProps(edition: 'generic' | 'legalmind'): Promise<ProLayoutProps> {
+async function loadProps(edition: 'generic' | 'layer'): Promise<ProLayoutProps> {
   vi.stubEnv('VITE_EDITION', edition);
   vi.resetModules();
   const mod = await import('../_defaultProps');
@@ -64,8 +64,8 @@ describe('_defaultProps smoke', () => {
     expect(names).not.toContain('今日作战台');
   });
 
-  it('法律版（legalmind · showLegal）：菜单置顶 今日作战台 + 隐藏通用欢迎页', async () => {
-    const flat = flatten((await loadProps('legalmind')).route?.routes ?? []);
+  it('法律版（layer · showLegal）：菜单置顶 今日作战台 + 隐藏通用欢迎页', async () => {
+    const flat = flatten((await loadProps('layer')).route?.routes ?? []);
     const names = flat.map((r) => r.name);
     expect(flat[0]).toMatchObject({ path: '/admin', name: '今日作战台' });
     expect(names).toContain('今日作战台');

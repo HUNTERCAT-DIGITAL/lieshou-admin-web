@@ -16,16 +16,8 @@
  */
 import type { IndustryId } from '@lieshoucloud/types';
 
-import { dwjkEdition } from './dwjk';
 import { genericEdition } from './generic';
-import { haizanEdition } from './haizan';
-import { huntercatEdition } from './huntercat';
-import { hekerenEdition } from './hekeren';
-import { linkesecurityEdition } from './linkesecurity';
-import { jmzzEdition } from './jmzz';
 import { layerEdition } from './layer';
-import { legalmindEdition } from './legalmind';
-import { zhiyeEdition } from './zhiye';
 import type { EditionConfig, EditionId } from './types';
 
 export type { EditionConfig, EditionCta, EditionExtraRoute, EditionFaq, EditionFeature, EditionId, EditionStat } from './types';
@@ -36,14 +28,6 @@ const EDITION_ENV_KEY = 'VITE_EDITION';
 export const EDITIONS: Record<EditionId, EditionConfig> = {
   generic: genericEdition,
   layer: layerEdition,
-  zhiye: zhiyeEdition,
-  jmzz: jmzzEdition,
-  legalmind: legalmindEdition,
-  dwjk: dwjkEdition,
-  haizan: haizanEdition,
-  huntercat: huntercatEdition,
-  linkesecurity: linkesecurityEdition,
-  hekeren: hekerenEdition,
 };
 
 /** 从 VITE_EDITION 环境变量解析版别（非法值回退 undefined → 继续走域名推断） */
@@ -58,15 +42,7 @@ function editionFromEnv(): EditionId | null {
  * 注：jmzz 入口 2026-08-25 起为 `dev.jmzz.lieshoucloud.huntercat.cn`（中缀形式），
  * 旧前缀 `jmzz.` 一并兼容；layer/zhiye 仍为前缀形式。 */
 function editionFromHostname(host: string): EditionId {
-  if (host.startsWith('legalmind.')) return 'legalmind';
   if (host.startsWith('layer.')) return 'layer';
-  if (host.startsWith('zhiye.')) return 'zhiye';
-  if (host.startsWith('jmzz.') || host.includes('.jmzz.')) return 'jmzz';
-  if (host.startsWith('dwjk.')) return 'dwjk';
-  if (host.startsWith('haizan.')) return 'haizan';
-  if (host.startsWith('huntercat.')) return 'huntercat';
-  if (host.startsWith('linkesecurity.')) return 'linkesecurity';
-  if (host.startsWith('hekeren.')) return 'hekeren';
   return 'generic';
 }
 
@@ -158,23 +134,5 @@ export const INDUSTRY_ENTRIES: IndustryEntry[] = [
     name: '法律行业版',
     desc: '律所 / 事务所办案数字化',
     href: 'https://layer.dev.lieshoucloud.huntercat.cn',
-  },
-  {
-    edition: 'zhiye',
-    name: '教育行业版',
-    desc: '教育机构招生与教务平台',
-    href: 'https://zhiye.dev.lieshoucloud.huntercat.cn',
-  },
-  {
-    edition: 'jmzz',
-    name: '精密制造版',
-    desc: '制造企业数字化车间底座',
-    href: 'https://dev.jmzz.lieshoucloud.huntercat.cn',
-  },
-  {
-    edition: 'dwjk',
-    name: '电网监控版',
-    desc: '变电站 / 配电物联网监控平台',
-    href: 'https://dwjk.dev.lieshoucloud.huntercat.cn',
   },
 ];

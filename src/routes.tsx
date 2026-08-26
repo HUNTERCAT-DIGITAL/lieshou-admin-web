@@ -33,29 +33,9 @@ const LeadList = lazy(() => import('./pages/Lead/List'));
 const ContactList = lazy(() => import('./pages/Contact/List'));
 const ContractList = lazy(() => import('./pages/Contract/List'));
 const MemberList = lazy(() => import('./pages/Member/List'));
-const TeacherList = lazy(() => import('./pages/Edu/Teacher/List'));
-const DispatchList = lazy(() => import('./pages/Edu/Dispatch/List'));
-const SupplyList = lazy(() => import('./pages/Edu/Supply/List'));
-const ConsumptionList = lazy(() => import('./pages/Edu/Consumption/List'));
-const SettlementList = lazy(() => import('./pages/Edu/Settlement/List'));
 const Forbidden = lazy(() => import('./pages/Forbidden'));
 const FinanceList = lazy(() => import('./pages/Finance/List'));
 const InventoryList = lazy(() => import('./pages/Inventory/List'));
-const CaseList = lazy(() => import('./pages/Legal/CaseList'));
-const CaseDetail = lazy(() => import('./pages/Legal/CaseDetail'));
-const ClientSuccessCenter = lazy(() => import('./pages/Legal/ClientSuccessCenter'));
-const MatterCalendar = lazy(() => import('./pages/Legal/MatterCalendar'));
-const EnablementCenter = lazy(() => import('./pages/Legal/EnablementCenter'));
-const GovernanceCenter = lazy(() => import('./pages/Legal/GovernanceCenter'));
-const KnowledgeCenter = lazy(() => import('./pages/Legal/KnowledgeCenter'));
-const GrowthCenter = lazy(() => import('./pages/Legal/GrowthCenter'));
-const IotOverview = lazy(() => import('./pages/IoT/Overview'));
-const IotCockpit = lazy(() => import('./pages/IoT/Cockpit'));
-const IotProducts = lazy(() => import('./pages/IoT/Products'));
-const IotDevices = lazy(() => import('./pages/IoT/Devices'));
-const IotRules = lazy(() => import('./pages/IoT/Rules'));
-const IotAlerts = lazy(() => import('./pages/IoT/Alerts'));
-const IotTopo = lazy(() => import('./pages/IoT/Topo'));
 const QualityList = lazy(() => import('./pages/Quality/List'));
 const Login = lazy(() => import('./pages/Login'));
 const RegisterTenant = lazy(() => import('./pages/RegisterTenant'));
@@ -180,14 +160,6 @@ export const routes = (
           }
         />
         <Route
-          path="/edu/teacher/list"
-          element={
-            <EditionGuard>
-              <TeacherList />
-            </EditionGuard>
-          }
-        />
-        <Route
           path="/contract/list"
           element={
             <EditionGuard>
@@ -196,42 +168,10 @@ export const routes = (
           }
         />
         <Route
-          path="/edu/dispatch/list"
-          element={
-            <EditionGuard>
-              <DispatchList />
-            </EditionGuard>
-          }
-        />
-        <Route
           path="/member/list"
           element={
             <EditionGuard>
               <MemberList />
-            </EditionGuard>
-          }
-        />
-        <Route
-          path="/edu/supply/list"
-          element={
-            <EditionGuard>
-              <SupplyList />
-            </EditionGuard>
-          }
-        />
-        <Route
-          path="/edu/consumption/list"
-          element={
-            <EditionGuard>
-              <ConsumptionList />
-            </EditionGuard>
-          }
-        />
-        <Route
-          path="/edu/settlement/list"
-          element={
-            <EditionGuard>
-              <SettlementList />
             </EditionGuard>
           }
         />
@@ -253,120 +193,12 @@ export const routes = (
             </EditionGuard>
           }
         />
-        <Route path="/iot/overview" element={<IotOverview />} />
-        <Route path="/iot/cockpit" element={<IotCockpit />} />
-        <Route
-          path="/iot/products"
-          element={
-            <AccessGuard access="canManageIotConfig">
-              <IotProducts />
-            </AccessGuard>
-          }
-        />
-        <Route
-          path="/iot/devices"
-          element={
-            <AccessGuard access="canManageIotConfig">
-              <IotDevices />
-            </AccessGuard>
-          }
-        />
-        <Route
-          path="/iot/rules"
-          element={
-            <AccessGuard access="canManageIotConfig">
-              <IotRules />
-            </AccessGuard>
-          }
-        />
-        <Route path="/iot/alerts" element={<IotAlerts />} />
-        <Route path="/iot/topo" element={<IotTopo />} />
         <Route
           path="/approval/list"
           element={
             <EditionGuard>
               <AccessGuard access="canUseApproval">
                 <ApprovalList />
-              </AccessGuard>
-            </EditionGuard>
-          }
-        />
-        <Route
-          path="/legal/cases"
-          element={
-            <EditionGuard>
-              <AccessGuard access="canUseLegal">
-                <CaseList />
-              </AccessGuard>
-            </EditionGuard>
-          }
-        />
-        <Route
-          path="/legal/cases/:id"
-          element={
-            <EditionGuard>
-              <AccessGuard access="canUseLegal">
-                <CaseDetail />
-              </AccessGuard>
-            </EditionGuard>
-          }
-        />
-        <Route
-          path="/legal/knowledge"
-          element={
-            <EditionGuard>
-              <AccessGuard access="canUseLegal">
-                <KnowledgeCenter />
-              </AccessGuard>
-            </EditionGuard>
-          }
-        />
-        <Route
-          path="/legal/clients"
-          element={
-            <EditionGuard>
-              <AccessGuard access="canUseLegal">
-                <ClientSuccessCenter />
-              </AccessGuard>
-            </EditionGuard>
-          }
-        />
-        <Route
-          path="/legal/calendar"
-          element={
-            <EditionGuard>
-              <AccessGuard access="canUseLegal">
-                <MatterCalendar />
-              </AccessGuard>
-            </EditionGuard>
-          }
-        />
-        <Route
-          path="/legal/enablement"
-          element={
-            <EditionGuard>
-              <AccessGuard access="canUseLegal">
-                <EnablementCenter />
-              </AccessGuard>
-            </EditionGuard>
-          }
-        />
-        <Route
-          path="/legal/governance"
-          element={
-            <EditionGuard>
-              <AccessGuard access="canUseLegal">
-                <GovernanceCenter />
-              </AccessGuard>
-            </EditionGuard>
-          }
-        />
-        <Route
-          path="/legal/growth"
-          element={
-            <EditionGuard>
-              <AccessGuard access="canUseLegal">
-                <GrowthCenter />
               </AccessGuard>
             </EditionGuard>
           }

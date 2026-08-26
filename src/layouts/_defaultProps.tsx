@@ -106,19 +106,6 @@ const defaultProps: ProLayoutProps = {
         ],
       },
       {
-        // zhiye 教育行业版 · 师资档案 + 师资派遣 + 供应结算（智野 B2B2C 供应侧）；非 eduTeacher 版别由 hiddenMenus 隐藏
-        path: '/edu',
-        name: '师资档案',
-        icon: <IdcardOutlined />,
-        routes: [
-          { path: '/edu/teacher/list', name: '教师列表', icon: <SolutionOutlined /> },
-          { path: '/edu/dispatch/list', name: '师资派遣', icon: <TeamOutlined /> },
-          { path: '/edu/supply/list', name: '供应单', icon: <SolutionOutlined /> },
-          { path: '/edu/consumption/list', name: '消课明细', icon: <SolutionOutlined /> },
-          { path: '/edu/settlement/list', name: '结算单', icon: <SolutionOutlined /> },
-        ],
-      },
-      {
         path: '/inventory',
         name: '进销存',
         icon: <ShopOutlined />,

@@ -248,7 +248,7 @@ export default function TenantList() {
                 message: '小写字母开头，3-64 位小写字母/数字/连字符',
               },
             ]}
-            placeholder="如：zhiye（登录用，创建后不可改）"
+            placeholder="如：huntercat（登录用，创建后不可改）"
           />
         )}
         {editing && (

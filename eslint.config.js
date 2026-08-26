@@ -12,6 +12,7 @@ export default tseslint.config(
       '.vite/**',
       'node_modules/**',
       'node_modules.bak/**',
+      'open/**',
       'src/types/global.d.ts',
     ],
   },
