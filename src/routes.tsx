@@ -17,10 +17,10 @@ import { Route, Routes } from 'react-router-dom';
 import { getExtraEdition } from './config/editions';
 import type { EditionExtraRoute } from './config/editions';
 import { AccessGuard } from './components/AccessGuard';
-import { AuthGuard } from './components/AuthGuard';
 import { EditionGuard } from './components/EditionGuard';
-import PageLoading from './components/PageLoading';
+import { AuthGuard, PageLoading } from '@lieshoucloud/ui';
 import BasicLayout from './layouts/BasicLayout';
+import { useAuthStore } from './stores/auth';
 
 // 路由级懒加载：首屏只加载当前页 chunk，antd/pro 进 vendor 缓存
 const Admin = lazy(() => import('./pages/Admin'));
@@ -81,6 +81,18 @@ function ExtraRoute({ route }: { route: EditionExtraRoute }) {
 
 const EXTRA_ROUTES = getExtraEdition().extraRoutes ?? [];
 
+/**
+ * 受保护布局：认证状态由端内 auth store 读取，注入共享 AuthGuard（L1-1 · 受控版）.
+ */
+function ProtectedLayout() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  return (
+    <AuthGuard isAuthenticated={isAuthenticated}>
+      <BasicLayout />
+    </AuthGuard>
+  );
+}
+
 export const routes = (
   <Suspense fallback={<PageLoading />}>
     <Routes>
@@ -90,13 +102,7 @@ export const routes = (
       <Route path="/register" element={<RegisterTenant />} />
 
       {/* 受保护: 走 BasicLayout + AuthGuard */}
-      <Route
-        element={
-          <AuthGuard>
-            <BasicLayout />
-          </AuthGuard>
-        }
-      >
+      <Route element={<ProtectedLayout />}>
         <Route path="/welcome" element={<Welcome />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/profile" element={<Profile />} />

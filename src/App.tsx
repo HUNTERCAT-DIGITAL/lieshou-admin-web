@@ -1,5 +1,5 @@
 import { BrowserRouter } from 'react-router-dom';
-import { ErrorBoundary } from './components/ErrorBoundary';
+import { ErrorBoundary } from '@lieshoucloud/ui';
 import { routes } from './routes';
 
 export default function App() {
