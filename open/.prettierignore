@@ -1,8 +1,0 @@
-# 后端与部署配置不属于 prettier 管辖（保持 Spring Boot 原生格式）
-services/
-deploy/
-examples/
-pnpm-lock.yaml
-
-# OpenAPI 生成产物:保持生成器输出,regen 时 diff 干净
-types/src/generated.ts
