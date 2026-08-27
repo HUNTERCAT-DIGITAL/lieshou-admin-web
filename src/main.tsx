@@ -34,13 +34,11 @@ configureCore({
       // 本薄壳 services 走相对路径（由下方 createApiClient baseUrl=/api 补全）。
       // 桥接层归一：全路径已带 /api 时不再叠加，避免 /api/api/auth/login 双写。
       const p = path.startsWith('/api/') ? path.slice(4) : path;
-      switch (method) {
-        case 'POST': return api.post(p, body);
-        case 'PUT': return api.put(p, body);
-        case 'PATCH': return api.patch(p, body);
-        case 'DELETE': return api.delete(p);
-        default: return api.get(p);
-      }
+      // 透传 skipAuth401:登录/注册等认证接口的 401 不走会话过期拦截（由 contract-api 支持）
+      const skipAuth401 = (init as { skipAuth401?: boolean } | undefined)?.skipAuth401;
+      return (api as unknown as {
+        request<T>(o: { method: string; path: string; body?: unknown; skipAuth401?: boolean }): Promise<T>;
+      }).request({ method, path: p, body, skipAuth401 });
     },
   },
 });
