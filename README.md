@@ -13,7 +13,7 @@
 ## 技术栈
 
 - Vite 6 + React 19 + TypeScript(strict)+ antd 5.22 + ProComponents 2.8
-- 共享层 `@lieshoucloud/{api-client,config,types,ui}` 经 `open/` submodule 挂载 [lieshou-cloud-web](https://github.com/HUNTERCAT-DIGITAL/lieshou-cloud-web)
+- 共享层 `@lieshoucloud/{contract-api,contract-types,contract-config,ui,core-web}` 经 `open/` submodule 挂载 [lieshou-cloud-web](https://github.com/HUNTERCAT-DIGITAL/lieshou-cloud-web)
 
 ## 功能
 
@@ -51,6 +51,16 @@ pnpm dev                                  # Vite,默认 5173
 - 客户 Edition 配置在客户仓 `config/editions/<client>.ts`(本仓仅 `generic` + `layer` 预设)
 - 客户仓经 `deploy/prepare.mjs` 生成 `editions/<client>.extra.ts`(extraRoutes)→ 本仓 `import.meta.glob` 装配
 - 渲染层 `EditionGuard` / `filterRoutes` 按 `edition.hiddenMenus` 裁剪
+
+## 共享层升级流程
+
+共享层（`open/` 下 submodule：contract-api / contract-types / contract-config / ui / core-web）由独立仓维护：
+
+1. 改共享仓（如 `lieshou-core-web`）→ 提交 + push
+2. 本端升级：`git -C open/core-web fetch origin main && git -C open/core-web checkout <commit>`
+3. 本端提交 gitlink bump（`open/*` 指针变更）
+
+> 纪律：共享仓提交后**立即** bump 各端 pin，避免 submodule 漂移。
 
 ## 关联仓库
 
