@@ -1,6 +1,50 @@
 import { describe, expect, it } from 'vitest';
 
-import { createAccess, ROLE_PLATFORM_ADMIN, ROLE_TENANT_ADMIN } from './access';
+import { createAccess, derivePermissions, ROLE_PLATFORM_ADMIN, ROLE_TENANT_ADMIN } from './access';
+
+describe('derivePermissions (角色 → 权限码 · 与后端 MenuService 一致性契约)', () => {
+  // ⚠️ 单一事实源 = 后端 MenuService（ADR-0024 后端裁决）；本函数为菜单接口失败时的
+  // 本地降级副本，映射必须与后端 MenuServiceTest 保持完全一致（改两端必须同步更新）。
+
+  const USER_CODES = [
+    'approval:use', 'crm:use', 'finance:use', 'inventory:use', 'audit:read',
+    'iot:monitor', 'iot:config', 'legal:use',
+  ];
+
+  it('缺省/普通用户 → 业务全开 + iot + legal', () => {
+    expect(derivePermissions(null)).toEqual([]);
+    expect(derivePermissions({ userId: 1, username: 'u', roles: ['USER'] })).toEqual(USER_CODES);
+  });
+
+  it('租户管理员 → 增加用户管理', () => {
+    const p = derivePermissions({ userId: 1, username: 'u', roles: ['TENANT_ADMIN'] });
+    expect(p).toEqual([
+      ...USER_CODES.slice(0, 5), 'user:manage', 'user:list', ...USER_CODES.slice(5),
+    ]);
+  });
+
+  it('平台管理员 → 增加租户管理', () => {
+    const p = derivePermissions({ userId: 1, username: 'u', roles: ['PLATFORM_ADMIN'] });
+    expect(p).toEqual([
+      ...USER_CODES.slice(0, 5), 'user:manage', 'user:list', 'tenant:manage', ...USER_CODES.slice(5),
+    ]);
+  });
+
+  it('值班员 → 仅 iot:monitor + legal（与后端一致）', () => {
+    const p = derivePermissions({ userId: 1, username: 'u', roles: ['DUTY_OFFICER'] });
+    expect(p).toEqual(['iot:monitor', 'legal:use']);
+  });
+
+  it('有 permissions 字段 → 权限码驱动（不再角色推导）', () => {
+    const p = derivePermissions({
+      userId: 1,
+      username: 'u',
+      roles: ['PLATFORM_ADMIN'],
+      permissions: ['crm:use'],
+    });
+    expect(p).toEqual(['crm:use']);
+  });
+});
 
 describe('createAccess (RBAC · ADR-0024)', () => {
   it('未登录 → 无任何权限', () => {

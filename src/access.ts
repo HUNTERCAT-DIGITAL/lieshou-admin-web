@@ -40,8 +40,9 @@ export const ROLE_DUTY_OFFICER = 'DUTY_OFFICER';
 /**
  * 角色 → 权限码列表（permissions 缺失时回退，与 createAccess 角色推导语义对齐）。
  *
- * 菜单（BasicLayout filterRoutes）按权限码数组过滤；后端暂不返回 permissions 时
- * 用角色推导保证菜单完整（对齐 access.ts 的 access 推导）。
+ * ⚠️ 单一事实源 = 后端 MenuService.derivePermissions（ADR-0024 后端裁决）；
+ * 本函数仅为菜单接口失败时的本地降级副本（BasicLayout filterRoutes 兜底），
+ * 映射必须与后端 MenuServiceTest 保持一致（改两端必须同步更新两端测试）。
  */
 export function derivePermissions(user: CurrentUser | null): string[] {
   if (!user) return [];
