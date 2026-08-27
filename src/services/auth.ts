@@ -32,6 +32,28 @@ export async function login(req: LoginRequest): Promise<TokenResponse> {
   return parseTokenOrThrow(res);
 }
 
+/** 登录页租户选项（同用户名多租户时供选择） */
+export interface TenantOption {
+  tenantId: number;
+  tenantCode: string;
+  tenantName: string;
+  tenantEdition?: string | null;
+}
+
+/**
+ * POST /api/auth/tenant-options — 按 username 查可登录租户（公开，不校验密码）
+ */
+export async function fetchTenantOptions(username: string): Promise<TenantOption[]> {
+  const res = await fetch(`${AUTH_BASE}/tenant-options`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username }),
+  });
+  if (!res.ok) return [];
+  const data = (await res.json()) as unknown;
+  return Array.isArray(data) ? (data as TenantOption[]) : [];
+}
+
 /**
  * POST /api/auth/refresh
  */

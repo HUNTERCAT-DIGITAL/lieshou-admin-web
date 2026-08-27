@@ -20,12 +20,13 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 import { Alert, Button, Card, Form, Input, Modal, Select, Space, Spin, Typography } from 'antd';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { BeianFooter } from '../components/BeianFooter';
 import {
   AuthError,
+  fetchTenantOptions,
   oauthAuthorize,
   oauthProviders,
   oauthToken,
@@ -34,6 +35,7 @@ import {
   sendCode,
   type CodeChannel,
   type OAuthProvider,
+  type TenantOption,
 } from '../services/auth';
 import { getEdition } from '../config/editions';
 import { useAuthStore } from '../stores/auth';
@@ -111,6 +113,10 @@ export default function Login() {
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  // 动态租户选项（username 输入后查询；多租户时下拉选择，单租户直接登录）
+  const [tenantOptions, setTenantOptions] = useState<TenantOption[]>([]);
+  const [tenantLoading, setTenantLoading] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // 可信身份登录（OAuth 演示通道）
   const [oauthOpen, setOauthOpen] = useState(false);
   // 门户「免费注册体验」→ /login?register=1 → 自动打开注册 Modal
@@ -134,13 +140,27 @@ export default function Login() {
   // 租户自助开通成功后预填管理员用户名（issue #24）
   const initialUsername = searchParams.get('username')?.trim() || undefined;
 
-  // 已登录 → 直接跳过 login 页
-  if (isAuthenticated) {
-    const from =
-      (location.state as LocationState | null)?.from ??
-      (getEdition().dutyConsole || getEdition().showLegal === true ? '/admin' : '/welcome');
-    return <Navigate to={from} replace />;
-  }
+  // 动态租户查询：username 输入后（防抖 500ms）拉可登录租户；空/失败 → 空列表（走默认租户）
+  const queryTenantOptions = useCallback(async (username: string) => {
+    const u = username?.trim();
+    if (!u) {
+      setTenantOptions([]);
+      return;
+    }
+    setTenantLoading(true);
+    try {
+      const opts = await fetchTenantOptions(u);
+      setTenantOptions(opts);
+    } catch {
+      setTenantOptions([]);
+    } finally {
+      setTenantLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    // 初始无 username → 不查询；表单输入变化由 Form onValuesChange 触发
+  }, []);
 
   const go = () => {
     // 法律版 / 值班员控制台：登录默认进工作台（今日作战台）；通用版进欢迎页
@@ -149,6 +169,14 @@ export default function Login() {
     const from = (location.state as LocationState | null)?.from ?? fallback;
     navigate(from, { replace: true });
   };
+
+  // 已登录 → 直接跳过 login 页（置于所有 hooks 之后，避免条件 hook 数量不一致）
+  if (isAuthenticated) {
+    const from =
+      (location.state as LocationState | null)?.from ??
+      (getEdition().dutyConsole || getEdition().showLegal === true ? '/admin' : '/welcome');
+    return <Navigate to={from} replace />;
+  }
 
   const onPwdFinish = async (values: PwdFormValues) => {
     setSubmitting(true);
@@ -283,7 +311,17 @@ export default function Login() {
               onFinish={onPwdFinish}
               autoComplete="off"
               requiredMark={false}
-              initialValues={{ tenantCode: initialTenant, username: initialUsername }}
+              initialValues={{ username: initialUsername }}
+              onValuesChange={(changed) => {
+                // username 输入 → 防抖查询可登录租户（多租户时显示选择）
+                if ('username' in changed) {
+                  if (debounceRef.current) clearTimeout(debounceRef.current);
+                  debounceRef.current = setTimeout(
+                    () => void queryTenantOptions((changed.username as string | undefined) ?? ''),
+                    500,
+                  );
+                }
+              }}
             >
               <Form.Item
                 label="用户名"
@@ -298,17 +336,25 @@ export default function Login() {
                   data-testid="username-input"
                 />
               </Form.Item>
-              {!edition.hideTenantInput && (
+              {!edition.hideTenantInput && tenantOptions.length > 1 && (
                 <Form.Item
-                  label="租户编码"
+                  label="选择租户"
                   name="tenantCode"
-                  tooltip={`记住上次使用的租户；留空使用默认（${edition.defaultTenantCode}）`}
+                  tooltip={`该用户名在多个租户下有账号，请选择要登录的租户`}
+                  rules={[{ required: true, message: '请选择租户' }]}
                 >
-                  <Input
-                    prefix={<ClusterOutlined />}
-                    placeholder={edition.defaultTenantCode}
+                  <Select
+                    placeholder="请选择租户"
                     size="large"
-                    data-testid="tenant-input"
+                    loading={tenantLoading}
+                    data-testid="tenant-select"
+                    options={tenantOptions.map((t) => ({
+                      label:
+                        t.tenantCode === edition.defaultTenantCode
+                          ? `${t.tenantName}（默认）`
+                          : t.tenantName,
+                      value: t.tenantCode,
+                    }))}
                   />
                 </Form.Item>
               )}

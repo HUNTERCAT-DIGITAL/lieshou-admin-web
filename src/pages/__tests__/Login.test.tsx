@@ -13,6 +13,7 @@ import { useAuthStore } from '../../stores/auth';
 
 beforeEach(() => {
   localStorage.clear();
+  fetchTenantOptions.mockResolvedValue([]);
   useAuthStore.setState({
     accessToken: null,
     refreshToken: null,
@@ -22,13 +23,15 @@ beforeEach(() => {
   vi.restoreAllMocks();
 });
 
-const { login, loginWithCode, register, resetPassword, sendCode } = vi.hoisted(() => ({
-  login: vi.fn(),
-  loginWithCode: vi.fn(),
-  register: vi.fn(),
-  resetPassword: vi.fn(),
-  sendCode: vi.fn(),
-}));
+const { login, loginWithCode, register, resetPassword, sendCode, fetchTenantOptions } =
+  vi.hoisted(() => ({
+    login: vi.fn(),
+    loginWithCode: vi.fn(),
+    register: vi.fn(),
+    resetPassword: vi.fn(),
+    sendCode: vi.fn(),
+    fetchTenantOptions: vi.fn(),
+  }));
 
 vi.mock('../../services/auth', () => ({
   login,
@@ -36,6 +39,7 @@ vi.mock('../../services/auth', () => ({
   register,
   resetPassword,
   sendCode,
+  fetchTenantOptions,
   AuthError: class AuthError extends Error {
     constructor(
       public code: string,
@@ -50,7 +54,7 @@ vi.mock('../../services/auth', () => ({
 
 import Login from '../Login';
 import * as authApi from '../../services/auth';
-import { TENANT_CODE_STORAGE_KEY } from '../../utils/tenant-code';
+
 
 const wrap = ({ children }: { children: React.ReactNode }) => (
   <ConfigProvider>
@@ -119,7 +123,7 @@ describe('Login 页', () => {
       expect(login).toHaveBeenCalledWith({
         username: 'alice',
         password: 'secret',
-        tenantCode: 'jxlkas',
+        tenantCode: undefined,
       });
     });
   });
@@ -156,7 +160,11 @@ describe('Login 页', () => {
     expect(await screen.findByText('用户不存在')).toBeInTheDocument();
   });
 
-  it('记住租户：登录成功后写 localStorage + 下次自动填', async () => {
+  it('多租户：username 输入后查询租户选项并显示下拉（不手填租户）', async () => {
+    fetchTenantOptions.mockResolvedValue([
+      { tenantId: 1, tenantCode: 'huntercat', tenantName: '南昌猎手猫数字科技有限公司' },
+      { tenantId: 2, tenantCode: 'acme', tenantName: 'Acme 集团' },
+    ]);
     login.mockResolvedValue({
       accessToken: 'a',
       refreshToken: 'r',
@@ -171,21 +179,31 @@ describe('Login 页', () => {
       user: null,
       isAuthenticated: false,
     });
-    localStorage.removeItem(TENANT_CODE_STORAGE_KEY);
-    const { unmount } = render(<Login />, { wrapper: wrap });
+    render(<Login />, { wrapper: wrap });
 
-    fireEvent.change(screen.getByTestId('tenant-input'), { target: { value: 'acme' } });
+    // 初始无租户输入框（不手填租户）
+    expect(screen.queryByTestId('tenant-input')).not.toBeInTheDocument();
+
     fireEvent.change(screen.getByTestId('username-input'), { target: { value: 'a' } });
-    fireEvent.change(screen.getByTestId('password-input'), { target: { value: 'p' } });
-    fireEvent.click(screen.getByTestId('submit-button'));
 
-    await vi.waitFor(() => {
-      expect(login).toHaveBeenCalledWith({ username: 'a', password: 'p', tenantCode: 'acme' });
+    // 防抖查询 → 多租户下拉出现
+    const select = await screen.findByTestId('tenant-select');
+    expect(fetchTenantOptions).toHaveBeenCalledWith('a');
+    expect(select).toBeInTheDocument();
+  });
+
+  it('单租户：不显示租户下拉，直接登录（tenantCode undefined → 后端默认）', async () => {
+    fetchTenantOptions.mockResolvedValue([
+      { tenantId: 1, tenantCode: 'huntercat', tenantName: '南昌猎手猫数字科技有限公司' },
+    ]);
+    login.mockResolvedValue({
+      accessToken: 'a',
+      refreshToken: 'r',
+      expiresIn: 1800,
+      tokenType: 'Bearer',
+      userId: 1,
+      username: 'u',
     });
-    expect(localStorage.getItem(TENANT_CODE_STORAGE_KEY)).toBe('acme');
-
-    // 重渲染：tenant 输入框应自动填上次记忆（重置 isAuth 防止 Navigate 跳转）
-    unmount();
     useAuthStore.setState({
       accessToken: null,
       refreshToken: null,
@@ -193,7 +211,19 @@ describe('Login 页', () => {
       isAuthenticated: false,
     });
     render(<Login />, { wrapper: wrap });
-    const tenantInput = screen.getByTestId('tenant-input') as HTMLInputElement;
-    expect(tenantInput.value).toBe('acme');
+
+    fireEvent.change(screen.getByTestId('username-input'), { target: { value: 'a' } });
+    fireEvent.change(screen.getByTestId('password-input'), { target: { value: 'p' } });
+    // 单租户 → 无下拉
+    expect(screen.queryByTestId('tenant-select')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('submit-button'));
+
+    await vi.waitFor(() => {
+      expect(login).toHaveBeenCalledWith({
+        username: 'a',
+        password: 'p',
+        tenantCode: undefined,
+      });
+    });
   });
 });

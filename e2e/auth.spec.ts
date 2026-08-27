@@ -7,13 +7,13 @@ import { expect, test, type Page } from '@playwright/test';
 
 const USERNAME = process.env.E2E_USERNAME ?? 'admin';
 const PASSWORD = process.env.E2E_PASSWORD ?? 'admin123';
-/** 种子租户（R__seed_admin.sql：admin 属于 tenant code=huntercat） */
+/** 种子租户（R__seed_admin.sql：admin 属于 tenant code=huntercat；登录不填默认） */
 const TENANT = process.env.E2E_TENANT ?? 'huntercat';
 
 /** 登录并等待进入主界面（工作台/欢迎页）。菜单断言用 DOM 存在性（不依赖侧边栏展开）。 */
 async function login(page: Page): Promise<void> {
   await page.goto('/login');
-  await page.getByTestId('tenant-input').fill(TENANT);
+  // 不再手填租户：username 触发查询，单租户直接登录（后端默认 huntercat）
   await page.getByTestId('username-input').fill(USERNAME);
   await page.getByTestId('password-input').fill(PASSWORD);
   await page.getByTestId('submit-button').click();
@@ -32,7 +32,6 @@ test.describe('登录流程', () => {
 
   test('错误密码 → 提示登录失败', async ({ page }) => {
     await page.goto('/login');
-    await page.getByTestId('tenant-input').fill(TENANT);
     await page.getByTestId('username-input').fill(USERNAME);
     await page.getByTestId('password-input').fill('wrong-password-123');
     await page.getByTestId('submit-button').click();
