@@ -4,8 +4,7 @@
  * @see .ai/decisions/0017-spring-security-jwt.md
  */
 
-import { api } from './api';
-import type { CurrentUser, LoginRequest, TokenResponse } from '@lieshoucloud/contract-types/business/auth';
+import type { TokenResponse } from '@lieshoucloud/contract-types/business/auth';
 import { AuthError } from '../utils/errors';
 
 // 兼容既有 import：AuthError 已迁移至 utils/errors.ts（避免 api/auth 循环依赖）
@@ -20,70 +19,10 @@ const GATEWAY_BASE =
 const AUTH_BASE = `${GATEWAY_BASE}/auth`;
 
 /**
- * POST /api/auth/login
- * @throws AuthError INVALID_CREDENTIALS (401) / USER_NOT_FOUND (404)
+ * 登录页租户选项（同用户名多租户时供选择）——由 core-web 认证链路接管
+ * （登录/刷新/me/切租户已在 lieshou-core-web auth 上收，2026-09）。
+ * 本文件仅保留登录页专属的验证码/注册/OAuth 逻辑。
  */
-export async function login(req: LoginRequest): Promise<TokenResponse> {
-  const res = await fetch(`${AUTH_BASE}/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(req),
-  });
-  return parseTokenOrThrow(res);
-}
-
-/** 登录页租户选项（同用户名多租户时供选择） */
-export interface TenantOption {
-  tenantId: number;
-  tenantCode: string;
-  tenantName: string;
-  tenantEdition?: string | null;
-}
-
-/**
- * POST /api/auth/switch-tenant — 用 refresh token 切换登录租户（先登录后选租户）
- */
-export async function switchTenant(refreshToken: string, tenantCode: string): Promise<TokenResponse> {
-  const res = await fetch(`${AUTH_BASE}/switch-tenant`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken, tenantCode }),
-  });
-  return parseTokenOrThrow(res);
-}
-
-/**
- * POST /api/auth/tenant-options — 按 username 查可登录租户（公开，不校验密码）
- */
-export async function fetchTenantOptions(username: string): Promise<TenantOption[]> {
-  const res = await fetch(`${AUTH_BASE}/tenant-options`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username }),
-  });
-  if (!res.ok) return [];
-  const data = (await res.json()) as unknown;
-  return Array.isArray(data) ? (data as TenantOption[]) : [];
-}
-
-/**
- * POST /api/auth/refresh
- */
-export async function refreshTokens(refreshToken: string): Promise<TokenResponse> {
-  const res = await fetch(`${AUTH_BASE}/refresh`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken }),
-  });
-  return parseTokenOrThrow(res);
-}
-
-/**
- * GET /api/auth/me - 当前用户（走统一 api 封装：自动带 JWT + 401 自动 refresh）
- */
-export async function fetchCurrentUser(): Promise<CurrentUser> {
-  return api.get<CurrentUser>('/auth/me');
-}
 
 // ============================================================
 // Phase 8 · 认证体系扩展（ADR-0023）：验证码 / 注册 / 重置密码

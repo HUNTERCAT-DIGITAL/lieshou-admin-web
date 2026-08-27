@@ -1,8 +1,8 @@
 /**
  * auth.ts 未鉴权路径单测（Phase 9 · 覆盖率）.
  *
- * api.test.ts 已覆盖 api.ts（401 重试等）；这里覆盖 services/auth.ts 里
- * 走 raw fetch 的匿名接口（login/register/send-code/login-code/reset-password/refresh）。
+ * 登录/刷新/me/切租户已上收 lieshou-core-web（auth.api，测试在 core-web 仓）；
+ * 此处覆盖仍留在本文件的验证码/注册/OAuth 匿名接口。
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -19,42 +19,7 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-describe('services/auth.ts（匿名接口）', () => {
-  it('login POST /auth/login + 透传 body', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      jsonResponse({
-        accessToken: 'a',
-        refreshToken: 'r',
-        expiresIn: 1800,
-        tokenType: 'Bearer',
-        userId: 1,
-        username: 'u',
-      }),
-    );
-    vi.stubGlobal('fetch', fetchMock);
-    const tok = await auth.login({ username: 'u', password: 'p' });
-    expect(tok.userId).toBe(1);
-    expect(fetchMock.mock.calls[0][0]).toMatch(/\/auth\/login$/);
-    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ username: 'u', password: 'p' });
-  });
-
-  it('refresh POST /auth/refresh', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      jsonResponse({
-        accessToken: 'a',
-        refreshToken: 'r',
-        expiresIn: 1800,
-        tokenType: 'Bearer',
-        userId: 1,
-        username: 'u',
-      }),
-    );
-    vi.stubGlobal('fetch', fetchMock);
-    await auth.refreshTokens('old-refresh');
-    expect(fetchMock.mock.calls[0][0]).toMatch(/\/auth\/refresh$/);
-    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ refreshToken: 'old-refresh' });
-  });
-
+describe('services/auth.ts（登录页匿名接口）', () => {
   it('sendCode POST /auth/send-code + 三参数透传', async () => {
     const fetchMock = vi.fn().mockResolvedValue(jsonResponse({}));
     vi.stubGlobal('fetch', fetchMock);
@@ -120,20 +85,6 @@ describe('services/auth.ts（匿名接口）', () => {
     await expect(auth.resetPassword('SMS', 't', 'c', 'new')).rejects.toMatchObject({
       code: 'RESET_FAILED',
       message: '验证码错误',
-    });
-  });
-
-  it('login 401 → 抛 AuthError INVALID_CREDENTIALS', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({}, 401)));
-    await expect(auth.login({ username: 'u', password: 'bad' })).rejects.toMatchObject({
-      code: 'INVALID_CREDENTIALS',
-    });
-  });
-
-  it('login 404 → 抛 AuthError USER_NOT_FOUND', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({}, 404)));
-    await expect(auth.login({ username: 'missing', password: 'p' })).rejects.toMatchObject({
-      code: 'USER_NOT_FOUND',
     });
   });
 

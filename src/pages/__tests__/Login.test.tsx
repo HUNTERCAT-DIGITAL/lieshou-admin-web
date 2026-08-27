@@ -10,10 +10,10 @@ import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useAuthStore } from '../../stores/auth';
+import { getEdition } from '../../config/editions';
 
 beforeEach(() => {
   localStorage.clear();
-  fetchTenantOptions.mockResolvedValue([]);
   useAuthStore.setState({
     accessToken: null,
     refreshToken: null,
@@ -23,27 +23,22 @@ beforeEach(() => {
   vi.restoreAllMocks();
 });
 
-const { login, loginWithCode, register, resetPassword, sendCode, fetchTenantOptions } =
-  vi.hoisted(() => ({
-    login: vi.fn(),
-    loginWithCode: vi.fn(),
-    register: vi.fn(),
-    resetPassword: vi.fn(),
-    sendCode: vi.fn(),
-    fetchTenantOptions: vi.fn(),
-  }));
+const { loginWithCode, register, resetPassword, sendCode } = vi.hoisted(() => ({
+  loginWithCode: vi.fn(),
+  register: vi.fn(),
+  resetPassword: vi.fn(),
+  sendCode: vi.fn(),
+}));
 
 vi.mock('../../services/auth', async () => {
   // AuthError 必须保留真实实现（utils/errors → @lieshoucloud/contract-api）：
   // core-web 传输层抛的也是同一 AuthError，页面 instanceof 判断才能命中。
   const actual = await vi.importActual<Record<string, unknown>>('../../services/auth');
   return {
-    login,
     loginWithCode,
     register,
     resetPassword,
     sendCode,
-    fetchTenantOptions,
     AuthError: actual.AuthError,
   };
 });
@@ -93,7 +88,7 @@ const wrap = ({ children }: { children: React.ReactNode }) => (
 describe('Login 页', () => {
   it('渲染：品牌 + 登录标题 + 密码表单', () => {
     render(<Login />, { wrapper: wrap });
-    expect(screen.getByText('LieShouCloud')).toBeInTheDocument();
+    expect(screen.getByText(getEdition().brandName)).toBeInTheDocument();
     expect(screen.getByText('登录')).toBeInTheDocument();
     // 去验证码（2026-08-25）：仅账号密码登录，无 Tabs
     expect(screen.getByPlaceholderText('futurewl')).toBeInTheDocument();
@@ -204,9 +199,6 @@ describe('Login 页', () => {
   });
 
   it('单租户：不显示租户下拉，直接登录（tenantCode undefined → 后端默认）', async () => {
-    fetchTenantOptions.mockResolvedValue([
-      { tenantId: 1, tenantCode: 'huntercat', tenantName: '南昌猎手猫数字科技有限公司' },
-    ]);
     mockCoreLogin();
     useAuthStore.setState({
       accessToken: null,
