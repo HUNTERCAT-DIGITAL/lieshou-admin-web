@@ -118,3 +118,45 @@ if (typeof Element !== 'undefined' && Element.prototype) {
 afterEach(() => {
   cleanup();
 });
+
+// —— core-web 全局默认适配器（2026-09 接入核心层）——
+import { configureCore } from '@lieshoucloud/core-web';
+
+configureCore({
+  storage: {
+    get: (k) => localStorage.getItem(k),
+    set: (k, v) => localStorage.setItem(k, v),
+    remove: (k) => localStorage.removeItem(k),
+  },
+  notifier: { success: () => {}, error: () => {} },
+  navigation: { to: () => {}, replace: () => {} },
+  api: {
+    request: <T>(path: string): Promise<T> => {
+      if (path.includes('/login'))
+        return Promise.resolve({
+          accessToken: 'access-x',
+          refreshToken: 'refresh-x',
+          expiresIn: 1800,
+          tokenType: 'Bearer',
+          userId: 42,
+          username: 'futurewl',
+          tenantCode: 'huntercat',
+          tenantName: 't',
+          tenantEdition: 'GENERIC',
+          availableTenants: [],
+        } as T);
+      if (path.includes('/me'))
+        return Promise.resolve({ userId: 42, username: 'futurewl', roles: ['USER'] } as T);
+      if (path.includes('/refresh'))
+        return Promise.resolve({
+          accessToken: 'new-access',
+          refreshToken: 'new-refresh',
+          expiresIn: 1800,
+          tokenType: 'Bearer',
+          userId: 1,
+          username: 'futurewl',
+        } as T);
+      return Promise.resolve({} as T);
+    },
+  },
+});

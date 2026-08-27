@@ -6,7 +6,9 @@
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { configureCore } from '@lieshoucloud/core-web';
 import { api, setUnauthorizedHandler } from './api';
+import { AuthError } from './auth';
 import { useAuthStore } from '../stores/auth';
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -15,15 +17,6 @@ function jsonResponse(body: unknown, status = 200): Response {
     headers: { 'Content-Type': 'application/json' },
   });
 }
-
-const TOKEN_BODY = {
-  accessToken: 'new-access',
-  refreshToken: 'new-refresh',
-  expiresIn: 1800,
-  tokenType: 'Bearer',
-  userId: 1,
-  username: 'futurewl',
-};
 
 function setLoggedIn(access = 'old-access', refresh = 'old-refresh'): void {
   useAuthStore.setState({
@@ -51,7 +44,6 @@ describe('api 401 集中处理', () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(jsonResponse({ error: 'UNAUTHORIZED', message: 'expired' }, 401)) // GET /customers
-      .mockResolvedValueOnce(jsonResponse(TOKEN_BODY)) // POST /auth/refresh
       .mockResolvedValueOnce(jsonResponse([{ id: 1, name: '客户A' }])); // 重试 GET /customers
     vi.stubGlobal('fetch', fetchMock);
     setLoggedIn();
@@ -59,10 +51,10 @@ describe('api 401 集中处理', () => {
     const data = await api.get<{ id: number; name: string }[]>('/customers');
 
     expect(data).toEqual([{ id: 1, name: '客户A' }]);
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
     // 新 token 已写入 store，重试请求带新 Authorization
     expect(useAuthStore.getState().accessToken).toBe('new-access');
-    const retryHeaders = fetchMock.mock.calls[2][1].headers;
+    const retryHeaders = fetchMock.mock.calls[1][1].headers;
     expect(retryHeaders.Authorization).toBe('Bearer new-access');
   });
 
@@ -71,7 +63,6 @@ describe('api 401 集中处理', () => {
       .fn()
       .mockResolvedValueOnce(jsonResponse({}, 401))
       .mockResolvedValueOnce(jsonResponse({}, 401))
-      .mockResolvedValueOnce(jsonResponse(TOKEN_BODY)) // 仅一次 refresh
       .mockResolvedValueOnce(jsonResponse([{ id: 1 }]))
       .mockResolvedValueOnce(jsonResponse([{ id: 2 }]));
     vi.stubGlobal('fetch', fetchMock);
@@ -82,7 +73,7 @@ describe('api 401 集中处理', () => {
     expect(a).toEqual([{ id: 1 }]);
     expect(b).toEqual([{ id: 2 }]);
     const refreshCalls = fetchMock.mock.calls.filter(([, init]) => init?.method === 'POST');
-    expect(refreshCalls).toHaveLength(1);
+    expect(refreshCalls).toHaveLength(0); // refresh 走 core-web 注入传输（非 fetch）
   });
 
   it('401 → refresh 失败 → logout + 触发 unauthorizedHandler + 抛 AuthError', async () => {
@@ -90,13 +81,20 @@ describe('api 401 集中处理', () => {
     setUnauthorizedHandler(() => {
       handlerCalled = true;
     });
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce(jsonResponse({}, 401)) // GET /customers
-      .mockResolvedValueOnce(
-        jsonResponse({ error: 'INVALID_REFRESH', message: 'bad refresh' }, 401),
-      ); // refresh
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({}, 401)); // GET /customers 401
     vi.stubGlobal('fetch', fetchMock);
+    configureCore({
+      storage: { get: (k) => localStorage.getItem(k), set: (k, v) => localStorage.setItem(k, v), remove: (k) => localStorage.removeItem(k) },
+      notifier: { success: () => {}, error: () => {} },
+      navigation: { to: () => {}, replace: () => {} },
+      api: {
+        request: <T>(path: string): Promise<T> => {
+          if (path.includes('/refresh'))
+            return Promise.reject(new AuthError('INVALID_REFRESH', 'bad refresh', 401));
+          return Promise.resolve({} as T);
+        },
+      },
+    });
     setLoggedIn('old-access', 'bad-refresh');
 
     await expect(api.get('/customers')).rejects.toMatchObject({

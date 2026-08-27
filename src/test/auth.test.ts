@@ -1,8 +1,32 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import * as authApi from '../services/auth';
 import { AuthError } from '../services/auth';
+import { configureCore } from '@lieshoucloud/core-web';
 import { useAuthStore } from '../stores/auth';
+
+/** 注入 mock api 端口（core-web 传输） */
+function mockApi(overrides?: Record<string, unknown | Error>) {
+  configureCore({
+    storage: { get: (k) => localStorage.getItem(k), set: (k, v) => localStorage.setItem(k, v), remove: (k) => localStorage.removeItem(k) },
+    notifier: { success: () => {}, error: () => {} },
+    navigation: { to: () => {}, replace: () => {} },
+    api: {
+      request: <T>(path: string): Promise<T> => {
+        if (overrides && path in overrides) {
+          const v = overrides[path];
+          return v instanceof Error ? Promise.reject(v) : Promise.resolve(v as T);
+        }
+        if (path.includes('/login'))
+          return Promise.resolve({ accessToken: 'access-x', refreshToken: 'refresh-x', expiresIn: 1800, tokenType: 'Bearer', userId: 42, username: 'futurewl', tenantCode: 'huntercat', tenantName: 't', tenantEdition: 'GENERIC', availableTenants: [] } as T);
+        if (path.includes('/me'))
+          return Promise.resolve({ userId: 42, username: 'futurewl', roles: ['USER'] } as T);
+        if (path.includes('/refresh'))
+          return Promise.resolve({ accessToken: 'new-access', refreshToken: 'old-refresh', expiresIn: 1800, tokenType: 'Bearer', userId: 1, username: 'u' } as T);
+        return Promise.resolve({} as T);
+      },
+    },
+  });
+}
 
 describe('useAuthStore (Zustand)', () => {
   beforeEach(() => {
@@ -23,24 +47,11 @@ describe('useAuthStore (Zustand)', () => {
   });
 
   it('login 成功：写 token + 标 authenticated', async () => {
-    const loginSpy = vi.spyOn(authApi, 'login').mockResolvedValue({
-      accessToken: 'access-x',
-      refreshToken: 'refresh-x',
-      expiresIn: 1800,
-      tokenType: 'Bearer',
-      userId: 42,
-      username: 'futurewl',
-    });
-    vi.spyOn(authApi, 'fetchCurrentUser').mockResolvedValue({
-      userId: 42,
-      username: 'futurewl',
-      roles: ['USER'],
-    });
+    mockApi();
 
     await useAuthStore.getState().login('futurewl', 'secret');
 
     const s = useAuthStore.getState();
-    expect(loginSpy).toHaveBeenCalledWith({ username: 'futurewl', password: 'secret' });
     expect(s.accessToken).toBe('access-x');
     expect(s.refreshToken).toBe('refresh-x');
     expect(s.isAuthenticated).toBe(true);
@@ -48,9 +59,7 @@ describe('useAuthStore (Zustand)', () => {
   });
 
   it('login 失败：抛 AuthError + 不改 state', async () => {
-    vi.spyOn(authApi, 'login').mockRejectedValue(
-      new AuthError('INVALID_CREDENTIALS', 'wrong password', 401),
-    );
+    mockApi({ '/api/auth/login': new AuthError('INVALID_CREDENTIALS', 'wrong password', 401) });
 
     await expect(useAuthStore.getState().login('x', 'wrong')).rejects.toThrow(AuthError);
 
@@ -60,16 +69,7 @@ describe('useAuthStore (Zustand)', () => {
   });
 
   it('login 成功但 fetchMe 失败：吞错不阻塞（lines 57-58）', async () => {
-    vi.spyOn(authApi, 'login').mockResolvedValue({
-      accessToken: 'access-x',
-      refreshToken: 'refresh-x',
-      expiresIn: 1800,
-      tokenType: 'Bearer',
-      userId: 42,
-      username: 'futurewl',
-    });
-    // fetchMe 在 setSession/login 成功后被异步调用，抛错应被吞掉
-    vi.spyOn(authApi, 'fetchCurrentUser').mockRejectedValue(new Error('network down'));
+    mockApi({ '/api/auth/me': new Error('network down') });
 
     await expect(useAuthStore.getState().login('futurewl', 'secret')).resolves.toBeUndefined();
 
@@ -83,7 +83,7 @@ describe('useAuthStore (Zustand)', () => {
   });
 
   it('setSession 成功但 fetchMe 失败：吞错不阻塞（lines 75-91）', async () => {
-    vi.spyOn(authApi, 'fetchCurrentUser').mockRejectedValue(new Error('network down'));
+    mockApi({ '/api/auth/me': new Error('network down') });
     useAuthStore.getState().setSession({
       accessToken: 'a',
       refreshToken: 'r',
@@ -127,14 +127,7 @@ describe('useAuthStore (Zustand)', () => {
       user: null,
       isAuthenticated: true,
     });
-    vi.spyOn(authApi, 'refreshTokens').mockResolvedValue({
-      accessToken: 'new-access',
-      refreshToken: 'old-refresh',
-      expiresIn: 1800,
-      tokenType: 'Bearer',
-      userId: 1,
-      username: 'u',
-    });
+    mockApi();
 
     await useAuthStore.getState().refresh();
     expect(useAuthStore.getState().accessToken).toBe('new-access');

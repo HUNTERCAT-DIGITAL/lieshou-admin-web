@@ -9,6 +9,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
+      // 消除 AuthError 双实例（symlink/open 路径重复加载）
+      '@lieshoucloud/contract-api': path.resolve(__dirname, 'open/contract-api/src'),
     },
   },
   test: {

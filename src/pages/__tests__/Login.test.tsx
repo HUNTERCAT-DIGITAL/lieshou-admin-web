@@ -33,28 +33,54 @@ const { login, loginWithCode, register, resetPassword, sendCode, fetchTenantOpti
     fetchTenantOptions: vi.fn(),
   }));
 
-vi.mock('../../services/auth', () => ({
-  login,
-  loginWithCode,
-  register,
-  resetPassword,
-  sendCode,
-  fetchTenantOptions,
-  AuthError: class AuthError extends Error {
-    constructor(
-      public code: string,
-      message: string,
-      public status?: number,
-    ) {
-      super(message);
-      this.name = 'AuthError';
-    }
-  },
-}));
+vi.mock('../../services/auth', async () => {
+  // AuthError 必须保留真实实现（utils/errors → @lieshoucloud/contract-api）：
+  // core-web 传输层抛的也是同一 AuthError，页面 instanceof 判断才能命中。
+  const actual = await vi.importActual<Record<string, unknown>>('../../services/auth');
+  return {
+    login,
+    loginWithCode,
+    register,
+    resetPassword,
+    sendCode,
+    fetchTenantOptions,
+    AuthError: actual.AuthError,
+  };
+});
 
 import Login from '../Login';
-import * as authApi from '../../services/auth';
+import { configureCore } from '@lieshoucloud/core-web';
+import { AuthError as ContractAuthError } from '@lieshoucloud/contract-api';
 
+
+let loginCalls: Array<{ username: string; password: string; tenantCode?: string }> = [];
+let loginImpl: (req: { username: string; password: string; tenantCode?: string }) => Promise<unknown> | Error;
+
+/** 注入 core-web 传输：login 记录 + 可配置成功/失败 */
+function mockCoreLogin(impl?: (req: { username: string; password: string; tenantCode?: string }) => Promise<unknown> | Error) {
+  loginCalls = [];
+  loginImpl = impl ?? (() => Promise.resolve({
+    accessToken: 'a', refreshToken: 'r', expiresIn: 1800, tokenType: 'Bearer', userId: 1, username: 'u',
+    tenantCode: 'huntercat', tenantName: 't', tenantEdition: 'GENERIC', availableTenants: [],
+  }));
+  configureCore({
+    storage: { get: (k) => localStorage.getItem(k), set: (k, v) => localStorage.setItem(k, v), remove: (k) => localStorage.removeItem(k) },
+    notifier: { success: () => {}, error: () => {} },
+    navigation: { to: () => {}, replace: () => {} },
+    api: {
+      request: <T,>(path: string, init?: RequestInit): Promise<T> => {
+        if (path.includes('/login')) {
+          const body = JSON.parse(String(init?.body ?? '{}'));
+          loginCalls.push(body);
+          const r = loginImpl(body);
+          return r instanceof Error ? Promise.reject(r) : Promise.resolve(r as T);
+        }
+        if (path.includes('/me')) return Promise.resolve({ userId: 1, username: 'u', roles: ['USER'] } as T);
+        return Promise.resolve({} as T);
+      },
+    },
+  });
+}
 
 const wrap = ({ children }: { children: React.ReactNode }) => (
   <ConfigProvider>
@@ -89,14 +115,7 @@ describe('Login 页', () => {
   });
 
   it('密码登录：输入 + 提交调 login', async () => {
-    login.mockResolvedValue({
-      accessToken: 'a',
-      refreshToken: 'r',
-      expiresIn: 1800,
-      tokenType: 'Bearer',
-      userId: 1,
-      username: 'u',
-    });
+    mockCoreLogin();
     useAuthStore.setState({
       accessToken: 't',
       refreshToken: 'r',
@@ -120,7 +139,7 @@ describe('Login 页', () => {
     fireEvent.click(screen.getByTestId('submit-button'));
 
     await vi.waitFor(() => {
-      expect(login).toHaveBeenCalledWith({
+      expect(loginCalls).toContainEqual({
         username: 'alice',
         password: 'secret',
         tenantCode: undefined,
@@ -129,7 +148,7 @@ describe('Login 页', () => {
   });
 
   it('密码登录失败 INVALID_CREDENTIALS → 显示「密码错误」', async () => {
-    login.mockRejectedValue(new authApi.AuthError('INVALID_CREDENTIALS', 'wrong', 401));
+    mockCoreLogin(() => new ContractAuthError('INVALID_CREDENTIALS', '密码错误', 401));
     useAuthStore.setState({
       accessToken: null,
       refreshToken: null,
@@ -146,7 +165,7 @@ describe('Login 页', () => {
   });
 
   it('密码登录失败 USER_NOT_FOUND → 显示「用户不存在」', async () => {
-    login.mockRejectedValue(new authApi.AuthError('USER_NOT_FOUND', 'no', 404));
+    mockCoreLogin(() => new ContractAuthError('USER_NOT_FOUND', '用户不存在', 404));
     useAuthStore.setState({
       accessToken: null,
       refreshToken: null,
@@ -161,14 +180,7 @@ describe('Login 页', () => {
   });
 
   it('登录页不显示租户选择（先登录后选租户，登录带默认租户）', async () => {
-    login.mockResolvedValue({
-      accessToken: 'a',
-      refreshToken: 'r',
-      expiresIn: 1800,
-      tokenType: 'Bearer',
-      userId: 1,
-      username: 'u',
-    });
+    mockCoreLogin();
     useAuthStore.setState({
       accessToken: null,
       refreshToken: null,
@@ -187,7 +199,7 @@ describe('Login 页', () => {
 
     await vi.waitFor(() => {
       // 登录不指定租户 → 后端默认；登录后多租户在顶栏切换
-      expect(login).toHaveBeenCalledWith({ username: 'a', password: 'p', tenantCode: undefined });
+      expect(loginCalls).toContainEqual({ username: 'a', password: 'p', tenantCode: undefined });
     });
   });
 
@@ -195,14 +207,7 @@ describe('Login 页', () => {
     fetchTenantOptions.mockResolvedValue([
       { tenantId: 1, tenantCode: 'huntercat', tenantName: '南昌猎手猫数字科技有限公司' },
     ]);
-    login.mockResolvedValue({
-      accessToken: 'a',
-      refreshToken: 'r',
-      expiresIn: 1800,
-      tokenType: 'Bearer',
-      userId: 1,
-      username: 'u',
-    });
+    mockCoreLogin();
     useAuthStore.setState({
       accessToken: null,
       refreshToken: null,
@@ -218,7 +223,7 @@ describe('Login 页', () => {
     fireEvent.click(screen.getByTestId('submit-button'));
 
     await vi.waitFor(() => {
-      expect(login).toHaveBeenCalledWith({
+      expect(loginCalls).toContainEqual({
         username: 'a',
         password: 'p',
         tenantCode: undefined,
