@@ -135,6 +135,8 @@ export default function BasicLayout() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const fetchMe = useAuthStore((s) => s.fetchMe);
   const logout = useAuthStore((s) => s.logout);
+  const availableTenants = useAuthStore((s) => s.availableTenants);
+  const switchTenant = useAuthStore((s) => s.switchTenant);
   const { message: messageApi } = AntdApp.useApp();
   const { mode: themeMode, setMode: setThemeMode } = useThemeMode();
   const resolvedTheme = useThemeStore((s) => s.resolved);
@@ -177,6 +179,27 @@ export default function BasicLayout() {
     messageApi.success('已退出登录');
     navigate('/login', { replace: true });
   };
+
+  /** 租户切换（先登录后选租户）：多租户时顶栏显示，切换后 state 更新自动刷新租户上下文 */
+  const onSwitchTenant = async (code: string) => {
+    if (code === user?.tenantCode) return;
+    try {
+      await switchTenant(code);
+      messageApi.success('已切换到' + (availableTenants.find((t) => t.tenantCode === code)?.tenantName ?? code));
+      navigate('/welcome', { replace: true });
+    } catch {
+      messageApi.error('切换租户失败');
+    }
+  };
+
+  const tenantItems: MenuProps['items'] = availableTenants
+    .filter((t) => t.tenantCode !== user?.tenantCode)
+    .map((t) => ({
+      key: t.tenantCode,
+      icon: <ClusterOutlined />,
+      label: t.tenantName,
+      onClick: () => void onSwitchTenant(t.tenantCode),
+    }));
 
   const userMenu: MenuProps['items'] = [
     // 值班员控制台：个人中心页是开发向信息（ID/租户编码），值班员无需查看 → 移除入口
@@ -318,6 +341,22 @@ export default function BasicLayout() {
          需要 menuItemRender 用 <Link> 包叶子项（保留右键新标签页 + a11y） */
         menuItemRender={(item, dom) => (item.path ? <Link to={item.path}>{dom}</Link> : dom)}
         actionsRender={() => [
+          /* 租户切换（先登录后选租户）：多租户时显示当前租户 + 切换下拉 */
+          ...(availableTenants.length > 1
+            ? [
+                <Dropdown
+                  key="tenant-switch"
+                  menu={{ items: tenantItems, selectedKeys: [user?.tenantCode ?? ''] }}
+                  placement="bottomRight"
+                >
+                  <Button type="text" icon={<ClusterOutlined />} data-testid="tenant-switch">
+                    <span style={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {user?.tenantName ?? user?.tenantCode}
+                    </span>
+                  </Button>
+                </Dropdown>,
+              ]
+            : []),
           /* 通知铃铛（未读数轮询 30s）—— 值班员也可见（通知与审批无关） */
           <NotificationBell key="notification-bell" />,
           /* 审批待办红点（每分钟轮询）—— 值班员控制台隐藏（通知功能未开发，值班员无审批） */

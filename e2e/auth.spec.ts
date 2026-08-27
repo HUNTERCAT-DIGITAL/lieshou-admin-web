@@ -64,6 +64,24 @@ test.describe('开源演示闭环（菜单裁剪）', () => {
   });
 });
 
+test.describe('租户切换（先登录后选租户）', () => {
+  test('多租户用户登录后顶栏显示租户切换器，可切换到其他租户', async ({ page }) => {
+    await login(page);
+    // 顶栏租户切换器出现（admin 有两个租户；tenantName 由 fetchMe 异步填充，兼容 code 兜底）
+    const switcher = page.getByTestId('tenant-switch');
+    await expect(switcher).toBeVisible();
+    await expect(switcher).toContainText(/南昌猎手猫|huntercat/);
+
+    // 展开下拉 → 选择 Acme 集团
+    await switcher.click();
+    await page.getByText('Acme 集团').click();
+
+    // 切换后进入新租户上下文（欢迎页；顶栏显示 Acme）
+    await expect(page).not.toHaveURL(/\/login/, { timeout: 15_000 });
+    await expect(page.getByTestId('tenant-switch')).toContainText(/Acme|acme/, { timeout: 15_000 });
+  });
+});
+
 test.describe('通知铃铛与工作台', () => {
   test('顶栏通知铃铛可见（未读 Badge 或空态）', async ({ page }) => {
     await login(page);

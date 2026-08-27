@@ -41,6 +41,18 @@ export interface TenantOption {
 }
 
 /**
+ * POST /api/auth/switch-tenant — 用 refresh token 切换登录租户（先登录后选租户）
+ */
+export async function switchTenant(refreshToken: string, tenantCode: string): Promise<TokenResponse> {
+  const res = await fetch(`${AUTH_BASE}/switch-tenant`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken, tenantCode }),
+  });
+  return parseTokenOrThrow(res);
+}
+
+/**
  * POST /api/auth/tenant-options — 按 username 查可登录租户（公开，不校验密码）
  */
 export async function fetchTenantOptions(username: string): Promise<TenantOption[]> {

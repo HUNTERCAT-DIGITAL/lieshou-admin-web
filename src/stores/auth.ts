@@ -8,8 +8,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-import { AuthError, fetchCurrentUser, login as loginApi, refreshTokens } from '../services/auth';
-import type { CurrentUser, TokenResponse } from '@lieshoucloud/types/business/auth';
+import { AuthError, fetchCurrentUser, login as loginApi, refreshTokens, switchTenant as switchTenantApi } from '../services/auth';
+import type { CurrentUser, TokenResponse, TenantOption } from '@lieshoucloud/types/business/auth';
 
 const STORAGE_KEY = 'lieshoucloud:auth';
 
@@ -18,6 +18,8 @@ interface AuthStoreState {
   refreshToken: string | null;
   user: CurrentUser | null;
   isAuthenticated: boolean;
+  /** 该用户名可登录的合法租户（登录后切换用） */
+  availableTenants: TenantOption[];
 
   // actions
   login: (username: string, password: string, tenantCode?: string) => Promise<void>;
@@ -27,6 +29,8 @@ interface AuthStoreState {
   logout: () => void;
   /** 直接写入 token 会话（验证码登录 / 注册即登录用 · Phase 8） */
   setSession: (token: TokenResponse) => void;
+  /** 切换租户（先登录后选租户）：refresh token 换目标租户新会话 */
+  switchTenant: (tenantCode: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthStoreState>()(
@@ -36,6 +40,7 @@ export const useAuthStore = create<AuthStoreState>()(
       refreshToken: null,
       user: null,
       isAuthenticated: false,
+      availableTenants: [],
 
       login: async (username, password, tenantCode) => {
         try {
@@ -52,6 +57,7 @@ export const useAuthStore = create<AuthStoreState>()(
               tenantEdition: token.tenantEdition,
             },
             isAuthenticated: true,
+            availableTenants: token.availableTenants ?? [],
           });
           // 异步 fetch /me 拿真实 roles（不阻塞登录）
           get()
@@ -91,6 +97,7 @@ export const useAuthStore = create<AuthStoreState>()(
             tenantEdition: token.tenantEdition,
           },
           isAuthenticated: true,
+          availableTenants: token.availableTenants ?? [],
         });
         // 异步拉真实 roles（不阻塞）
         get()
@@ -106,7 +113,34 @@ export const useAuthStore = create<AuthStoreState>()(
           refreshToken: null,
           user: null,
           isAuthenticated: false,
+          availableTenants: [],
         });
+      },
+
+      switchTenant: async (tenantCode: string) => {
+        const rt = get().refreshToken;
+        if (!rt) throw new AuthError('UNAUTHORIZED', '未登录');
+        const token = await switchTenantApi(rt, tenantCode);
+        set({
+          accessToken: token.accessToken,
+          refreshToken: token.refreshToken,
+          user: {
+            userId: token.userId,
+            username: token.username,
+            roles: ['USER'],
+            tenantCode: token.tenantCode,
+            tenantName: token.tenantName,
+            tenantEdition: token.tenantEdition,
+          },
+          isAuthenticated: true,
+          availableTenants: token.availableTenants ?? [],
+        });
+        // 异步拉真实 roles（切换租户后角色可能不同）
+        get()
+          .fetchMe()
+          .catch(() => {
+            /* ignore */
+          });
       },
     }),
     {
@@ -116,6 +150,7 @@ export const useAuthStore = create<AuthStoreState>()(
         refreshToken: s.refreshToken,
         user: s.user,
         isAuthenticated: s.isAuthenticated,
+        availableTenants: s.availableTenants,
       }),
     },
   ),

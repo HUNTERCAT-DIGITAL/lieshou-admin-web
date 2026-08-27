@@ -160,11 +160,7 @@ describe('Login 页', () => {
     expect(await screen.findByText('用户不存在')).toBeInTheDocument();
   });
 
-  it('多租户：username 输入后查询租户选项并显示下拉（不手填租户）', async () => {
-    fetchTenantOptions.mockResolvedValue([
-      { tenantId: 1, tenantCode: 'huntercat', tenantName: '南昌猎手猫数字科技有限公司' },
-      { tenantId: 2, tenantCode: 'acme', tenantName: 'Acme 集团' },
-    ]);
+  it('登录页不显示租户选择（先登录后选租户，登录带默认租户）', async () => {
     login.mockResolvedValue({
       accessToken: 'a',
       refreshToken: 'r',
@@ -181,15 +177,18 @@ describe('Login 页', () => {
     });
     render(<Login />, { wrapper: wrap });
 
-    // 初始无租户输入框（不手填租户）
+    // 登录页无租户输入/下拉（登录前不选租户）
     expect(screen.queryByTestId('tenant-input')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('tenant-select')).not.toBeInTheDocument();
 
     fireEvent.change(screen.getByTestId('username-input'), { target: { value: 'a' } });
+    fireEvent.change(screen.getByTestId('password-input'), { target: { value: 'p' } });
+    fireEvent.click(screen.getByTestId('submit-button'));
 
-    // 防抖查询 → 多租户下拉出现
-    const select = await screen.findByTestId('tenant-select');
-    expect(fetchTenantOptions).toHaveBeenCalledWith('a');
-    expect(select).toBeInTheDocument();
+    await vi.waitFor(() => {
+      // 登录不指定租户 → 后端默认；登录后多租户在顶栏切换
+      expect(login).toHaveBeenCalledWith({ username: 'a', password: 'p', tenantCode: undefined });
+    });
   });
 
   it('单租户：不显示租户下拉，直接登录（tenantCode undefined → 后端默认）', async () => {
