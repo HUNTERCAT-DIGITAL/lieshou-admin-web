@@ -28,10 +28,9 @@ import { App as AntdApp, Badge, Button, Dropdown, type MenuProps } from 'antd';
 import { Suspense, useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
-import { createAccess, derivePermissions, type Access } from '../access';
-import { getEdition, getEditionHiddenMenus, isPathCapabilityEnabled } from '../config/editions';
+import { createAccess, type Access } from '../access';
+import { getEdition, getEditionHiddenMenus, getExtraEdition, isPathCapabilityEnabled } from '../config/editions';
 import DevTools from '../components/DevTools';
-import NotificationBell from '../components/NotificationBell';
 import { ErrorBoundary, PageLoading } from '@lieshoucloud/ui';
 import { useThemeMode } from '../hooks/useThemeMode';
 import { setUnauthorizedHandler } from '../services/api';
@@ -135,8 +134,6 @@ export default function BasicLayout() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const fetchMe = useAuthStore((s) => s.fetchMe);
   const logout = useAuthStore((s) => s.logout);
-  const availableTenants = useAuthStore((s) => s.availableTenants);
-  const switchTenant = useAuthStore((s) => s.switchTenant);
   const { message: messageApi } = AntdApp.useApp();
   const { mode: themeMode, setMode: setThemeMode } = useThemeMode();
   const resolvedTheme = useThemeStore((s) => s.resolved);
@@ -179,27 +176,6 @@ export default function BasicLayout() {
     messageApi.success('已退出登录');
     navigate('/login', { replace: true });
   };
-
-  /** 租户切换（先登录后选租户）：多租户时顶栏显示，切换后 state 更新自动刷新租户上下文 */
-  const onSwitchTenant = async (code: string) => {
-    if (code === user?.tenantCode) return;
-    try {
-      await switchTenant(code);
-      messageApi.success('已切换到' + (availableTenants.find((t) => t.tenantCode === code)?.tenantName ?? code));
-      navigate('/welcome', { replace: true });
-    } catch {
-      messageApi.error('切换租户失败');
-    }
-  };
-
-  const tenantItems: MenuProps['items'] = availableTenants
-    .filter((t) => t.tenantCode !== user?.tenantCode)
-    .map((t) => ({
-      key: t.tenantCode,
-      icon: <ClusterOutlined />,
-      label: t.tenantName,
-      onClick: () => void onSwitchTenant(t.tenantCode),
-    }));
 
   const userMenu: MenuProps['items'] = [
     // 值班员控制台：个人中心页是开发向信息（ID/租户编码），值班员无需查看 → 移除入口
@@ -244,7 +220,7 @@ export default function BasicLayout() {
       routes?: { path?: string; routes?: unknown }[];
     }[],
     access,
-    derivePermissions(user),
+    user?.permissions ?? [],
     hiddenMenus,
     showLegal,
   );
@@ -252,7 +228,7 @@ export default function BasicLayout() {
   // 远程菜单树 → ProLayout route 格式（版别裁剪兜底 + 图标映射）
   const isEditionHidden = (p: string) =>
     hiddenMenus.some((h) => p === h || p.startsWith(h + '/')) ||
-    (p.startsWith('/legal') && !showLegal) ||
+    ((p === '/legal' || p.startsWith('/legal/')) && !showLegal) ||
     !isPathCapabilityEnabled(getEdition(), p);
   const toRoute = (
     n: MenuNode,
@@ -271,7 +247,28 @@ export default function BasicLayout() {
     remoteMenus === null
       ? null
       : remoteMenus.map(toRoute).filter((r): r is NonNullable<typeof r> => r !== null);
-  const visibleRoutes = remoteRoutes && remoteRoutes.length > 0 ? remoteRoutes : localRoutes;
+  // 客户专属路由菜单（extraRoutes · 2026-09 客户聚合仓模式）：客户仓注入的页面菜单项追加到侧边栏。
+  // 与本地/远程菜单同套裁剪（hiddenMenus / showLegal / capabilities）+ accessKey 权限过滤 + menu.order 排序 + 去重。
+  const perms = user?.permissions ?? [];
+  const extraMenuRoutes = (getExtraEdition().extraRoutes ?? [])
+    .filter((r) => r.menu)
+    .filter((r) => {
+      const p = r.path;
+      if (hiddenMenus.some((h) => p === h || p.startsWith(h + '/'))) return false;
+      if ((p === '/legal' || p.startsWith('/legal/')) && !showLegal) return false;
+      if (!isPathCapabilityEnabled(getEdition(), p)) return false;
+      if (r.accessKey && !perms.includes(r.accessKey)) return false;
+      return true;
+    })
+    .sort((a, b) => (a.menu?.order ?? 99) - (b.menu?.order ?? 99))
+    .map((r) => ({
+      path: r.path,
+      name: r.menu?.name ?? r.path,
+      icon: ICON_MAP[r.menu?.icon ?? ''] ?? <AppstoreOutlined />,
+    }));
+  const baseRoutes = remoteRoutes && remoteRoutes.length > 0 ? remoteRoutes : (localRoutes ?? []);
+  const basePaths = new Set(baseRoutes.map((r) => r.path));
+  const visibleRoutes = [...baseRoutes, ...extraMenuRoutes.filter((r) => !basePaths.has(r.path))];
   const layoutProps = {
     ...defaultProps,
     route: { ...defaultProps.route, routes: visibleRoutes },
@@ -341,24 +338,6 @@ export default function BasicLayout() {
          需要 menuItemRender 用 <Link> 包叶子项（保留右键新标签页 + a11y） */
         menuItemRender={(item, dom) => (item.path ? <Link to={item.path}>{dom}</Link> : dom)}
         actionsRender={() => [
-          /* 租户切换（先登录后选租户）：多租户时显示当前租户 + 切换下拉 */
-          ...(availableTenants.length > 1
-            ? [
-                <Dropdown
-                  key="tenant-switch"
-                  menu={{ items: tenantItems, selectedKeys: [user?.tenantCode ?? ''] }}
-                  placement="bottomRight"
-                >
-                  <Button type="text" icon={<ClusterOutlined />} data-testid="tenant-switch">
-                    <span style={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {user?.tenantName ?? user?.tenantCode}
-                    </span>
-                  </Button>
-                </Dropdown>,
-              ]
-            : []),
-          /* 通知铃铛（未读数轮询 30s）—— 值班员也可见（通知与审批无关） */
-          <NotificationBell key="notification-bell" />,
           /* 审批待办红点（每分钟轮询）—— 值班员控制台隐藏（通知功能未开发，值班员无审批） */
           ...(getEdition().dutyConsole
             ? []
