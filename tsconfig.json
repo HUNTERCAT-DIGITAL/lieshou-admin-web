@@ -22,6 +22,12 @@
       ],
       "@lieshoucloud/contract-types/business/*": [
         "./open/contract-types/src/business/*.ts"
+      ],
+      "@lieshoucloud/boot": [
+        "../packages/boot/src/index.ts"
+      ],
+      "@lieshoucloud/boot/*": [
+        "../packages/boot/src/*"
       ]
     }
   },
