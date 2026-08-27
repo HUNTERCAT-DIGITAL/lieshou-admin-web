@@ -7,6 +7,24 @@ import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { useAuthStore } from '../../stores/auth';
+import { getEdition } from '../../config/editions';
+
+// boot edition（@lieshoucloud/boot）会注入专属门户（BootPortal：异步 lazy + 独立文案），
+// generic 断言不适用；此处 mock editions 强制 GenericPortal（无 portal 槽位）。
+vi.mock('../../config/editions', async () => {
+  const actual = await vi.importActual<typeof import('../../config/editions')>(
+    '../../config/editions',
+  );
+  return {
+    ...actual,
+    getEdition: () => ({
+      // 纯 generic 配置（剥离 boot edition 覆盖），generic 门户断言稳定
+      ...actual.EDITIONS.generic,
+      brandName: 'LieShouCloud',
+      portal: undefined,
+    }),
+  };
+});
 
 beforeEach(() => {
   localStorage.clear();
@@ -32,7 +50,7 @@ describe('Portal 门户页', () => {
   it('渲染：品牌、Hero、能力卡、行业、公司、Footer', () => {
     render(<Portal />, { wrapper: wrap });
     // 品牌出现于导航栏 + Hero
-    expect(screen.getAllByText('LieShouCloud').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText(getEdition().brandName).length).toBeGreaterThanOrEqual(2);
     expect(screen.getAllByText(/开源的数字化平台/).length).toBeGreaterThan(0);
     expect(screen.getByText('平台核心能力')).toBeInTheDocument();
     expect(screen.getAllByText('覆盖行业').length).toBeGreaterThan(0);
@@ -69,7 +87,7 @@ describe('Portal 门户页', () => {
   it('渲染：FAQ 折叠面板', () => {
     render(<Portal />, { wrapper: wrap });
     expect(screen.getByText('常见问题')).toBeInTheDocument();
-    expect(screen.getByText('LieShouCloud 是什么？')).toBeInTheDocument();
+    expect(screen.getByText(getEdition().faq?.[0]?.q ?? 'LieShouCloud 是什么？')).toBeInTheDocument();
     expect(screen.getByText('如何体验？')).toBeInTheDocument();
   });
 

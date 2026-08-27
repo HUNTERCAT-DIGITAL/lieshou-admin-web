@@ -7,6 +7,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useAuthStore } from '../../stores/auth';
+import { getEdition } from '../../config/editions';
 
 beforeEach(() => {
   localStorage.clear();
@@ -36,7 +37,7 @@ const wrap = ({ children }: { children: React.ReactNode }) => (
 describe('RegisterTenant 租户自助开通页', () => {
   it('渲染：品牌 + 表单字段（租户/编码/管理员/密码）', () => {
     render(<RegisterTenant />, { wrapper: wrap });
-    expect(screen.getAllByText(/LieShouCloud/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(new RegExp(getEdition().brandName)).length).toBeGreaterThan(0);
     expect(screen.getByText('免费开通')).toBeInTheDocument();
     expect(screen.getByText('公司 / 组织名称')).toBeInTheDocument();
     expect(screen.getByText('租户编码（登录用）')).toBeInTheDocument();

@@ -11,6 +11,8 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
       // 消除 AuthError 双实例（symlink/open 路径重复加载）
       '@lieshoucloud/contract-api': path.resolve(__dirname, 'open/contract-api/src'),
+      // lieshou-boot 专属增量包（与 vite.config 正则兜底对齐）
+      '@lieshoucloud/boot': path.resolve(__dirname, '../packages/boot/src'),
     },
   },
   test: {
