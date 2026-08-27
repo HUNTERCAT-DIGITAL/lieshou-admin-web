@@ -13,29 +13,14 @@ import path from 'node:path';
 export default defineConfig({
   plugins: [react()],
   resolve: {
+    // 共享库统一到 admin-web 实例（客户聚合仓模式）：客户包（packages/<client>）是独立
+    // workspace，其 node_modules 里 react/react-dom/react-router-dom/antd 是另一物理副本
+    // → React Context（Router/App/message）不互通，useNavigate 等报 "only in the context of
+    // a <Router>"。dedupe 强制这些包解析到 admin-web 副本（优于 alias：不误伤 react-* 依赖、
+    // 不破坏 antd ESM/CJS 混合导出的 rollup 解析）。
+    dedupe: ['react', 'react-dom', 'react-router-dom', 'antd'],
     alias: [
       { find: '@', replacement: path.resolve(__dirname, 'src') },
-      // 共享库统一到 admin-web 实例（客户聚合仓模式）：客户包（packages/<client>）
-      // 是独立 workspace，其 node_modules 里 react/react-dom/react-router-dom/antd 是
-      // 另一物理副本 → React Context（Router/App/message）不互通，useNavigate 等会报
-      // "may be used only in the context of a <Router>"。强制 alias 到 admin-web 副本。
-      // 精确匹配包名（含子路径），避免误伤 react-* 类依赖（react-query 等）
-      {
-        find: /^react-router-dom(\/.*)?$/,
-        replacement: path.resolve(__dirname, 'node_modules/react-router-dom'),
-      },
-      {
-        find: /^react(\/.*)?$/,
-        replacement: path.resolve(__dirname, 'node_modules/react'),
-      },
-      {
-        find: /^react-dom(\/.*)?$/,
-        replacement: path.resolve(__dirname, 'node_modules/react-dom'),
-      },
-      {
-        find: /^antd(\/.*)?$/,
-        replacement: path.resolve(__dirname, 'node_modules/antd'),
-      },
       { find: '@lieshoucloud/api-client', replacement: path.resolve(__dirname, 'open/api-client/src') },
       {
         find: '@lieshoucloud/types',

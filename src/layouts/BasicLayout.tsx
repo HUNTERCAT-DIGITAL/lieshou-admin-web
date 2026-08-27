@@ -228,7 +228,7 @@ export default function BasicLayout() {
   // 远程菜单树 → ProLayout route 格式（版别裁剪兜底 + 图标映射）
   const isEditionHidden = (p: string) =>
     hiddenMenus.some((h) => p === h || p.startsWith(h + '/')) ||
-    (p.startsWith('/legal') && !showLegal) ||
+    ((p === '/legal' || p.startsWith('/legal/')) && !showLegal) ||
     !isPathCapabilityEnabled(getEdition(), p);
   const toRoute = (
     n: MenuNode,
@@ -255,7 +255,7 @@ export default function BasicLayout() {
     .filter((r) => {
       const p = r.path;
       if (hiddenMenus.some((h) => p === h || p.startsWith(h + '/'))) return false;
-      if (p.startsWith('/legal') && !showLegal) return false;
+      if ((p === '/legal' || p.startsWith('/legal/')) && !showLegal) return false;
       if (!isPathCapabilityEnabled(getEdition(), p)) return false;
       if (r.accessKey && !perms.includes(r.accessKey)) return false;
       return true;
