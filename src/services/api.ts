@@ -7,7 +7,7 @@
  * @see BOTTOM_UP.md · L0-2
  */
 
-import { createApiClient } from '@lieshoucloud/api-client';
+import { createApiClient, setAccessTokenProvider, setRefreshTokensProvider, setUnauthorizedHandler as setModuleUnauthorizedHandler } from '@lieshoucloud/api-client';
 import { useAuthStore } from '../stores/auth';
 import { pushDevLog } from '../utils/devtools';
 
@@ -25,6 +25,20 @@ let unauthorizedHandler: (() => void) | null = null;
 export function setUnauthorizedHandler(fn: (() => void) | null): void {
   unauthorizedHandler = fn;
 }
+
+// 客户包（packages/<client>）API 走模块级 request() —— 同步注册模块级配置（token/refresh/unauthorized），
+// 与实例 api 行为一致（客户聚合仓模式 · 2026-09）。否则客户包请求不带 Authorization → 401。
+setAccessTokenProvider(() => useAuthStore.getState().accessToken);
+setRefreshTokensProvider(async () => {
+  try {
+    await useAuthStore.getState().refresh();
+    return true;
+  } catch {
+    useAuthStore.getState().logout();
+    return false;
+  }
+});
+setModuleUnauthorizedHandler(() => unauthorizedHandler?.());
 
 export const api = createApiClient({
   baseUrl: BASE,
