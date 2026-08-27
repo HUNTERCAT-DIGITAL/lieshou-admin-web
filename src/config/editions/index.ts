@@ -54,9 +54,9 @@ export function resolveEditionId(): EditionId {
   );
 }
 
-/** 当前部署版别配置（门户/登录页展示用） */
+/** 当前部署版别配置（门户/登录页展示用 · 客户增强覆盖：客户仓 extra 的 hiddenMenus/capabilities/品牌等生效） */
 export function getEdition(): EditionConfig {
-  return EDITIONS[resolveEditionId()];
+  return { ...EDITIONS[resolveEditionId()], ...getExtraEdition() };
 }
 
 /**
