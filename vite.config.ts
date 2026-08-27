@@ -51,6 +51,7 @@ export default defineConfig({
       'zhiye.dev.lieshoucloud.huntercat.cn',
       'zhiye.lieshoucloud.huntercat.cn',
       'legalmind.layer.lieshoucloud.huntercat.cn',
+      'legalmind.lieshoucloud.huntercat.cn',
       'dwjk.dev.lieshoucloud.huntercat.cn',
       'dwjk.iot.lieshoucloud.huntercat.cn',
       'jmzz.dev.lieshoucloud.huntercat.cn',
