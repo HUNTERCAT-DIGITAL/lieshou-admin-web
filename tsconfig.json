@@ -38,5 +38,9 @@
     {
       "path": "./tsconfig.node.json"
     }
+  ],
+  "exclude": [
+    "node_modules",
+    "src/config/editions/*.extra.ts"
   ]
 }
