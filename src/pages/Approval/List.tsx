@@ -40,7 +40,7 @@ import {
   type ApprovalRequest,
   type ApprovalStatus,
   type ApprovalType,
-} from '@lieshoucloud/types/business/approval';
+} from '@lieshoucloud/contract-types/business/approval';
 import { useAuthStore } from '../../stores/auth';
 
 const TYPE_OPTIONS = (Object.keys(APPROVAL_TYPE_META) as ApprovalType[]).map((t) => ({

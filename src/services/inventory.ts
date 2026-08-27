@@ -9,7 +9,7 @@ import type {
   StockMovement,
   StockMovementType,
   UpdateProductRequest,
-} from '@lieshoucloud/types/business/inventory';
+} from '@lieshoucloud/contract-types/business/inventory';
 
 /** GET /api/products — 租户内商品列表（可选 keyword） */
 export async function listProducts(keyword?: string): Promise<Product[]> {

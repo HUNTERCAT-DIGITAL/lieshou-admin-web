@@ -37,7 +37,7 @@ import {
   type LedgerSummary,
   type LedgerType,
   type MonthlySummary,
-} from '@lieshoucloud/types/business/finance';
+} from '@lieshoucloud/contract-types/business/finance';
 
 const TYPE_OPTIONS = (Object.keys(LEDGER_TYPE_META) as LedgerType[]).map((t) => ({
   label: LEDGER_TYPE_META[t].text,

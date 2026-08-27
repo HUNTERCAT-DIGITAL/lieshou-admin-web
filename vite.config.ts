@@ -12,7 +12,7 @@ import path from 'node:path';
 
 export default defineConfig({
   plugins: [react()],
-  // 浏览器端 shim process.env（@lieshoucloud/config.readEnv 在 vite 下回落 process.env）
+  // 浏览器端 shim process.env（@lieshoucloud/contract-config.readEnv 在 vite 下回落 process.env）
   define: {
     'process.env': {},
   },
@@ -20,18 +20,18 @@ export default defineConfig({
     alias: [
       { find: '@', replacement: path.resolve(__dirname, 'src') },
       {
-        find: '@lieshoucloud/api-client',
-        replacement: path.resolve(__dirname, 'open/api-client/src'),
+        find: '@lieshoucloud/contract-api',
+        replacement: path.resolve(__dirname, 'open/contract-api/src'),
       },
       {
-        find: '@lieshoucloud/types',
-        replacement: path.resolve(__dirname, 'open/types/src'),
+        find: '@lieshoucloud/contract-types',
+        replacement: path.resolve(__dirname, 'open/contract-types/src'),
       },
       {
         find: '@lieshoucloud/ui',
         replacement: path.resolve(__dirname, 'open/ui/src'),
       },
-      // @lieshoucloud/config 经 pnpm workspace 链接解析(入口 runtime.ts,无 src/index)
+      // @lieshoucloud/contract-config 经 pnpm workspace 链接解析(入口 runtime.ts,无 src/index)
       // 客户包兜底：@lieshoucloud/<client>[/<subpath>] → ../packages/<client>/src[/<subpath>]
       // （正则捕获组 + $1/$2 由 String.replace 展开）
       {

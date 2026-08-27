@@ -27,9 +27,9 @@
   "dependencies": {
     "@ant-design/icons": "~5.5.1",
     "@ant-design/pro-components": "2.8.2",
-    "@lieshoucloud/api-client": "workspace:*",
-    "@lieshoucloud/config": "workspace:*",
-    "@lieshoucloud/types": "workspace:*",
+    "@lieshoucloud/contract-api": "workspace:*",
+    "@lieshoucloud/contract-config": "workspace:*",
+    "@lieshoucloud/contract-types": "workspace:*",
     "@lieshoucloud/ui": "workspace:*",
     "antd": "5.22.0",
     "dayjs": "~1.11.13",
@@ -39,7 +39,8 @@
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-router-dom": "^7.18.2",
-    "zustand": "5.0.2"
+    "zustand": "5.0.2",
+    "@lieshoucloud/core-web": "workspace:*"
   },
   "devDependencies": {
     "@eslint/js": "9.15.0",

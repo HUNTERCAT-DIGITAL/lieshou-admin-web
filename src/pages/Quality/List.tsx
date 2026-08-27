@@ -36,7 +36,7 @@ import {
   listInspections,
 } from '../../services/quality';
 import { listProducts } from '../../services/inventory';
-import type { Product } from '@lieshoucloud/types/business/inventory';
+import type { Product } from '@lieshoucloud/contract-types/business/inventory';
 import {
   INSPECTION_RESULT_META,
   INSPECTION_TYPE_META,
@@ -46,7 +46,7 @@ import {
   type InspectionType,
   type ProductTrace,
   type QualityInspection,
-} from '@lieshoucloud/types/business/quality';
+} from '@lieshoucloud/contract-types/business/quality';
 
 type TabKey = 'inspections' | 'batches';
 

@@ -9,7 +9,7 @@ import type {
   ApprovalType,
   CreateApprovalRequest,
   DecideRequest,
-} from '@lieshoucloud/types/business/approval';
+} from '@lieshoucloud/contract-types/business/approval';
 
 /** GET /api/approvals — 租户内列表（role: mine=我发起的 / inbox=待我审批 / all=全部） */
 export async function listApprovals(params?: {

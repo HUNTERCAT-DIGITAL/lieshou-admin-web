@@ -5,7 +5,7 @@
  */
 
 import { api } from './api';
-import type { Contact, CreateContactRequest, UpdateContactRequest } from '@lieshoucloud/types/business/contact';
+import type { Contact, CreateContactRequest, UpdateContactRequest } from '@lieshoucloud/contract-types/business/contact';
 
 /** GET /api/contacts — 租户内联系人列表（可选 customerId / keyword 过滤） */
 export async function listContacts(

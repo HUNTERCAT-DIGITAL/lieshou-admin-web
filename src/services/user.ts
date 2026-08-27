@@ -6,7 +6,7 @@
  */
 
 import { api } from './api';
-import type { CreateUserRequest, UpdateUserRequest, User } from '@lieshoucloud/types/business/user';
+import type { CreateUserRequest, UpdateUserRequest, User } from '@lieshoucloud/contract-types/business/user';
 
 /** GET /api/users — 全量列表（后端暂未分页） */
 export async function listUsers(): Promise<User[]> {

@@ -5,7 +5,7 @@
  * 走统一 api 封装（自动带 JWT）；gateway 注入 X-Tenant-Id / X-User-Permissions 到下游。
  */
 import { api } from './api';
-import type { MenuNode } from '@lieshoucloud/types/business/menu';
+import type { MenuNode } from '@lieshoucloud/contract-types/business/menu';
 
 /** GET /api/users/me/menus — 当前用户菜单树 */
 export async function fetchUserMenus(): Promise<MenuNode[]> {

@@ -14,7 +14,7 @@ import { ConfigProvider, App as AntdApp } from 'antd';
 import BasicLayout from '../BasicLayout';
 import { useAuthStore } from '../../stores/auth';
 import { fetchUserMenus } from '../../services/menu';
-import type { MenuNode } from '@lieshoucloud/types/business/menu';
+import type { MenuNode } from '@lieshoucloud/contract-types/business/menu';
 
 vi.mock('../../services/menu', async () => {
   const actual = await vi.importActual<Record<string, unknown>>('../../services/menu');

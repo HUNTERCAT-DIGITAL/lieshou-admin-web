@@ -1,5 +1,5 @@
 /**
- * 后端 API 请求封装 —— 薄封装,逻辑收敛到 @lieshoucloud/api-client（L0-2 · Bottom-Up）
+ * 后端 API 请求封装 —— 薄封装,逻辑收敛到 @lieshoucloud/contract-api（L0-2 · Bottom-Up）
  *
  * - JWT 注入 / 401 单飞 refresh / 标准化错误体 → 全部由共享 api-client 承担
  * - 本文件只负责绑定本应用上下文：auth store、UI 登出出口、devlog
@@ -7,11 +7,11 @@
  * @see BOTTOM_UP.md · L0-2
  */
 
-import { createApiClient } from '@lieshoucloud/api-client';
+import { createApiClient } from '@lieshoucloud/contract-api';
 import { useAuthStore } from '../stores/auth';
 import { pushDevLog } from '../utils/devtools';
 
-import { resolveApiBase } from '@lieshoucloud/config';
+import { resolveApiBase } from '@lieshoucloud/contract-config';
 
 // API base：默认同源 /api（nginx 反代 gateway；与后端路由前缀一致）。
 // VITE_API_BASE_URL 构建注入可覆盖（如 http://localhost:9000/api 本地直连 gateway）。

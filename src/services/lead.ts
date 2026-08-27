@@ -5,7 +5,7 @@
  */
 
 import { api } from './api';
-import type { FollowUpRequest, Lead, LeadFollowUp, LeadRequest, LeadStatus } from '@lieshoucloud/types/business/lead';
+import type { FollowUpRequest, Lead, LeadFollowUp, LeadRequest, LeadStatus } from '@lieshoucloud/contract-types/business/lead';
 
 /** GET /api/leads — 租户内线索列表；owner=-1 线索池(未认领) 0 全部 >0 指定认领人 */
 export async function listLeads(

@@ -29,7 +29,7 @@ import {
   listTeachers,
   updateTeacher,
 } from './teacher';
-import { STATUS_META, SUBJECT_OPTIONS } from '@lieshoucloud/types/business/teacher';
+import { STATUS_META, SUBJECT_OPTIONS } from '@lieshoucloud/contract-types/business/teacher';
 
 describe('teacher service', () => {
   beforeEach(() => {

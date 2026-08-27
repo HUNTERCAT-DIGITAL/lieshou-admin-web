@@ -10,7 +10,7 @@ import type {
   ContractStatus,
   CreateContractRequest,
   UpdateContractRequest,
-} from '@lieshoucloud/types/business/contract';
+} from '@lieshoucloud/contract-types/business/contract';
 
 /** GET /api/contracts — 租户内合同列表（可选 customerId / status / keyword 过滤） */
 export async function listContracts(

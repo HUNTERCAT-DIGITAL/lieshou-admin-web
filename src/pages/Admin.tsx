@@ -29,12 +29,12 @@ import { ROLE_PLATFORM_ADMIN } from '../access';
 import { useApiError } from '../hooks/useApiError';
 import { getEdition } from '../config/editions';
 import { getApprovalCounts, listApprovals } from '../services/approval';
-import { APPROVAL_TYPE_META, type ApprovalType } from '@lieshoucloud/types/business/approval';
+import { APPROVAL_TYPE_META, type ApprovalType } from '@lieshoucloud/contract-types/business/approval';
 import { countAuditLogs, listAuditLogs } from '../services/audit';
 import { unreadNotificationCount } from '../services/notification';
 import { countUsers } from '../services/user';
 import { listTenants } from '../services/tenant';
-import type { AuditLog } from '@lieshoucloud/types/business/audit';
+import type { AuditLog } from '@lieshoucloud/contract-types/business/audit';
 import { useAuthStore } from '../stores/auth';
 
 const { Text } = Typography;

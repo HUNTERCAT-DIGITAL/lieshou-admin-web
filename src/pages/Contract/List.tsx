@@ -33,7 +33,7 @@ import {
   CONTRACT_STATUS_META,
   type Contract,
   type ContractStatus,
-} from '@lieshoucloud/types/business/contract';
+} from '@lieshoucloud/contract-types/business/contract';
 
 const STATUS_OPTIONS = (Object.keys(CONTRACT_STATUS_META) as ContractStatus[]).map((s) => ({
   label: CONTRACT_STATUS_META[s].text,
