@@ -54,9 +54,12 @@ export function resolveEditionId(): EditionId {
   );
 }
 
-/** 当前部署版别配置（门户/登录页展示用） */
+/** 当前部署版别配置（门户/登录页展示用）.
+ * 基础版（generic 等）+ 版别增强（extra 注入：品牌/门户/专属路由等，2026-09 客户聚合仓模式）叠加。
+ */
 export function getEdition(): EditionConfig {
-  return EDITIONS[resolveEditionId()];
+  const base = EDITIONS[resolveEditionId()];
+  return { ...base, ...getExtraEdition() };
 }
 
 /**
