@@ -8,6 +8,39 @@ var client_1 = require("react-dom/client");
 require("antd/dist/reset.css");
 require("dayjs/locale/zh-cn");
 var App_1 = require("./App");
+var core_web_1 = require("@lieshoucloud/core-web");
+var antd_3 = require("antd");
+var api_1 = require("./services/api");
+// —— 注入 core-web 端口（业务核心层 · 2026-09 试点）——
+(0, core_web_1.configureCore)({
+    storage: {
+        get: function (k) { return localStorage.getItem(k); },
+        set: function (k, v) { return localStorage.setItem(k, v); },
+        remove: function (k) { return localStorage.removeItem(k); },
+    },
+    notifier: {
+        success: function (m) { return antd_3.message.success(m); },
+        error: function (m) { return antd_3.message.error(m); },
+    },
+    navigation: {
+        to: function (p) { window.location.hash = p; },
+        replace: function (p) { window.location.hash = p; },
+    },
+    api: {
+        request: function (path, init) {
+            var _a;
+            var method = ((_a = init === null || init === void 0 ? void 0 : init.method) !== null && _a !== void 0 ? _a : 'GET').toUpperCase();
+            var body = typeof (init === null || init === void 0 ? void 0 : init.body) === 'string' ? JSON.parse(init.body) : init === null || init === void 0 ? void 0 : init.body;
+            switch (method) {
+                case 'POST': return api_1.api.post(path, body);
+                case 'PUT': return api_1.api.put(path, body);
+                case 'PATCH': return api_1.api.patch(path, body);
+                case 'DELETE': return api_1.api.delete(path);
+                default: return api_1.api.get(path);
+            }
+        },
+    },
+});
 var editions_1 = require("./config/editions");
 var useThemeMode_1 = require("./hooks/useThemeMode");
 /**

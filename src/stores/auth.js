@@ -38,17 +38,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.selectUser = exports.selectIsAuthenticated = exports.selectAccessToken = exports.useAuthStore = void 0;
 /**
- * Auth store (Zustand) - Phase 5.
- *
- * 持久化: localStorage; Phase 2+ 接 HttpOnly cookie + refresh rotation.
+ * Auth store —— 由 lieshou-core-web 提供（业务逻辑唯一源，2026-09 试点）.
+ * 原本地实现（login/refresh/fetchMe/switchTenant + persist）已上收 core-web，
+ * 本文件仅保留 Selector helpers 兼容既有页面 import。
  *
  * @see .ai/decisions/0017-spring-security-jwt.md
  */
-var zustand_1 = require("zustand");
-var middleware_1 = require("zustand/middleware");
+var core_web_1 = require("@lieshoucloud/core-web");
+Object.defineProperty(exports, "useAuthStore", { enumerable: true, get: function () { return core_web_1.useAuthStore; } });
 var auth_1 = require("../services/auth");
 var STORAGE_KEY = 'lieshoucloud:auth';
-exports.useAuthStore = (0, zustand_1.create)()((0, middleware_1.persist)(function (set, get) { return ({
+exports.useAuthStore = create()(persist(function (set, get) { return ({
     accessToken: null,
     refreshToken: null,
     user: null,
