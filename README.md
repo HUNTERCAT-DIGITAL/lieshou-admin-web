@@ -26,7 +26,7 @@
 ## 快速开始
 
 ```bash
-git clone git@github.com:HUNTERCAT-DIGITAL/lieshou-cloud-admin-web.git
+git clone git@github.com:HUNTERCAT-DIGITAL/lieshou-admin-web.git
 git submodule update --init --recursive   # 拉 open/(lieshou-cloud-web 共享包)
 pnpm install
 pnpm dev                                  # Vite,默认 5173
