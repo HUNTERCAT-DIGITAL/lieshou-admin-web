@@ -30,12 +30,16 @@ configureCore({
     request: (path, init) => {
       const method = (init?.method ?? 'GET').toUpperCase();
       const body = typeof init?.body === 'string' ? (JSON.parse(init.body) as unknown) : init?.body;
+      // core-web 业务核心走全路径（含 /api 前缀，与 contract-api 契约一致）；
+      // 本薄壳 services 走相对路径（由下方 createApiClient baseUrl=/api 补全）。
+      // 桥接层归一：全路径已带 /api 时不再叠加，避免 /api/api/auth/login 双写。
+      const p = path.startsWith('/api/') ? path.slice(4) : path;
       switch (method) {
-        case 'POST': return api.post(path, body);
-        case 'PUT': return api.put(path, body);
-        case 'PATCH': return api.patch(path, body);
-        case 'DELETE': return api.delete(path);
-        default: return api.get(path);
+        case 'POST': return api.post(p, body);
+        case 'PUT': return api.put(p, body);
+        case 'PATCH': return api.patch(p, body);
+        case 'DELETE': return api.delete(p);
+        default: return api.get(p);
       }
     },
   },
