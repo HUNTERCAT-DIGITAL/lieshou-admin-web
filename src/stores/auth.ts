@@ -1,12 +1,12 @@
 /**
- * Auth store (Zustand) - Phase 5.
- *
- * 持久化: localStorage; Phase 2+ 接 HttpOnly cookie + refresh rotation.
+ * Auth store —— 由 lieshou-core-web 提供（业务逻辑唯一源，2026-09 试点）.
+ * 原本地实现（login/refresh/fetchMe/switchTenant + persist）已上收 core-web，
+ * 本文件仅保留 Selector helpers 兼容既有页面 import。
  *
  * @see .ai/decisions/0017-spring-security-jwt.md
  */
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+export { useAuthStore } from '@lieshoucloud/core-web';
+export type { Session as AuthStoreState } from '@lieshoucloud/core-web';
 
 import { AuthError, fetchCurrentUser, login as loginApi, refreshTokens, switchTenant as switchTenantApi } from '../services/auth';
 import type { CurrentUser, TokenResponse, TenantOption } from '@lieshoucloud/contract-types/business/auth';

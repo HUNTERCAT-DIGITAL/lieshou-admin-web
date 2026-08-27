@@ -7,6 +7,39 @@ import 'antd/dist/reset.css';
 import 'dayjs/locale/zh-cn';
 
 import App from './App';
+import { configureCore } from '@lieshoucloud/core-web';
+import { message } from 'antd';
+import { api } from './services/api';
+
+// —— 注入 core-web 端口（业务核心层 · 2026-09 试点）——
+configureCore({
+  storage: {
+    get: (k) => localStorage.getItem(k),
+    set: (k, v) => localStorage.setItem(k, v),
+    remove: (k) => localStorage.removeItem(k),
+  },
+  notifier: {
+    success: (m) => message.success(m),
+    error: (m) => message.error(m),
+  },
+  navigation: {
+    to: (p) => { window.location.hash = p; },
+    replace: (p) => { window.location.hash = p; },
+  },
+  api: {
+    request: (path, init) => {
+      const method = (init?.method ?? 'GET').toUpperCase();
+      const body = typeof init?.body === 'string' ? (JSON.parse(init.body) as unknown) : init?.body;
+      switch (method) {
+        case 'POST': return api.post(path, body);
+        case 'PUT': return api.put(path, body);
+        case 'PATCH': return api.patch(path, body);
+        case 'DELETE': return api.delete(path);
+        default: return api.get(path);
+      }
+    },
+  },
+});
 import { getEdition } from './config/editions';
 import { useThemeMode } from './hooks/useThemeMode';
 
