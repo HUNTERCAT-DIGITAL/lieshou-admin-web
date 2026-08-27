@@ -21,7 +21,7 @@ import type {
   UpdateLetterRequest,
   UpdateResponseRequest,
   UpdateTemplateRequest,
-} from '@lieshoucloud/types/business/customerSuccess';
+} from '@lieshoucloud/contract-types/business/customerSuccess';
 
 // ============================================================
 // 联系函

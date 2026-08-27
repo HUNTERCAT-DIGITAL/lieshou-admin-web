@@ -5,7 +5,7 @@
  */
 
 import { api } from './api';
-import type { CurrentUser, LoginRequest, TokenResponse } from '@lieshoucloud/types/business/auth';
+import type { CurrentUser, LoginRequest, TokenResponse } from '@lieshoucloud/contract-types/business/auth';
 import { AuthError } from '../utils/errors';
 
 // 兼容既有 import：AuthError 已迁移至 utils/errors.ts（避免 api/auth 循环依赖）

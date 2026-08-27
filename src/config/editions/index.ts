@@ -14,7 +14,7 @@
  * 登录响应中的 tenantEdition（后端权威）存 session，用于登录后的品牌展示；
  * 门户/登录页展示用部署版别（本配置）。
  */
-import type { IndustryId } from '@lieshoucloud/types';
+import type { IndustryId } from '@lieshoucloud/contract-types';
 
 import { genericEdition } from './generic';
 import { layerEdition } from './layer';

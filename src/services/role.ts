@@ -5,7 +5,7 @@
  */
 
 import { api } from './api';
-import type { CreateRoleRequest, Role, UpdateRoleRequest } from '@lieshoucloud/types/business/role';
+import type { CreateRoleRequest, Role, UpdateRoleRequest } from '@lieshoucloud/contract-types/business/role';
 
 /** GET /api/roles — 角色列表 */
 export async function listRoles(): Promise<Role[]> {

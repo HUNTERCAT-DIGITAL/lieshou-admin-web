@@ -6,7 +6,7 @@
  */
 
 import { api } from './api';
-import type { AuditAction, AuditLog } from '@lieshoucloud/types/business/audit';
+import type { AuditAction, AuditLog } from '@lieshoucloud/contract-types/business/audit';
 
 export interface AuditQuery {
   action?: AuditAction;

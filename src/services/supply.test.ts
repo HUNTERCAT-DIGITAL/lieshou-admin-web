@@ -45,7 +45,7 @@ import {
   SUPPLY_STATUS_META,
   defaultSettlementPeriod,
   formatMoney,
-} from '@lieshoucloud/types/business/supply';
+} from '@lieshoucloud/contract-types/business/supply';
 
 describe('supply service', () => {
   beforeEach(() => {

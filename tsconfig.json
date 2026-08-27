@@ -1,13 +1,13 @@
 {
-  "extends": "./open/config/tsconfig.base.json",
+  "extends": "./open/contract-config/tsconfig.base.json",
   "compilerOptions": {
     "types": ["vitest/globals", "@testing-library/jest-dom", "node"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@lieshoucloud/api-client": ["./open/api-client/src"],
-      "@lieshoucloud/types/business/*": ["./open/types/src/business/*.ts"],
-      "@lieshoucloud/types": ["./open/types/src"],
+      "@lieshoucloud/contract-api": ["./open/contract-api/src"],
+      "@lieshoucloud/contract-types/business/*": ["./open/contract-types/src/business/*.ts"],
+      "@lieshoucloud/contract-types": ["./open/contract-types/src"],
       "@lieshoucloud/ui": ["./open/ui/src"],
       "@lieshoucloud/boot": ["../packages/boot/src/index.ts"],
       "@lieshoucloud/boot/*": ["../packages/boot/src/*"]

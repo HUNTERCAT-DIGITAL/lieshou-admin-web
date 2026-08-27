@@ -27,9 +27,9 @@
   "dependencies": {
     "@ant-design/icons": "~5.5.1",
     "@ant-design/pro-components": "2.8.2",
-    "@lieshoucloud/api-client": "workspace:*",
-    "@lieshoucloud/config": "workspace:*",
-    "@lieshoucloud/types": "workspace:*",
+    "@lieshoucloud/contract-api": "workspace:*",
+    "@lieshoucloud/contract-config": "workspace:*",
+    "@lieshoucloud/contract-types": "workspace:*",
     "@lieshoucloud/ui": "workspace:*",
     "antd": "5.22.0",
     "dayjs": "~1.11.13",

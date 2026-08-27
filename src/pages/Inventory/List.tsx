@@ -54,8 +54,8 @@ import {
   updateProduct,
 } from '../../services/inventory';
 import { listBatches } from '../../services/quality';
-import { MOVEMENT_META, type Product, type StockMovement } from '@lieshoucloud/types/business/inventory';
-import type { Batch } from '@lieshoucloud/types/business/quality';
+import { MOVEMENT_META, type Product, type StockMovement } from '@lieshoucloud/contract-types/business/inventory';
+import type { Batch } from '@lieshoucloud/contract-types/business/quality';
 import { PRODUCT_TEMPLATE } from '../../utils/csv';
 import ImportModal from '../../components/ImportModal';
 

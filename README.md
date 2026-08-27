@@ -1,4 +1,4 @@
-# LieShouCloud-admin-web · 猎手云 B 端管理后台(开源)
+# lieshou-cloud-admin-web · 猎手云 B 端管理后台(开源)
 
 > 猎手云(开源)的 B 端管理后台:登录 / RBAC / 租户 / 审批流 / 客户 CRM / 财务 / 进销存等通用业务工作台。
 > 行业版页面与客户定制通过 **Edition 配置 + 客户仓注入**(`extraRoutes`)装配,不在本仓内。
@@ -13,7 +13,7 @@
 ## 技术栈
 
 - Vite 6 + React 19 + TypeScript(strict)+ antd 5.22 + ProComponents 2.8
-- 共享层 `@lieshoucloud/{api-client,config,types,ui}` 经 `open/` submodule 挂载 [LieShouCloud-web](https://github.com/HUNTERCAT-DIGITAL/LieShouCloud-web)
+- 共享层 `@lieshoucloud/{api-client,config,types,ui}` 经 `open/` submodule 挂载 [lieshou-cloud-web](https://github.com/HUNTERCAT-DIGITAL/lieshou-cloud-web)
 
 ## 功能
 
@@ -26,13 +26,13 @@
 ## 快速开始
 
 ```bash
-git clone git@github.com:HUNTERCAT-DIGITAL/LieShouCloud-admin-web.git
-git submodule update --init --recursive   # 拉 open/(LieShouCloud-web 共享包)
+git clone git@github.com:HUNTERCAT-DIGITAL/lieshou-admin-web.git
+git submodule update --init --recursive   # 拉 open/(lieshou-cloud-web 共享包)
 pnpm install
 pnpm dev                                  # Vite,默认 5173
 ```
 
-配套后端:[LieShouCloud](https://github.com/HUNTERCAT-DIGITAL/LieShouCloud)(开源底座,gateway/auth/user/admin/approval)。
+配套后端:[lieshou-cloud](https://github.com/HUNTERCAT-DIGITAL/lieshou-cloud)(开源底座,gateway/auth/user/admin/approval)。
 
 ## 脚本
 
@@ -54,10 +54,10 @@ pnpm dev                                  # Vite,默认 5173
 
 ## 关联仓库
 
-- 共享层(开源):`HUNTERCAT-DIGITAL/LieShouCloud-web`
-- 后端底座(开源):`HUNTERCAT-DIGITAL/LieShouCloud`
-- 其他端(开源):`LieShouCloud-desktop` · `LieShouCloud-mobile` · `LieShouCloud-mini-program`
-- 商业主仓:`HUNTERCAT-DIGITAL/LieShouCloudPro`
+- 共享层(开源):`HUNTERCAT-DIGITAL/lieshou-cloud-web`
+- 后端底座(开源):`HUNTERCAT-DIGITAL/lieshou-cloud`
+- 其他端(开源):`lieshou-cloud-desktop` · `lieshou-cloud-mobile` · `lieshou-cloud-mini-program`
+- 商业主仓:`HUNTERCAT-DIGITAL/lieshou-cloud-pro`
 
 ## License
 

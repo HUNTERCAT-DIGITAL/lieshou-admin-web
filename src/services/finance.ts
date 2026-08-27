@@ -9,7 +9,7 @@ import type {
   LedgerType,
   MonthlySummary,
   UpdateLedgerRequest,
-} from '@lieshoucloud/types/business/finance';
+} from '@lieshoucloud/contract-types/business/finance';
 
 /** GET /api/ledger — 租户内流水（可选 type/category/from/to 过滤） */
 export async function listLedger(params?: {

@@ -11,7 +11,7 @@
  *       而是声明 industries: ['legal'] 并叠加客户定制。
  */
 import type { ComponentType } from 'react';
-import type { IndustryId } from '@lieshoucloud/types';
+import type { IndustryId } from '@lieshoucloud/contract-types';
 
 export type EditionId = 'generic' | 'layer';
 

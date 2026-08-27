@@ -30,7 +30,7 @@ import {
   type Member,
   type MemberLevel,
   type MemberStatus,
-} from '@lieshoucloud/types/business/member';
+} from '@lieshoucloud/contract-types/business/member';
 
 const LEVEL_OPTIONS = (Object.keys(MEMBER_LEVEL_META) as MemberLevel[]).map((l) => ({
   label: MEMBER_LEVEL_META[l].text,

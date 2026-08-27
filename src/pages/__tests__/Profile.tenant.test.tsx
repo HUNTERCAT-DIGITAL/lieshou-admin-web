@@ -8,7 +8,7 @@ import { ConfigProvider, App as AntdApp } from 'antd';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useAuthStore } from '../../stores/auth';
-import type { CurrentUser } from '@lieshoucloud/types/business/auth';
+import type { CurrentUser } from '@lieshoucloud/contract-types/business/auth';
 
 beforeEach(() => {
   localStorage.clear();

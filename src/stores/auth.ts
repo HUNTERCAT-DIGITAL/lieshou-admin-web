@@ -9,7 +9,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 import { AuthError, fetchCurrentUser, login as loginApi, refreshTokens, switchTenant as switchTenantApi } from '../services/auth';
-import type { CurrentUser, TokenResponse, TenantOption } from '@lieshoucloud/types/business/auth';
+import type { CurrentUser, TokenResponse, TenantOption } from '@lieshoucloud/contract-types/business/auth';
 
 const STORAGE_KEY = 'lieshoucloud:auth';
 

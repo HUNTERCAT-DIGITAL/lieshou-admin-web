@@ -47,7 +47,7 @@ import {
   type LeadFollowUp,
   type LeadSource,
   type LeadStatus,
-} from '@lieshoucloud/types/business/lead';
+} from '@lieshoucloud/contract-types/business/lead';
 import { LEAD_TEMPLATE } from '../../utils/csv';
 import ImportModal from '../../components/ImportModal';
 
