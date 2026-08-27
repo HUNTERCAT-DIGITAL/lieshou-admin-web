@@ -33,3 +33,6 @@ lerna-debug.log*
 # Playwright e2e
 test-results/
 playwright-report/
+
+# LieShouBoot prepare.mjs 生成的版别注入（勿提交）
+src/config/editions/*.extra.ts
