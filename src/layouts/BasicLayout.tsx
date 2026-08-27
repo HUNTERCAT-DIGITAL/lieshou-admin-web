@@ -29,7 +29,7 @@ import { Suspense, useCallback, useEffect, useState, type ReactNode } from 'reac
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { createAccess, derivePermissions, type Access } from '../access';
-import { getEdition, getEditionHiddenMenus, isPathCapabilityEnabled } from '../config/editions';
+import { getEdition, getEditionHiddenMenus, getExtraEdition, isPathCapabilityEnabled } from '../config/editions';
 import DevTools from '../components/DevTools';
 import NotificationBell from '../components/NotificationBell';
 import { ErrorBoundary, PageLoading } from '@lieshoucloud/ui';
@@ -271,7 +271,18 @@ export default function BasicLayout() {
     remoteMenus === null
       ? null
       : remoteMenus.map(toRoute).filter((r): r is NonNullable<typeof r> => r !== null);
-  const visibleRoutes = remoteRoutes && remoteRoutes.length > 0 ? remoteRoutes : localRoutes;
+  // 客户专属路由菜单（extraRoutes · 2026-09 客户聚合仓模式）：客户仓注入的页面菜单项追加到侧边栏
+  const extraMenuRoutes = (getExtraEdition().extraRoutes ?? [])
+    .filter((r) => r.menu)
+    .map((r) => ({
+      path: r.path,
+      name: r.menu?.name ?? r.path,
+      icon: ICON_MAP[r.menu?.icon ?? ''] ?? <AppstoreOutlined />,
+    }));
+  const visibleRoutes = [
+    ...(remoteRoutes && remoteRoutes.length > 0 ? remoteRoutes : (localRoutes ?? [])),
+    ...extraMenuRoutes,
+  ];
   const layoutProps = {
     ...defaultProps,
     route: { ...defaultProps.route, routes: visibleRoutes },
