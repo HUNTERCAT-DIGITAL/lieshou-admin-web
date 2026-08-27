@@ -29,3 +29,7 @@ lerna-debug.log*
 
 # tsc -b build info (composite)
 *.tsbuildinfo
+
+# Playwright e2e
+test-results/
+playwright-report/

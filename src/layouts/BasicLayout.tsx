@@ -28,7 +28,7 @@ import { App as AntdApp, Badge, Button, Dropdown, type MenuProps } from 'antd';
 import { Suspense, useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
-import { createAccess, type Access } from '../access';
+import { createAccess, derivePermissions, type Access } from '../access';
 import { getEdition, getEditionHiddenMenus, isPathCapabilityEnabled } from '../config/editions';
 import DevTools from '../components/DevTools';
 import NotificationBell from '../components/NotificationBell';
@@ -221,7 +221,7 @@ export default function BasicLayout() {
       routes?: { path?: string; routes?: unknown }[];
     }[],
     access,
-    user?.permissions ?? [],
+    derivePermissions(user),
     hiddenMenus,
     showLegal,
   );

@@ -13,7 +13,9 @@ import { pushDevLog } from '../utils/devtools';
 
 import { resolveApiBase } from '@lieshoucloud/config';
 
-const BASE = resolveApiBase({ key: 'API_BASE_URL', defaultBase: '' });
+// API base：默认同源 /api（nginx 反代 gateway；与后端路由前缀一致）。
+// VITE_API_BASE_URL 构建注入可覆盖（如 http://localhost:9000/api 本地直连 gateway）。
+const BASE = resolveApiBase({ key: 'API_BASE_URL', defaultBase: '/api' });
 
 /**
  * 登录过期后的 UI 出口（由 BasicLayout 注册：提示 + logout + 跳 /login）.

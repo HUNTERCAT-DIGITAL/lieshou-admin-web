@@ -37,6 +37,35 @@ export const ROLE_PLATFORM_ADMIN = 'PLATFORM_ADMIN';
 export const ROLE_TENANT_ADMIN = 'TENANT_ADMIN';
 export const ROLE_DUTY_OFFICER = 'DUTY_OFFICER';
 
+/**
+ * 角色 → 权限码列表（permissions 缺失时回退，与 createAccess 角色推导语义对齐）。
+ *
+ * 菜单（BasicLayout filterRoutes）按权限码数组过滤；后端暂不返回 permissions 时
+ * 用角色推导保证菜单完整（对齐 access.ts 的 access 推导）。
+ */
+export function derivePermissions(user: CurrentUser | null): string[] {
+  if (!user) return [];
+  const perms = user.permissions ?? [];
+  if (perms.length > 0) return perms;
+
+  const roles = user.roles ?? [];
+  const isPlatformAdmin = roles.includes(ROLE_PLATFORM_ADMIN);
+  const isTenantAdmin = isPlatformAdmin || roles.includes(ROLE_TENANT_ADMIN);
+  const isDutyOfficer = roles.includes(ROLE_DUTY_OFFICER);
+
+  // 租户内业务（非值班员）：审批流/CRM/进销存/财务/审计入口
+  const tenantBiz = ['approval:use', 'crm:use', 'finance:use', 'inventory:use', 'audit:read'];
+  const codes: string[] = isDutyOfficer ? [] : tenantBiz;
+  if (isTenantAdmin) codes.push('user:manage', 'user:list');
+  if (isPlatformAdmin) codes.push('tenant:manage');
+  // 物联网（值班员只读监控 + 管理员配置）
+  codes.push('iot:monitor');
+  if (!isDutyOfficer) codes.push('iot:config');
+  // 法律能力域（layer 版启用；generic 版菜单已被 hiddenMenus 裁剪，不影响）
+  codes.push('legal:use');
+  return codes;
+}
+
 /** 从当前用户计算权限（权限码优先；permissions 缺失时回退角色推导） */
 export function createAccess(user: CurrentUser | null): Access {
   if (!user) return {};

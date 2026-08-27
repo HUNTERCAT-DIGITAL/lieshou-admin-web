@@ -11,10 +11,10 @@ import { AuthError } from '../utils/errors';
 // 兼容既有 import：AuthError 已迁移至 utils/errors.ts（避免 api/auth 循环依赖）
 export { AuthError };
 
-// VITE_API_BASE_URL 语义: gateway 的 API 前缀 (dev 下为 /api, 由 vite proxy 原样转发;
-// 未配置时直接连 gateway 完整地址, 末尾含 /api 前缀)
+// VITE_API_BASE_URL 语义: gateway 的 API 前缀（dev 下为 /api, 由 vite proxy 原样转发;
+// 未配置时同源 /api（与 services/api.ts 一致，nginx 反代 gateway）
 const GATEWAY_BASE =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://localhost:9000/api';
+  (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '/api';
 
 // gateway 路由为 /api/auth/**，故 GATEWAY_BASE 后只拼 /auth（不要再重复 /api）
 const AUTH_BASE = `${GATEWAY_BASE}/auth`;

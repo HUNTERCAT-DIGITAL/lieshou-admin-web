@@ -19,12 +19,16 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "e2e": "playwright test",
+    "e2e:headed": "playwright test --headed",
+    "e2e:report": "playwright show-report"
   },
   "dependencies": {
     "@ant-design/icons": "~5.5.1",
     "@ant-design/pro-components": "2.8.2",
     "@lieshoucloud/api-client": "workspace:*",
+    "@lieshoucloud/config": "workspace:*",
     "@lieshoucloud/types": "workspace:*",
     "@lieshoucloud/ui": "workspace:*",
     "antd": "5.22.0",
@@ -35,11 +39,11 @@
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-router-dom": "^7.18.2",
-    "zustand": "5.0.2",
-    "@lieshoucloud/config": "workspace:*"
+    "zustand": "5.0.2"
   },
   "devDependencies": {
     "@eslint/js": "9.15.0",
+    "@playwright/test": "^1.62.1",
     "@testing-library/jest-dom": "6.6.3",
     "@testing-library/react": "16.1.0",
     "@testing-library/user-event": "14.5.2",
