@@ -19,20 +19,21 @@ export default defineConfig({
       // 是独立 workspace，其 node_modules 里 react/react-dom/react-router-dom/antd 是
       // 另一物理副本 → React Context（Router/App/message）不互通，useNavigate 等会报
       // "may be used only in the context of a <Router>"。强制 alias 到 admin-web 副本。
+      // 精确匹配包名（含子路径），避免误伤 react-* 类依赖（react-query 等）
       {
-        find: 'react-router-dom',
+        find: /^react-router-dom(\/.*)?$/,
         replacement: path.resolve(__dirname, 'node_modules/react-router-dom'),
       },
       {
-        find: 'react',
+        find: /^react(\/.*)?$/,
         replacement: path.resolve(__dirname, 'node_modules/react'),
       },
       {
-        find: 'react-dom',
+        find: /^react-dom(\/.*)?$/,
         replacement: path.resolve(__dirname, 'node_modules/react-dom'),
       },
       {
-        find: 'antd',
+        find: /^antd(\/.*)?$/,
         replacement: path.resolve(__dirname, 'node_modules/antd'),
       },
       { find: '@lieshoucloud/api-client', replacement: path.resolve(__dirname, 'open/api-client/src') },
