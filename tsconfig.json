@@ -8,7 +8,9 @@
       "@lieshoucloud/api-client": ["./open/api-client/src"],
       "@lieshoucloud/types/business/*": ["./open/types/src/business/*.ts"],
       "@lieshoucloud/types": ["./open/types/src"],
-      "@lieshoucloud/ui": ["./open/ui/src"]
+      "@lieshoucloud/ui": ["./open/ui/src"],
+      "@lieshoucloud/boot": ["../packages/boot/src/index.ts"],
+      "@lieshoucloud/boot/*": ["../packages/boot/src/*"]
     }
   },
   "include": ["src"],
