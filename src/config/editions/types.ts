@@ -87,6 +87,12 @@ export interface EditionConfig {
    * 由客户仓 deploy 生成注入（各端 editions/<client>.extra.ts），平台只渲染槽位。
    */
   extraRoutes?: EditionExtraRoute[];
+  /**
+   * 版别专属门户（首页）组件工厂（懒加载）。
+   * 缺省（undefined）用平台通用门户 GenericPortal；
+   * 客户/版别可注入专属产品介绍门户（如 LieShouBoot 产品介绍页）。
+   */
+  portal?: { load: () => Promise<{ default: ComponentType }> };
   /** 单租户版：隐藏登录/注册表单的租户输入，固定用 defaultTenantCode（如 dwjk 电网监控版） */
   hideTenantInput?: boolean;
   /** 隐藏菜单路径前缀（如 '/customer' 隐藏 CRM 菜单与路由；ADR-0035 配置层裁剪） */

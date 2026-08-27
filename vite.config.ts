@@ -12,6 +12,10 @@ import path from 'node:path';
 
 export default defineConfig({
   plugins: [react()],
+  // 浏览器端 shim process.env（@lieshoucloud/config.readEnv 在 vite 下回落 process.env）
+  define: {
+    'process.env': {},
+  },
   resolve: {
     alias: [
       { find: '@', replacement: path.resolve(__dirname, 'src') },
@@ -41,6 +45,7 @@ export default defineConfig({
     port: 5173,
     // 允许通过域名访问（入口 nginx 反代时 Host 为 dev 域名，vite 默认会拒绝非 localhost Host）
     allowedHosts: [
+      'lieshouboot.huntercat.cn',
       'dev.lieshoucloud.huntercat.cn',
       'dev.zhiye.lieshoucloud.huntercat.cn',
       'layer.dev.lieshoucloud.huntercat.cn',
