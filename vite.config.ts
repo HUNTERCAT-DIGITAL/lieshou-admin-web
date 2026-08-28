@@ -26,6 +26,8 @@ export default defineConfig({
       { find: 'react-dom', replacement: path.resolve(__dirname, 'node_modules/react-dom') },
       { find: 'dayjs', replacement: path.resolve(__dirname, 'node_modules/dayjs') },
       { find: '@ant-design/icons', replacement: path.resolve(__dirname, 'node_modules/@ant-design/icons') },
+      // react-router-dom 双实例会导致客户包 useNavigate 读不到 BrowserRouter context（“may be used only in the context of a <Router>”）
+      { find: 'react-router-dom', replacement: path.resolve(__dirname, 'node_modules/react-router-dom') },
       { find: '@', replacement: path.resolve(__dirname, 'src') },
       {
         find: '@lieshoucloud/contract-api',

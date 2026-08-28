@@ -30,6 +30,16 @@ test.describe('电子账务平台 · 银行功能', () => {
     await expect(page.getByText('银行回单', { exact: true })).toBeVisible();
   });
 
+  test('工作台首页：可访问（useNavigate 单实例）', async ({ page }) => {
+    await login(page);
+    await page.getByText('电子账务工作台').click();
+    await expect(page).toHaveURL(/\/daizhang\/workspace/, { timeout: 10_000 });
+    // 页面渲染成功（无 Router context 报错）
+    await expect(page.getByText('银行流水', { exact: true }).first()).toBeVisible();
+    await expect(page.getByText('银行账户', { exact: true }).first()).toBeVisible();
+    await expect(page.getByText('银行回单', { exact: true }).first()).toBeVisible();
+  });
+
   test('银行账户页：新增账户并出现在列表', async ({ page }) => {
     await login(page);
     await page.getByText('银行账户', { exact: true }).click();
