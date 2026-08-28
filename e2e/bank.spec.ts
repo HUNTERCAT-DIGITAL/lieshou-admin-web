@@ -129,6 +129,23 @@ test.describe('电子账务平台 · 银行功能', () => {
     await expect(page.getByText('客户A').first()).toBeVisible();
   });
 
+  test('记账凭证页：预览统计 + 凭证表 + 导出按钮', async ({ page }) => {
+    await page.goto('/welcome');
+    await page.getByText('记账凭证', { exact: true }).click();
+    await expect(page).toHaveURL(/\/daizhang\/ledger\/vouchers/, { timeout: 10_000 });
+    // 统计卡
+    await expect(page.getByText('凭证数')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText('完整凭证')).toBeVisible();
+    await expect(page.getByText('待完善（缺科目）')).toBeVisible();
+    // 凭证表渲染（凭证号 + 摘要列）
+    await expect(page.getByText('凭证号').first()).toBeVisible();
+    await expect(page.getByText('摘要').first()).toBeVisible();
+    // E2E 转记账数据已在凭证（V20260828-00x）
+    await expect(page.getByText(/^V2026\d{4}-\d{3}$/).first()).toBeVisible();
+    // 导出按钮
+    await expect(page.getByRole('button', { name: /导出 CSV/ })).toBeVisible();
+  });
+
   test('记账科目页：新增模板 → 列表可见 → 删除', async ({ page }) => {
     await page.goto('/welcome');
     await page.getByText('记账科目', { exact: true }).click();
