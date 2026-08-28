@@ -1,61 +1,55 @@
 /**
- * core.file 文件服务 wrapper 单测（上传/元数据/强制鉴权 blob 下载）.
+ * file service 单测（2026-10 上收 core-web 后测 ApiPort 传输）.
  *
- * 验证 URL path / multipart 表单 / blob 通道正确（api 层本身有独立测试）。
+ * 上收后 services/file.ts 为 core-web re-export，实现走 requestApi → 注入的 ApiPort。
+ * 注入 portRequest spy，验证 path / multipart / asBlob 透传。
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { apiGet, apiPostForm, apiGetBlob } = vi.hoisted(() => ({
-  apiGet: vi.fn(),
-  apiPostForm: vi.fn(),
-  apiGetBlob: vi.fn(),
-}));
+import { configureCore } from '@lieshoucloud/core-web';
 
-vi.mock('./api', () => ({
-  api: {
-    get: apiGet,
-    postForm: apiPostForm,
-    getBlob: apiGetBlob,
-  },
+const { portRequest } = vi.hoisted(() => ({
+  portRequest: vi.fn(),
 }));
 
 import { fetchFileContent, fileContentUrl, getFileMeta, uploadFile } from './file';
 
-describe('file service', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+beforeEach(() => {
+  portRequest.mockReset();
+  configureCore({
+    storage: { get: () => null, set: () => {}, remove: () => {} },
+    notifier: { success: () => {}, error: () => {} },
+    navigation: { to: () => {}, replace: () => {} },
+    api: { request: portRequest },
   });
+});
 
-  it('uploadFile → POST /files（multipart FormData，字段名 file）', async () => {
-    apiPostForm.mockResolvedValue({ id: 7, originalName: '证书.pdf' });
-    const file = new File(['bytes'], '证书.pdf', { type: 'application/pdf' });
+describe('file service（core-web 上收 · ApiPort 传输）', () => {
+  it('uploadFile → POST /api/files（multipart FormData）', async () => {
+    portRequest.mockResolvedValue({ id: 1, originalName: 'a.pdf', size: 10, createdAt: 'x' });
+    const file = new File(['x'], 'a.pdf', { type: 'application/pdf' });
     await uploadFile(file);
-    const [path, form] = apiPostForm.mock.calls[0] as [string, FormData];
-    expect(path).toBe('/files');
-    expect(form.get('file')).toBe(file);
+    expect(portRequest).toHaveBeenCalledWith('/api/files', expect.anything());
+    expect(portRequest.mock.calls[0][1].method).toBe('POST');
+    expect(portRequest.mock.calls[0][1].body).toBeInstanceOf(FormData);
   });
 
-  it('getFileMeta → GET /files/{id}', async () => {
-    apiGet.mockResolvedValue({ id: 7, originalName: '证书.pdf' });
-    await getFileMeta(7);
-    expect(apiGet).toHaveBeenCalledWith('/files/7');
+  it('getFileMeta → GET /api/files/{id}', async () => {
+    portRequest.mockResolvedValue({ id: 1, originalName: 'a.pdf', size: 10, createdAt: 'x' });
+    await getFileMeta(1);
+    expect(portRequest).toHaveBeenCalledWith('/api/files/1', undefined);
   });
 
-  it('fetchFileContent → GET /files/{id}/content（强制鉴权 blob）', async () => {
-    const fakeBlob = { size: 3 } as Blob;
-    apiGetBlob.mockResolvedValue(fakeBlob);
-    const blob = await fetchFileContent(7);
-    expect(apiGetBlob).toHaveBeenCalledWith('/files/7/content');
-    expect(blob).toBe(fakeBlob);
+  it('fetchFileContent → GET /api/files/{id}/content（asBlob）', async () => {
+    portRequest.mockResolvedValue(new Blob(['pdf']));
+    await fetchFileContent(1);
+    expect(portRequest).toHaveBeenCalledWith(
+      '/api/files/1/content',
+      expect.objectContaining({ asBlob: true }),
+    );
   });
 
-  it('fileContentUrl 无 BASE → /files/{id}/content', () => {
-    expect(fileContentUrl(7)).toBe('/files/7/content');
-  });
-
-  it('fileContentUrl 带 VITE_API_BASE_URL=/api → /api/files/{id}/content（BASE 已含 /api 前缀）', () => {
-    vi.stubEnv('VITE_API_BASE_URL', '/api');
-    expect(fileContentUrl(7)).toBe('/api/files/7/content');
-    vi.unstubAllEnvs();
+  it('fileContentUrl → /api/files/{id}/content', () => {
+    expect(fileContentUrl(1)).toBe('/api/files/1/content');
   });
 });
