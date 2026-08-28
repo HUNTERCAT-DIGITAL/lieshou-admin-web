@@ -21,6 +21,13 @@ vi.mock('../../services/menu', async () => {
   return { ...actual, fetchUserMenus: vi.fn() };
 });
 
+// getEdition 包一层：分组测试里可注入带 group 的 extraRoutes（其余测试行为与真实实现一致）
+vi.mock('../../config/editions', async () => {
+  const actual = await vi.importActual<typeof import('../../config/editions')>('../../config/editions');
+  return { ...actual, getEdition: vi.fn(actual.getEdition) };
+});
+import { getEdition } from '../../config/editions';
+
 beforeAll(() => {
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
@@ -37,31 +44,33 @@ beforeAll(() => {
   });
 });
 
+/** 远程菜单 mock：路径避开客户版别 hiddenMenus 前缀（daizhang 客户仓注入收敛后
+ *  /admin、/legal 等通用路径均被裁剪，测试只验证远程菜单渲染逻辑，不绑定特定菜单） */
 function mockMenus(): MenuNode[] {
   return [
     {
-      key: 'today',
-      path: '/admin',
-      name: '今日作战台',
+      key: 'demo',
+      path: '/demo/menu',
+      name: '远程演示菜单',
       icon: 'dashboard',
       accessKey: null,
       sort: 10,
       children: [],
     },
     {
-      key: 'legal',
-      path: '/legal',
-      name: '案件管理',
+      key: 'demo-group',
+      path: '/demo/group',
+      name: '远程演示分组',
       icon: 'book',
-      accessKey: 'legal:use',
+      accessKey: null,
       sort: 20,
       children: [
         {
-          key: 'legal-cases',
-          path: '/legal/cases',
-          name: '办案列表',
+          key: 'demo-child',
+          path: '/demo/group/child',
+          name: '分组子项',
           icon: 'solution',
-          accessKey: 'legal:use',
+          accessKey: null,
           sort: 10,
           children: [],
         },
@@ -101,10 +110,10 @@ describe('菜单数据驱动（阶段 4）', () => {
     await waitFor(() => expect(fetchUserMenus).toHaveBeenCalledTimes(1));
   });
 
-  it('远程菜单渲染：今日作战台（后端数据源）+ 案件管理分组存在', async () => {
+  it('远程菜单渲染：远程菜单注入（后端数据源）', async () => {
     render(wrap());
-    expect(await screen.findByText('今日作战台')).toBeTruthy();
-    // 分组项（案件管理）可能折叠渲染；用容器断言远程菜单已注入（含 legal 路由）
+    expect(await screen.findByText('远程演示菜单')).toBeTruthy();
+    // 分组项可能折叠渲染；用容器断言远程菜单已注入
     await waitFor(() => expect(fetchUserMenus).toHaveBeenCalled());
     const layout = document.querySelector('.ant-pro-layout');
     expect(layout).toBeTruthy();
@@ -115,5 +124,41 @@ describe('菜单数据驱动（阶段 4）', () => {
     expect(() => render(wrap())).not.toThrow();
     // 本地回退：PLATFORM_ADMIN 角色推导仍渲染菜单
     await waitFor(() => expect(fetchUserMenus).toHaveBeenCalled());
+  });
+});
+
+describe('客户菜单分组（extraRoutes.menu.group · 2026-10 菜单治理）', () => {
+  it('同 group 项收进分组子菜单，无 group 项平铺，分组标题渲染', async () => {
+    vi.mocked(getEdition).mockReturnValue({
+      ...getEdition(),
+      hiddenMenus: [],
+      extraRoutes: [
+        {
+          path: '/demo/a',
+          menu: { name: 'A项', icon: 'dashboard', order: 1, group: 'G组' },
+          load: async () => ({ default: () => null }),
+        },
+        {
+          path: '/demo/b',
+          menu: { name: 'B项', icon: 'swap', order: 2, group: 'G组' },
+          load: async () => ({ default: () => null }),
+        },
+        {
+          path: '/demo/c',
+          menu: { name: 'C项', icon: 'smile', order: 3 },
+          load: async () => ({ default: () => null }),
+        },
+      ],
+    });
+    render(wrap());
+    expect(await screen.findByText('G组')).toBeTruthy();
+    expect(screen.getByText('A项')).toBeTruthy();
+    expect(screen.getByText('B项')).toBeTruthy();
+    expect(screen.getByText('C项')).toBeTruthy();
+    // 分组节点（含 routes）以 group 模式渲染：断言容器内存在分组标题样式节点
+    await waitFor(() => expect(fetchUserMenus).toHaveBeenCalled());
+    const groupTitle = document.querySelector('.ant-menu-item-group-title');
+    expect(groupTitle).toBeTruthy();
+    vi.mocked(getEdition).mockRestore();
   });
 });
