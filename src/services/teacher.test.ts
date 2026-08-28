@@ -1,24 +1,15 @@
 /**
- * 师资档案 service wrapper 单测（zhiye 教育行业版 · edu-service）.
+ * 师资档案 service wrapper 单测（zhiye 教育行业版 · edu-service · 2026-10 上收 core-web 后测 ApiPort 传输）.
  *
- * 验证 URL path / query string / body 透传正确（api 层本身有独立测试）。
+ * 上收后 services/teacher.ts 为 core-web 薄 re-export，实现走 requestApi → 注入的 ApiPort。
+ * 注入 portRequest spy，验证 URL path / query / body 透传（全路径带 /api 前缀）。
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { apiGet, apiPost, apiPut, apiDelete } = vi.hoisted(() => ({
-  apiGet: vi.fn(),
-  apiPost: vi.fn(),
-  apiPut: vi.fn(),
-  apiDelete: vi.fn(),
-}));
+import { configureCore } from '@lieshoucloud/core-web';
 
-vi.mock('./api', () => ({
-  api: {
-    get: apiGet,
-    post: apiPost,
-    put: apiPut,
-    delete: apiDelete,
-  },
+const { portRequest } = vi.hoisted(() => ({
+  portRequest: vi.fn(),
 }));
 
 import {
@@ -31,39 +22,48 @@ import {
 } from './teacher';
 import { STATUS_META, SUBJECT_OPTIONS } from '@lieshoucloud/contract-types/business/teacher';
 
-describe('teacher service', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+beforeEach(() => {
+  portRequest.mockReset();
+  configureCore({
+    storage: { get: () => null, set: () => {}, remove: () => {} },
+    notifier: { success: () => {}, error: () => {} },
+    navigation: { to: () => {}, replace: () => {} },
+    api: { request: portRequest },
   });
+});
 
-  it('listTeachers 无过滤 → /teachers', async () => {
-    apiGet.mockResolvedValue([]);
+const JSON_HEADERS = { 'Content-Type': 'application/json' };
+
+describe('teacher service（core-web 上收 · ApiPort 传输）', () => {
+  it('listTeachers 无过滤 → /api/teachers', async () => {
+    portRequest.mockResolvedValue([]);
     await listTeachers();
-    expect(apiGet).toHaveBeenCalledWith('/teachers');
+    expect(portRequest).toHaveBeenCalledWith('/api/teachers', undefined);
   });
 
   it('listTeachers 带 keyword + status → 拼接 query', async () => {
-    apiGet.mockResolvedValue([]);
+    portRequest.mockResolvedValue([]);
     await listTeachers('机器人', 'AVAILABLE');
-    expect(apiGet).toHaveBeenCalledWith(
-      '/teachers?keyword=%E6%9C%BA%E5%99%A8%E4%BA%BA&status=AVAILABLE',
+    expect(portRequest).toHaveBeenCalledWith(
+      '/api/teachers?keyword=%E6%9C%BA%E5%99%A8%E4%BA%BA&status=AVAILABLE',
+      undefined,
     );
   });
 
-  it('countTeachers → /teachers/count', async () => {
-    apiGet.mockResolvedValue(3);
+  it('countTeachers → /api/teachers/count', async () => {
+    portRequest.mockResolvedValue(3);
     await expect(countTeachers()).resolves.toBe(3);
-    expect(apiGet).toHaveBeenCalledWith('/teachers/count');
+    expect(portRequest).toHaveBeenCalledWith('/api/teachers/count', undefined);
   });
 
-  it('getTeacher → /teachers/{id}', async () => {
-    apiGet.mockResolvedValue({ id: 1 });
+  it('getTeacher → /api/teachers/{id}', async () => {
+    portRequest.mockResolvedValue({ id: 1 });
     await getTeacher(1);
-    expect(apiGet).toHaveBeenCalledWith('/teachers/1');
+    expect(portRequest).toHaveBeenCalledWith('/api/teachers/1', undefined);
   });
 
-  it('createTeacher → POST /teachers 且 body 原样透传（含 idCard 只写字段）', async () => {
-    apiPost.mockResolvedValue({ id: 1 });
+  it('createTeacher → POST /api/teachers 且 body 原样透传（含 idCard 只写字段）', async () => {
+    portRequest.mockResolvedValue({ id: 1 });
     const body = {
       name: '张老师',
       subject: '机器人编程',
@@ -71,19 +71,27 @@ describe('teacher service', () => {
       idCard: '360100199001011234',
     };
     await createTeacher(body);
-    expect(apiPost).toHaveBeenCalledWith('/teachers', body);
+    expect(portRequest).toHaveBeenCalledWith('/api/teachers', {
+      method: 'POST',
+      headers: JSON_HEADERS,
+      body: JSON.stringify(body),
+    });
   });
 
-  it('updateTeacher → PUT /teachers/{id}', async () => {
-    apiPut.mockResolvedValue({ id: 1 });
+  it('updateTeacher → PUT /api/teachers/{id}', async () => {
+    portRequest.mockResolvedValue({ id: 1 });
     await updateTeacher(1, { status: 'DISPATCHING', weeklyCap: 16 });
-    expect(apiPut).toHaveBeenCalledWith('/teachers/1', { status: 'DISPATCHING', weeklyCap: 16 });
+    expect(portRequest).toHaveBeenCalledWith('/api/teachers/1', {
+      method: 'PUT',
+      headers: JSON_HEADERS,
+      body: JSON.stringify({ status: 'DISPATCHING', weeklyCap: 16 }),
+    });
   });
 
-  it('deleteTeacher → DELETE /teachers/{id}', async () => {
-    apiDelete.mockResolvedValue(undefined);
+  it('deleteTeacher → DELETE /api/teachers/{id}', async () => {
+    portRequest.mockResolvedValue(undefined);
     await deleteTeacher(9);
-    expect(apiDelete).toHaveBeenCalledWith('/teachers/9');
+    expect(portRequest).toHaveBeenCalledWith('/api/teachers/9', { method: 'DELETE' });
   });
 
   it('STATUS_META 覆盖三态且中文文案正确', () => {
