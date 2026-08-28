@@ -9,13 +9,18 @@ export default defineConfig({
   resolve: {
     // 与 vite.config 对齐：强制 UI 依赖单实例（客户包 devDeps 可能携带副本）
     dedupe: ['antd', 'react', 'react-dom', 'dayjs', '@ant-design/icons'],
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
+    alias: [
+      { find: '@', replacement: path.resolve(__dirname, 'src') },
       // 消除 AuthError 双实例（symlink/open 路径重复加载）
-      '@lieshoucloud/contract-api': path.resolve(__dirname, 'open/contract-api/src'),
+      { find: '@lieshoucloud/contract-api', replacement: path.resolve(__dirname, 'open/contract-api/src') },
       // lieshou-boot 专属增量包（与 vite.config 正则兜底对齐）
-      '@lieshoucloud/boot': path.resolve(__dirname, '../packages/boot/src'),
-    },
+      { find: '@lieshoucloud/boot', replacement: path.resolve(__dirname, '../packages/boot/src') },
+      // 客户包兜底（与 vite.config.ts 对齐）：@lieshoucloud/<client>[/<subpath>] → ../packages/<client>/src[/<subpath>]
+      {
+        find: /^@lieshoucloud\/(?!contract-api|contract-config|contract-types|ui|core-web)([a-z-]+)(\/.*)?$/,
+        replacement: path.resolve(__dirname, '../packages/$1/src$2'),
+      },
+    ],
   },
   test: {
     globals: true,

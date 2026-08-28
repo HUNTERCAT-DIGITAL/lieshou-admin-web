@@ -95,6 +95,75 @@ const ACCESS_BY_PATH: Record<string, keyof Access> = {
   '/profile': 'canSeeAdmin',
 };
 
+/** 客户菜单项（分组前形态） */
+interface ExtraMenuItem {
+  path: string;
+  name: string;
+  /** menu.group：同组收进分组子菜单；缺省平铺 */
+  group?: string;
+  /** 排序（越小越靠前） */
+  menuOrder: number;
+  icon: ReactNode;
+}
+
+/**
+ * 客户专属菜单分组（2026-10 菜单治理）.
+ * - menu.group 声明的同组项收进分组子菜单（复用 ProLayout group 渲染）；
+ * - 组顺序 = 组内最小 order，组内成员按 order；无 group 的项平铺；
+ * - 分组节点 path = 组内成员路径公共前缀（保证访问组内任一路由时分组可选中高亮）。
+ */
+function groupExtraMenuRoutes(items: ExtraMenuItem[]) {
+  interface GroupLeaf {
+    path: string;
+    name: string;
+    icon: ReactNode;
+  }
+  interface Group {
+    name: string;
+    order: number;
+    icon: ReactNode;
+    children: GroupLeaf[];
+  }
+  const groups = new Map<string, Group>();
+  const top: GroupLeaf[] = [];
+  for (const it of items) {
+    const { group, menuOrder, ...leaf } = it;
+    if (!group) {
+      top.push(leaf);
+      continue;
+    }
+    const g = groups.get(group);
+    if (g) {
+      g.children.push(leaf);
+      g.order = Math.min(g.order, menuOrder);
+    } else {
+      groups.set(group, { name: group, order: menuOrder, icon: leaf.icon, children: [leaf] });
+    }
+  }
+  const grouped = [...groups.values()]
+    .sort((a, b) => a.order - b.order)
+    .map((g) => ({
+      path: commonPathPrefix(g.children.map((c) => c.path)),
+      name: g.name,
+      icon: g.icon,
+      routes: g.children,
+    }));
+  return [...top, ...grouped];
+}
+
+/** 计算多个路径的公共前缀（按路径段；无公共段回退 '/'） */
+function commonPathPrefix(paths: string[]): string {
+  if (paths.length === 0) return '/';
+  const segs = paths.map((p) => p.split('/').filter(Boolean));
+  const first = segs[0];
+  const common: string[] = [];
+  for (let i = 0; i < first.length; i += 1) {
+    if (segs.every((s) => s[i] === first[i])) common.push(first[i]);
+    else break;
+  }
+  return `/${common.join('/')}`;
+}
+
 /** 递归过滤路由树：版别隐藏（hiddenMenus）+ 法律域开关（showLegal）+ 权限码（accessKey · ADR-0024 Phase 2） */
 function filterRoutes(
   routes: { path?: string; routes?: { path?: string; routes?: unknown }[] }[] | undefined,
@@ -278,18 +347,21 @@ export default function BasicLayout() {
       ? null
       : remoteMenus.map(toRoute).filter((r): r is NonNullable<typeof r> => r !== null);
   // 客户专属菜单（extraRoutes.menu · 2026-09 客户聚合仓模式）：客户仓注入的专属页面
-  // 显示在通用菜单之前（按 menu.order 排序）；无 menu 声明的路由只挂路由不进菜单
-  const extraMenuRoutes =
+  // 显示在通用菜单之前（按 menu.order 排序）；menu.group 同组收进分组子菜单（2026-10 菜单治理）
+  // 无 menu 声明的路由只挂路由不进菜单
+  const extraMenuRoutes: ExtraMenuItem[] =
     (getEdition().extraRoutes ?? [])
       .filter((r) => r.menu)
       .sort((a, b) => (a.menu?.order ?? 99) - (b.menu?.order ?? 99))
       .map((r) => ({
         path: r.path,
         name: r.menu?.name ?? r.path,
+        group: r.menu?.group,
+        menuOrder: r.menu?.order ?? 99,
         icon: ICON_MAP[r.menu?.icon ?? ''] ?? <AppstoreOutlined />,
       }));
   const visibleRoutes = [
-    ...extraMenuRoutes,
+    ...groupExtraMenuRoutes(extraMenuRoutes),
     ...(remoteRoutes && remoteRoutes.length > 0 ? remoteRoutes : (localRoutes ?? [])),
   ];
   const layoutProps = {

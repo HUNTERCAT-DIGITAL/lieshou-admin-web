@@ -48,8 +48,12 @@ export interface EditionExtraRoute {
   path: string;
   /** 懒加载组件工厂（客户包模块） */
   load: () => Promise<{ default: ComponentType }>;
-  /** 客户版菜单声明（后续客户仓注入到菜单） */
-  menu?: { name: string; icon?: string; order?: number };
+  /**
+   * 客户版菜单声明（后续客户仓注入到菜单）。
+   * group 可选：同 group 的菜单项收进分组子菜单（复用 ProLayout group 渲染，2026-10 菜单治理）；
+   * 缺省 group 则平铺为一级菜单。
+   */
+  menu?: { name: string; icon?: string; order?: number; group?: string };
   /** 权限码（缺省 = 登录可见） */
   accessKey?: string;
 }
