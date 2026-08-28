@@ -21,5 +21,12 @@ export default defineConfig({
     // 大视口避免 ProLayout 响应式折叠侧边栏（折叠时菜单文本不可见）
     viewport: { width: 1600, height: 900 },
   },
-  projects: [{ name: 'chromium', use: { browserName: 'chromium' } }],
+  projects: [
+    { name: 'setup', testMatch: /auth\.setup\.ts/ },
+    {
+      name: 'chromium',
+      dependencies: ['setup'],
+      use: { browserName: 'chromium', storageState: 'e2e/.auth.json' },
+    },
+  ],
 });

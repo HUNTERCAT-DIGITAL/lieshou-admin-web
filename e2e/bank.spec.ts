@@ -11,18 +11,9 @@ const USERNAME = process.env.E2E_USERNAME ?? 'admin';
 const PASSWORD = process.env.E2E_PASSWORD ?? 'admin123';
 const TENANT = process.env.E2E_TENANT ?? 'huntercat';
 
-/** 登录并等待进入主界面（侧边栏可见） */
-async function login(page: Page): Promise<void> {
-  await page.goto('/login');
-  await page.getByTestId('username-input').fill(USERNAME);
-  await page.getByTestId('password-input').fill(PASSWORD);
-  await page.getByTestId('submit-button').click();
-  await expect(page).not.toHaveURL(/\/login/, { timeout: 15_000 });
-}
-
 test.describe('电子账务平台 · 银行功能', () => {
   test('登录后侧边栏显示客户银行菜单', async ({ page }) => {
-    await login(page);
+    await page.goto('/welcome');
     // 客户专属菜单（extraRoutes.menu · BasicLayout 合并）
     await expect(page.getByText('电子账务工作台')).toBeVisible({ timeout: 10_000 });
     await expect(page.getByText('银行账户', { exact: true })).toBeVisible();
@@ -31,7 +22,7 @@ test.describe('电子账务平台 · 银行功能', () => {
   });
 
   test('工作台首页：可访问（useNavigate 单实例）', async ({ page }) => {
-    await login(page);
+    await page.goto('/welcome');
     await page.getByText('电子账务工作台').click();
     await expect(page).toHaveURL(/\/daizhang\/workspace/, { timeout: 10_000 });
     // 页面渲染成功（无 Router context 报错）
@@ -41,7 +32,7 @@ test.describe('电子账务平台 · 银行功能', () => {
   });
 
   test('银行账户页：新增账户并出现在列表', async ({ page }) => {
-    await login(page);
+    await page.goto('/welcome');
     await page.getByText('银行账户', { exact: true }).click();
     await expect(page).toHaveURL(/\/daizhang\/bank\/accounts/, { timeout: 10_000 });
 
@@ -58,7 +49,7 @@ test.describe('电子账务平台 · 银行功能', () => {
   });
 
   test('银行流水页：可访问并展示流水数据', async ({ page }) => {
-    await login(page);
+    await page.goto('/welcome');
     await page.getByText('银行流水', { exact: true }).click();
     await expect(page).toHaveURL(/\/daizhang\/bank\/transactions/, { timeout: 10_000 });
     // 页面标题 + 导入入口存在
@@ -68,7 +59,7 @@ test.describe('电子账务平台 · 银行功能', () => {
   });
 
   test('银行流水页：勾选流水可一键转记账', async ({ page }) => {
-    await login(page);
+    await page.goto('/welcome');
     await page.getByText('银行流水', { exact: true }).click();
     await expect(page).toHaveURL(/\/daizhang\/bank\/transactions/, { timeout: 10_000 });
     // 勾选第一行（antd Table rowSelection checkbox）
@@ -80,7 +71,7 @@ test.describe('电子账务平台 · 银行功能', () => {
   });
 
   test('银行流水页：CSV 导入预览后确认', async ({ page }) => {
-    await login(page);
+    await page.goto('/welcome');
     await page.getByText('银行流水', { exact: true }).click();
     await expect(page).toHaveURL(/\/daizhang\/bank\/transactions/, { timeout: 10_000 });
     // 选目标账户（筛选区第一个下拉，选已有账户）
@@ -104,8 +95,18 @@ test.describe('电子账务平台 · 银行功能', () => {
     await expect(page.getByText(/成功导入 2 笔流水/)).toBeVisible({ timeout: 10_000 });
   });
 
+  test('收支报表页：可访问并展示汇总', async ({ page }) => {
+    await page.goto('/welcome');
+    await page.getByText('收支报表', { exact: true }).click();
+    await expect(page).toHaveURL(/\/daizhang\/bank\/reports/, { timeout: 10_000 });
+    // 汇总卡 + 月度明细表渲染
+    await expect(page.getByText('累计收入')).toBeVisible();
+    await expect(page.getByText('累计支出')).toBeVisible();
+    await expect(page.getByText('月度明细')).toBeVisible();
+  });
+
   test('银行回单页：可访问并展示回单数据', async ({ page }) => {
-    await login(page);
+    await page.goto('/welcome');
     await page.getByText('银行回单', { exact: true }).click();
     await expect(page).toHaveURL(/\/daizhang\/bank\/receipts/, { timeout: 10_000 });
     await expect(page.getByRole('button', { name: /上传回单/ })).toBeVisible();
