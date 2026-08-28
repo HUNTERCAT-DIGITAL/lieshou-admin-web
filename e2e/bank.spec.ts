@@ -165,6 +165,27 @@ test.describe('电子账务平台 · 银行功能', () => {
     await expect(page.getByText(/分类筛选：应收账款/)).toBeVisible({ timeout: 10_000 });
   });
 
+  test('工作台看板：本月收支统计 + 逾期预警 + 快捷入口', async ({ page }) => {
+    await page.goto('/daizhang/workspace');
+    // 本月收支概览卡（记账汇总）
+    await expect(page.getByText(/本月收入（/)).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText(/本月支出（/)).toBeVisible();
+    await expect(page.getByText(/本月结余（/)).toBeVisible();
+    // 凭证统计卡
+    await expect(page.getByText('记账凭证').first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText('完整凭证')).toBeVisible();
+    // 逾期预警横幅（账龄预警 E2E 已造逾期数据）
+    await expect(page.getByText(/账龄预警：应收逾期/)).toBeVisible({ timeout: 10_000 });
+    // 快捷入口（8 个功能卡）
+    await expect(page.getByText('记账本').first()).toBeVisible();
+    await expect(page.getByText('应收应付').first()).toBeVisible();
+    await expect(page.getByText('记账凭证').nth(1)).toBeVisible();
+    await expect(page.getByText('收支报表').first()).toBeVisible();
+    // 点击快捷入口 → 记账本页
+    await page.getByText('记账本').first().click();
+    await expect(page).toHaveURL(/\/daizhang\/ledger\/book/, { timeout: 10_000 });
+  });
+
   test('记账本页：补录记账 → 列表可见 → 编辑 → 删除', async ({ page }) => {
     await page.goto('/welcome');
     await page.getByText('记账本', { exact: true }).click();
