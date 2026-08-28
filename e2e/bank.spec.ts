@@ -79,6 +79,31 @@ test.describe('电子账务平台 · 银行功能', () => {
     await expect(page.getByText(/已转记账 \d+ 笔/)).toBeVisible({ timeout: 10_000 });
   });
 
+  test('银行流水页：CSV 导入预览后确认', async ({ page }) => {
+    await login(page);
+    await page.getByText('银行流水', { exact: true }).click();
+    await expect(page).toHaveURL(/\/daizhang\/bank\/transactions/, { timeout: 10_000 });
+    // 选目标账户（筛选区第一个下拉，选已有账户）
+    await page.locator('.ant-select').first().click();
+    await page.locator('.ant-select-item-option').first().click();
+    // 上传 CSV（内嵌解析测试数据）
+    await page.locator('input[type="file"]').setInputFiles({
+      name: '流水测试.csv',
+      mimeType: 'text/csv',
+      buffer: Buffer.from(
+        [
+          '交易日期,收支,金额,对方户名,摘要',
+          '2026-08-01 09:00,收入,12800.00,客户A,货款',
+          '2026-08-02 10:00,支出,3600.00,物业,房租',
+        ].join('\n'),
+      ),
+    });
+    // 预览 Modal：识别 2 笔，可确认导入
+    await expect(page.getByText(/解析 .*识别 2 笔流水/)).toBeVisible({ timeout: 10_000 });
+    await page.getByRole('button', { name: /确认导入 2 笔/ }).click();
+    await expect(page.getByText(/成功导入 2 笔流水/)).toBeVisible({ timeout: 10_000 });
+  });
+
   test('银行回单页：可访问并展示回单数据', async ({ page }) => {
     await login(page);
     await page.getByText('银行回单', { exact: true }).click();
