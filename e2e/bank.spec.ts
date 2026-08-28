@@ -165,6 +165,62 @@ test.describe('电子账务平台 · 银行功能', () => {
     await expect(page.getByText(/分类筛选：应收账款/)).toBeVisible({ timeout: 10_000 });
   });
 
+  test('账龄预警：顶栏红点 + 应收应付页逾期横幅', async ({ page }) => {
+    // 进入页面（storageState 已登录）→ 取 JWT 供 API 造数
+    await page.goto('/welcome');
+    const token = await page.evaluate(() => {
+      try {
+        const raw = localStorage.getItem('lieshoucloud:auth');
+        return raw ? (JSON.parse(raw).state?.accessToken as string) : '';
+      } catch {
+        return '';
+      }
+    });
+    const authHeaders = { 'X-Tenant-Id': '1', Authorization: `Bearer ${token}` };
+
+    // 造一笔 45 天前的应收账款挂账（经 API，避免 UI 造数）
+    const old = new Date();
+    old.setDate(old.getDate() - 45);
+    const oldDate = old.toISOString().slice(0, 10);
+    const stamp = Date.now().toString().slice(-6);
+    const acc = await page.request.post('/api/bank/accounts', {
+      headers: authHeaders,
+      data: { accountName: `逾期${stamp}`, bankName: 'E2E银行', accountNo: `99${stamp}` },
+    });
+    const accId = (await acc.json()).id;
+    const tx = await page.request.post('/api/bank/transactions', {
+      headers: authHeaders,
+      data: {
+        accountId: accId,
+        direction: 'INCOME',
+        amount: 15000,
+        summary: 'E2E逾期货款',
+        counterparty: `逾期客户${stamp}`,
+        transactedAt: `${oldDate}T06:00:00Z`,
+      },
+    });
+    const txId = (await tx.json()).id;
+    const cats = await page.request.get('/api/ledger/categories?enabledOnly=true', {
+      headers: authHeaders,
+    });
+    const catId = (await cats.json()).find((c: { name: string }) => c.name === '应收账款').id;
+    await page.request.post('/api/bank/transactions/to-ledger', {
+      headers: authHeaders,
+      data: { transactionIds: [txId], categoryId: catId },
+    });
+
+    // 刷新 → 顶栏红点（AlertBadge 进入后立即拉一次）
+    await page.reload();
+    const alertBtn = page.getByTestId('alert-逾期应收应付');
+    await expect(alertBtn).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('.ant-badge-count').first()).toContainText(/[1-9]/, { timeout: 10_000 });
+
+    // 点击 → 应收应付页 → 逾期横幅可见
+    await alertBtn.click();
+    await expect(page).toHaveURL(/\/daizhang\/ledger\/receivable-payable/, { timeout: 10_000 });
+    await expect(page.getByText(/账龄预警：应收逾期/)).toBeVisible({ timeout: 10_000 });
+  });
+
   test('记账凭证页：预览统计 + 凭证表 + 导出按钮', async ({ page }) => {
     await page.goto('/welcome');
     await page.getByText('记账凭证', { exact: true }).click();
