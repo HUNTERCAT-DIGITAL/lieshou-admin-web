@@ -165,6 +165,36 @@ test.describe('电子账务平台 · 银行功能', () => {
     await expect(page.getByText(/分类筛选：应收账款/)).toBeVisible({ timeout: 10_000 });
   });
 
+  test('记账本页：补录记账 → 列表可见 → 编辑 → 删除', async ({ page }) => {
+    await page.goto('/welcome');
+    await page.getByText('记账本', { exact: true }).click();
+    await expect(page).toHaveURL(/\/daizhang\/ledger\/book/, { timeout: 10_000 });
+    // 补录：销售收入模板（带出科目）
+    await page.getByRole('button', { name: /补录记账/ }).click();
+    await expect(page.locator('.ant-modal')).toBeVisible({ timeout: 10_000 });
+    const stamp = Date.now().toString().slice(-6);
+    await page.getByLabel('金额').fill('6666');
+    await page.getByLabel('备注').fill(`E2E补录${stamp}`);
+    // 选分类模板：销售收入
+    await page.locator('.ant-modal').locator('.ant-select').click();
+    await page.locator('.ant-select-item-option', { hasText: '销售收入' }).first().click();
+    await page.locator('.ant-modal-footer .ant-btn-primary').click();
+    // 列表出现 + 科目带出
+    await expect(page.getByText(`E2E补录${stamp}`)).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText('借 银行存款 / 贷 主营业务收入').first()).toBeVisible();
+
+    // 编辑：改备注
+    await page.locator('tr', { hasText: `E2E补录${stamp}` }).getByRole('button', { name: /编辑/ }).click();
+    await page.getByLabel('备注').fill(`E2E补录${stamp}-改`);
+    await page.locator('.ant-modal-footer .ant-btn-primary').click();
+    await expect(page.getByText(`E2E补录${stamp}-改`)).toBeVisible({ timeout: 10_000 });
+
+    // 删除
+    await page.locator('tr', { hasText: `E2E补录${stamp}` }).getByRole('button', { name: /删除/ }).click();
+    await page.locator('.ant-popover .ant-popconfirm-buttons .ant-btn-primary').click();
+    await expect(page.locator('tr', { hasText: `E2E补录${stamp}` })).toHaveCount(0, { timeout: 10_000 });
+  });
+
   test('账龄预警：顶栏红点 + 应收应付页逾期横幅', async ({ page }) => {
     // 进入页面（storageState 已登录）→ 取 JWT 供 API 造数
     await page.goto('/welcome');
