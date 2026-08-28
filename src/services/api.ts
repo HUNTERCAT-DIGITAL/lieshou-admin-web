@@ -20,9 +20,10 @@ import { pushDevLog } from '../utils/devtools';
 
 import { resolveApiBase } from '@lieshoucloud/contract-config';
 
-// API base：默认同源 /api（nginx 反代 gateway；与后端路由前缀一致）。
-// VITE_API_BASE_URL 构建注入可覆盖（如 http://localhost:9000/api 本地直连 gateway）。
-const BASE = resolveApiBase({ key: 'API_BASE_URL', defaultBase: '/api' });
+// API base：同源（空串，/api 前缀由 contract-api normalizeApiPath 幂等归一）。
+// VITE_API_BASE_URL 构建注入可覆盖（纯域名，如 http://localhost:9000 本地直连 gateway；
+// 禁止带 /api 后缀——避免与 path 已带 /api 的客户包请求双写）。
+const BASE = resolveApiBase({ key: 'API_BASE_URL', defaultBase: '' });
 
 /**
  * 登录过期后的 UI 出口（由 BasicLayout 注册：提示 + logout + 跳 /login）.
