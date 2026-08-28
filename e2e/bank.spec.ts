@@ -115,18 +115,38 @@ test.describe('电子账务平台 · 银行功能', () => {
     await expect(page.getByRole('button', { name: /上传回单/ })).toBeVisible();
   });
 
-  test('应收应付页：台账按往来单位展示（合计卡 + 表格）', async ({ page }) => {
+  test('应收应付页：台账按往来单位展示（余额卡 + 账龄表）', async ({ page }) => {
     await page.goto('/welcome');
     await page.getByText('应收应付', { exact: true }).click();
     await expect(page).toHaveURL(/\/daizhang\/ledger\/receivable-payable/, { timeout: 10_000 });
-    // 合计卡
-    await expect(page.getByText('应收账款合计（未收）')).toBeVisible({ timeout: 10_000 });
-    await expect(page.getByText('应付账款合计（未付）')).toBeVisible();
-    // 表格列头（往来单位 / 笔数 / 合计金额）
+    // 余额卡
+    await expect(page.getByText('应收未核销（未收）')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText('应付未核销（未付）')).toBeVisible();
+    // 账龄表列（往来单位 / 挂账总额 / 未核销余额）
     await expect(page.getByText('往来单位').first()).toBeVisible();
-    await expect(page.getByText('合计金额').first()).toBeVisible();
+    await expect(page.getByText('挂账总额').first()).toBeVisible();
+    await expect(page.getByText('未核销余额').first()).toBeVisible();
     // E2E 转记账数据已在台账（客户A）
     await expect(page.getByText('客户A').first()).toBeVisible();
+  });
+
+  test('应收应付页：核销 → 记录出现 → 撤销恢复', async ({ page }) => {
+    await page.goto('/welcome');
+    await page.getByText('应收应付', { exact: true }).click();
+    await expect(page).toHaveURL(/\/daizhang\/ledger\/receivable-payable/, { timeout: 10_000 });
+    // 客户A 有未核销余额（E2E 转记账数据）→ 核销 1000
+    const row = page.locator('tr', { hasText: '客户A' }).first();
+    await row.getByRole('button', { name: /核销/ }).first().click();
+    await expect(page.locator('.ant-modal')).toBeVisible({ timeout: 10_000 });
+    await page.getByLabel('核销金额').fill('1000');
+    await page.getByLabel('备注').fill('E2E 回款核销');
+    await page.locator('.ant-modal-footer .ant-btn-primary').click();
+    // 核销记录出现
+    await expect(page.getByText('E2E 回款核销')).toBeVisible({ timeout: 10_000 });
+    // 撤销核销 → 记录消失
+    await page.locator('tr', { hasText: 'E2E 回款核销' }).getByRole('button', { name: /撤销/ }).click();
+    await page.locator('.ant-popover .ant-popconfirm-buttons .ant-btn-primary').click();
+    await expect(page.getByText('E2E 回款核销')).toHaveCount(0, { timeout: 10_000 });
   });
 
   test('记账凭证页：预览统计 + 凭证表 + 导出按钮', async ({ page }) => {
