@@ -149,6 +149,22 @@ test.describe('电子账务平台 · 银行功能', () => {
     await expect(page.getByText('E2E 回款核销')).toHaveCount(0, { timeout: 10_000 });
   });
 
+  test('收支报表页：分类汇总展示 + 联查凭证', async ({ page }) => {
+    await page.goto('/welcome');
+    await page.getByText('收支报表', { exact: true }).click();
+    await expect(page).toHaveURL(/\/daizhang\/bank\/reports/, { timeout: 10_000 });
+    // 汇总卡 + 月度明细（既有）
+    await expect(page.getByText('累计收入')).toBeVisible();
+    // 分类汇总区块（V8）：收入分类 / 支出分类
+    await expect(page.getByText('收入分类', { exact: false })).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText('支出分类', { exact: false })).toBeVisible();
+    // 点击分类（应收账款）→ 联查凭证页带 category
+    await page.getByText('应收账款', { exact: true }).first().click();
+    await expect(page).toHaveURL(/\/daizhang\/ledger\/vouchers\?category=/, { timeout: 10_000 });
+    // 凭证页展示分类筛选标签
+    await expect(page.getByText(/分类筛选：应收账款/)).toBeVisible({ timeout: 10_000 });
+  });
+
   test('记账凭证页：预览统计 + 凭证表 + 导出按钮', async ({ page }) => {
     await page.goto('/welcome');
     await page.getByText('记账凭证', { exact: true }).click();
