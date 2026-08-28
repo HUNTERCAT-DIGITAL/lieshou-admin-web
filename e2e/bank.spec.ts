@@ -114,4 +114,28 @@ test.describe('电子账务平台 · 银行功能', () => {
     await expect(page).toHaveURL(/\/daizhang\/bank\/receipts/, { timeout: 10_000 });
     await expect(page.getByRole('button', { name: /上传回单/ })).toBeVisible();
   });
+
+  test('记账科目页：新增模板 → 列表可见 → 删除', async ({ page }) => {
+    await page.goto('/welcome');
+    await page.getByText('记账科目', { exact: true }).click();
+    await expect(page).toHaveURL(/\/daizhang\/ledger\/categories/, { timeout: 10_000 });
+    // 种子模板已存在（销售收入 …）
+    await expect(page.getByText('销售收入')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText('借 银行存款 / 贷 主营业务收入')).toBeVisible();
+
+    // 新增模板（名称唯一避免重复）
+    const stamp = Date.now().toString().slice(-6);
+    await page.getByRole('button', { name: /新增科目/ }).click();
+    await expect(page.locator('.ant-modal')).toBeVisible({ timeout: 10_000 });
+    await page.getByLabel('分类名称').fill(`E2E科目${stamp}`);
+    await page.getByLabel('借方科目').fill('管理费用-E2E');
+    await page.getByLabel('贷方科目').fill('银行存款');
+    await page.locator('.ant-modal-footer .ant-btn-primary').click();
+    await expect(page.getByText(`E2E科目${stamp}`)).toBeVisible({ timeout: 10_000 });
+
+    // 删除刚创建的模板（Popconfirm 确定按钮）
+    await page.locator('tr', { hasText: `E2E科目${stamp}` }).getByRole('button', { name: /删除/ }).click();
+    await page.locator('.ant-popover .ant-popconfirm-buttons .ant-btn-primary').click();
+    await expect(page.locator('tr', { hasText: `E2E科目${stamp}` })).toHaveCount(0, { timeout: 10_000 });
+  });
 });
