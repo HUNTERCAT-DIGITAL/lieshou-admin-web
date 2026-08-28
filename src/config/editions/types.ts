@@ -74,6 +74,8 @@ export interface EditionConfig {
   primaryColor: string;
   /** 登录页预填的默认租户编码 */
   defaultTenantCode: string;
+  /** 登录/注册后默认落地页（客户版可经 Edition.homePath 定制 · 2026-10 菜单治理配套） */
+  homePath?: string;
   /**
    * 启用的行业能力（客户层 ↔ 行业层解耦契约 · 2026-09）。
    * 行业能力来自 LieShouCloudPro-industry 包；此处只声明启用与否，

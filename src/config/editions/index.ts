@@ -30,6 +30,15 @@ export const EDITIONS: Record<EditionId, EditionConfig> = {
   layer: layerEdition,
 };
 
+/**
+ * 登录/注册后默认落地页（2026-10 菜单治理配套）：
+ * Edition.homePath 优先（客户版指向客户工作台）；缺省按版别类型推断
+ * （法律版/值班员控制台 → 工作台；通用版 → 欢迎页）。
+ */
+export function getEditionHomePath(edition: EditionConfig): string {
+  return edition.homePath ?? (edition.dutyConsole || edition.showLegal === true ? '/admin' : '/welcome');
+}
+
 /** 从 VITE_EDITION 环境变量解析版别（非法值回退 undefined → 继续走域名推断） */
 function editionFromEnv(): EditionId | null {
   const v = import.meta.env?.[EDITION_ENV_KEY] as string | undefined;

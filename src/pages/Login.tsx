@@ -35,7 +35,7 @@ import {
   type CodeChannel,
   type OAuthProvider,
 } from '../services/auth';
-import { getEdition } from '../config/editions';
+import { getEdition, getEditionHomePath } from '../config/editions';
 import { useAuthStore } from '../stores/auth';
 import { getTenantCode, setTenantCode, TENANT_CODE_STORAGE_KEY } from '../utils/tenant-code';
 
@@ -135,9 +135,9 @@ export default function Login() {
   const initialUsername = searchParams.get('username')?.trim() || undefined;
 
   const go = () => {
-    // 法律版 / 值班员控制台：登录默认进工作台（今日作战台）；通用版进欢迎页
-    const fallback =
-      getEdition().dutyConsole || getEdition().showLegal === true ? '/admin' : '/welcome';
+    // 客户版登录默认进客户工作台（Edition.homePath · 2026-10 菜单治理）；
+    // 法律版 / 值班员控制台默认进工作台（今日作战台）；通用版进欢迎页
+    const fallback = getEditionHomePath(getEdition());
     const from = (location.state as LocationState | null)?.from ?? fallback;
     navigate(from, { replace: true });
   };
@@ -145,8 +145,7 @@ export default function Login() {
   // 已登录 → 直接跳过 login 页（置于所有 hooks 之后，避免条件 hook 数量不一致）
   if (isAuthenticated) {
     const from =
-      (location.state as LocationState | null)?.from ??
-      (getEdition().dutyConsole || getEdition().showLegal === true ? '/admin' : '/welcome');
+      (location.state as LocationState | null)?.from ?? getEditionHomePath(getEdition());
     return <Navigate to={from} replace />;
   }
 
