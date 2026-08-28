@@ -17,7 +17,15 @@ export default defineConfig({
     'process.env': {},
   },
   resolve: {
+    // 强制 antd/react 等 UI 依赖单实例：客户包（packages/<client>）devDeps 携带自己的副本，
+    // 双实例会导致 App.useApp() context / 静态 message 不可用。alias 精确指向本仓依赖（优先于 node resolution）。
+    dedupe: ['antd', 'react', 'react-dom', 'dayjs', '@ant-design/icons'],
     alias: [
+      { find: 'antd', replacement: path.resolve(__dirname, 'node_modules/antd') },
+      { find: 'react', replacement: path.resolve(__dirname, 'node_modules/react') },
+      { find: 'react-dom', replacement: path.resolve(__dirname, 'node_modules/react-dom') },
+      { find: 'dayjs', replacement: path.resolve(__dirname, 'node_modules/dayjs') },
+      { find: '@ant-design/icons', replacement: path.resolve(__dirname, 'node_modules/@ant-design/icons') },
       { find: '@', replacement: path.resolve(__dirname, 'src') },
       {
         find: '@lieshoucloud/contract-api',

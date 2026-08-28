@@ -37,10 +37,12 @@ test.describe('电子账务平台 · 银行功能', () => {
 
     const stamp = Date.now().toString().slice(-8);
     await page.getByRole('button', { name: /新增账户/ }).click();
+    // 等 Modal 打开（antd okText 受 locale 影响：OK / 确 定 均兼容）
+    await expect(page.locator('.ant-modal')).toBeVisible({ timeout: 10_000 });
     await page.getByLabel('户名').fill(`E2E测试公司${stamp}`);
     await page.getByLabel('开户行').fill('招商银行南昌分行');
     await page.getByLabel('银行账号').fill(`1109${stamp}`);
-    await page.getByRole('button', { name: 'OK' }).click();
+    await page.locator('.ant-modal-footer .ant-btn-primary').click();
 
     await expect(page.getByText(`E2E测试公司${stamp}`)).toBeVisible({ timeout: 10_000 });
   });
@@ -53,6 +55,18 @@ test.describe('电子账务平台 · 银行功能', () => {
     await expect(page.getByText('银行流水', { exact: true }).first()).toBeVisible();
     await expect(page.getByRole('button', { name: /记一笔/ })).toBeVisible();
     await expect(page.getByRole('button', { name: /CSV 导入/ })).toBeVisible();
+  });
+
+  test('银行流水页：勾选流水可一键转记账', async ({ page }) => {
+    await login(page);
+    await page.getByText('银行流水', { exact: true }).click();
+    await expect(page).toHaveURL(/\/daizhang\/bank\/transactions/, { timeout: 10_000 });
+    // 勾选第一行（antd Table rowSelection checkbox）
+    const firstCheckbox = page.locator('.ant-table-tbody input[type="checkbox"]').first();
+    await firstCheckbox.check({ timeout: 10_000 });
+    await expect(page.getByRole('button', { name: /转记账\(1\)/ })).toBeEnabled();
+    await page.getByRole('button', { name: /转记账\(1\)/ }).click();
+    await expect(page.getByText(/已转记账 \d+ 笔/)).toBeVisible({ timeout: 10_000 });
   });
 
   test('银行回单页：可访问并展示回单数据', async ({ page }) => {

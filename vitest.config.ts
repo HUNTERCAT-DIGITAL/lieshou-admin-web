@@ -7,6 +7,8 @@ import path from 'node:path';
 export default defineConfig({
   plugins: [react()],
   resolve: {
+    // 与 vite.config 对齐：强制 UI 依赖单实例（客户包 devDeps 可能携带副本）
+    dedupe: ['antd', 'react', 'react-dom', 'dayjs', '@ant-design/icons'],
     alias: {
       '@': path.resolve(__dirname, 'src'),
       // 消除 AuthError 双实例（symlink/open 路径重复加载）
