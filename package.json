@@ -40,7 +40,8 @@
     "react-dom": "19.2.3",
     "react-router-dom": "^7.18.2",
     "zustand": "^4.5.7",
-    "@lieshoucloud/core-web": "workspace:*"
+    "@lieshoucloud/core-web": "workspace:*",
+    "@lieshoucloud/charts": "workspace:*"
   },
   "devDependencies": {
     "@eslint/js": "9.15.0",

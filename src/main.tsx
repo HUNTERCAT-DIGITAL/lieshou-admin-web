@@ -7,7 +7,7 @@ import 'antd/dist/reset.css';
 import 'dayjs/locale/zh-cn';
 
 import App from './App';
-import { configureCore } from '@lieshoucloud/core-web';
+import { configureCore, useAuthStore } from '@lieshoucloud/core-web';
 import { message } from 'antd';
 import { api } from './services/api';
 
@@ -44,6 +44,8 @@ configureCore({
     },
   },
 });
+// core-web auth store 采用 skipHydration（端口注入后显式恢复会话，2026-09 正本清源）
+void useAuthStore.persist.rehydrate();
 import { getEdition } from './config/editions';
 import { useThemeMode } from './hooks/useThemeMode';
 
