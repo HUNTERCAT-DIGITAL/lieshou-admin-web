@@ -115,6 +115,20 @@ test.describe('电子账务平台 · 银行功能', () => {
     await expect(page.getByRole('button', { name: /上传回单/ })).toBeVisible();
   });
 
+  test('应收应付页：台账按往来单位展示（合计卡 + 表格）', async ({ page }) => {
+    await page.goto('/welcome');
+    await page.getByText('应收应付', { exact: true }).click();
+    await expect(page).toHaveURL(/\/daizhang\/ledger\/receivable-payable/, { timeout: 10_000 });
+    // 合计卡
+    await expect(page.getByText('应收账款合计（未收）')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText('应付账款合计（未付）')).toBeVisible();
+    // 表格列头（往来单位 / 笔数 / 合计金额）
+    await expect(page.getByText('往来单位').first()).toBeVisible();
+    await expect(page.getByText('合计金额').first()).toBeVisible();
+    // E2E 转记账数据已在台账（客户A）
+    await expect(page.getByText('客户A').first()).toBeVisible();
+  });
+
   test('记账科目页：新增模板 → 列表可见 → 删除', async ({ page }) => {
     await page.goto('/welcome');
     await page.getByText('记账科目', { exact: true }).click();
