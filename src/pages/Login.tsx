@@ -379,7 +379,7 @@ export default function Login() {
       <ResetModal open={resetOpen} onClose={() => setResetOpen(false)} />
       {/* 登录页底部统一署名（开源演示版）+ 备案信息 */}
       <div style={styles.footer}>
-        <Text type="secondary">LieShouCloud 开源版 · 演示项目</Text>
+        <Text type="secondary">{edition.slogan}</Text>
         <div style={{ marginTop: 4 }}>
           <BeianFooter />
         </div>

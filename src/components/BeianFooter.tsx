@@ -1,12 +1,14 @@
 /**
  * 网站备案信息（ICP + 公安备案）· 全站 footer 统一展示
- *  - 公司主体: 南昌猎手猫数字科技有限公司
- *  - ICP:     赣ICP备19006787号-1 → 工信部备案查询
- *  - 公安:    赣公网安备36010902000208号 → 全国互联网安全管理服务平台
+ * 公司主体读 edition.companyName（客户版别注入，dwjk=物联网云平台）；
+ * 备案号见 edition 或保留默认（客户部署时替换）。
  * 使用: <BeianFooter dark />（深色底） / <BeianFooter />（浅色底）
  */
+import { getEdition } from '../config/editions';
+
 export function BeianFooter({ dark = false }: { dark?: boolean }) {
   const color = dark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.45)';
+  const companyName = getEdition().companyName || '南昌猎手猫数字科技有限公司';
   return (
     <div
       style={{
@@ -19,7 +21,7 @@ export function BeianFooter({ dark = false }: { dark?: boolean }) {
         lineHeight: '20px',
       }}
     >
-      <span style={{ color }}>南昌猎手猫数字科技有限公司</span>
+      <span style={{ color }}>{companyName}</span>
       <a
         href="https://beian.miit.gov.cn/"
         target="_blank"

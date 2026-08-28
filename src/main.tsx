@@ -54,7 +54,7 @@ function ThemedApp(): React.JSX.Element {
   const { resolved } = useThemeMode();
   const edition = getEdition();
   // 品牌配置化（ADR-0035）：浏览器标题跟随版别 brandName，运行时覆盖 index.html 静态默认
-  document.title = edition.brandName ? `${edition.brandName} · 猎手云数字化平台` : '猎手云 · 数字化平台';
+  document.title = edition.brandName || '数字化平台';
   return (
     <ConfigProvider
       locale={zhCN}
