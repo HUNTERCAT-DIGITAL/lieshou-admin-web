@@ -56,6 +56,7 @@ import {
 import { listBatches } from '../../services/quality';
 import { MOVEMENT_META, type Product, type StockMovement } from '@lieshoucloud/contract-types/business/inventory';
 import type { Batch } from '@lieshoucloud/contract-types/business/quality';
+import { LOW_STOCK_THRESHOLD, stockLevel } from '@lieshoucloud/core-web';
 import { PRODUCT_TEMPLATE } from '../../utils/csv';
 import ImportModal from '../../components/ImportModal';
 
@@ -82,18 +83,8 @@ interface StockFormValues {
   remark?: string;
 }
 
-/** 低库存阈值 */
-const LOW_STOCK_THRESHOLD = 5;
-
 /** 库存筛选 */
 type StockFilter = 'ALL' | 'LOW' | 'OUT';
-
-/** 库存状态（用于 Tag 色 + 筛选） */
-export function stockLevel(qty: number): 'OUT' | 'LOW' | 'OK' {
-  if (qty <= 0) return 'OUT';
-  if (qty <= LOW_STOCK_THRESHOLD) return 'LOW';
-  return 'OK';
-}
 
 export default function InventoryList() {
   const actionRef = useRef<ActionType | undefined>(undefined);

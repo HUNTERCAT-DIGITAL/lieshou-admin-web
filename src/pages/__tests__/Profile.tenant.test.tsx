@@ -40,6 +40,21 @@ async function loadProfile(showLegal: boolean) {
   }));
   vi.resetModules();
   const mod = await import('../Profile');
+  // 模拟入口会话恢复（main.tsx 的 rehydrate 行为）：core-web auth store 采用 skipHydration,
+  // resetModules 后的新实例不会自动回填;此处对新实例重新注入会话,否则 cached user 为 null。
+  const { useAuthStore } = await import('../../stores/auth');
+  useAuthStore.setState({
+    accessToken: 't',
+    refreshToken: 'r',
+    user: {
+      userId: 1,
+      tenantId: 1,
+      tenantCode: 'jxlkas',
+      username: 'ops',
+      roles: ['PLATFORM_ADMIN'],
+    } as CurrentUser,
+    isAuthenticated: true,
+  });
   vi.doUnmock('../../config/editions');
   return mod.default;
 }

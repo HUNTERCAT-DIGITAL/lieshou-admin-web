@@ -1,14 +1,12 @@
 /**
  * 进销存库存预警逻辑单测（Phase 9）.
  *
- * stockLevel 是页面内纯函数，直接验证三段判定：
- * - OUT：≤ 0
- * - LOW：1..LOW_STOCK_THRESHOLD
- * - OK：> LOW_STOCK_THRESHOLD
+ * stockLevel 已下沉 @lieshoucloud/core-web（2026-10 纯函数族）,
+ * 此处直接测共享实现;页面(List.tsx)与列表页共用同一规则源。
  */
 import { describe, expect, it } from 'vitest';
 
-import { stockLevel } from './List';
+import { stockLevel } from '@lieshoucloud/core-web';
 
 describe('stockLevel（低库存预警阈值）', () => {
   it('stock ≤ 0 → OUT（缺货）', () => {
