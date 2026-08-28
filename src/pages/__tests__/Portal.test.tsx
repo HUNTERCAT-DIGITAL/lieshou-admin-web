@@ -7,12 +7,13 @@ import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { useAuthStore } from '../../stores/auth';
+import type * as Editions from '../../config/editions';
 import { getEdition } from '../../config/editions';
 
 // boot edition（@lieshoucloud/boot）会注入专属门户（BootPortal：异步 lazy + 独立文案），
 // generic 断言不适用；此处 mock editions 强制 GenericPortal（无 portal 槽位）。
 vi.mock('../../config/editions', async () => {
-  const actual = await vi.importActual<typeof import('../../config/editions')>(
+  const actual = await vi.importActual<typeof Editions>(
     '../../config/editions',
   );
   return {

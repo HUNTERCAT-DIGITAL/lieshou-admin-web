@@ -54,6 +54,7 @@ async function loadLogin(showLegal: boolean) {
       allowRegister: false,
       hiddenMenus: [],
     }),
+    getEditionHomePath: () => '/welcome',
   }));
   vi.resetModules();
   const mod = await import('../Login');

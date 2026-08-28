@@ -23,9 +23,10 @@ vi.mock('../../services/menu', async () => {
 
 // getEdition 包一层：分组测试里可注入带 group 的 extraRoutes（其余测试行为与真实实现一致）
 vi.mock('../../config/editions', async () => {
-  const actual = await vi.importActual<typeof import('../../config/editions')>('../../config/editions');
+  const actual = await vi.importActual<typeof Editions>('../../config/editions');
   return { ...actual, getEdition: vi.fn(actual.getEdition) };
 });
+import type * as Editions from '../../config/editions';
 import { getEdition } from '../../config/editions';
 
 beforeAll(() => {

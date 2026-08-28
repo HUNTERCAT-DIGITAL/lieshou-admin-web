@@ -3,8 +3,9 @@
  *
  * - 账号密码登录（原有）
  * - 验证码登录（短信 / 邮箱）
- * - 注册（验证码，注册即登录）
- * - 忘记密码（验证码重置）
+ * - 注册（验证码，注册即登录）→ RegisterModal
+ * - 忘记密码（验证码重置）→ ResetModal
+ * - 可信身份登录（OAuth 演示通道）→ TrustedOAuthModal
  */
 
 import {
@@ -12,32 +13,23 @@ import {
   IdcardOutlined,
   LinkOutlined,
   LockOutlined,
-  MailOutlined,
-  MobileOutlined,
   RobotOutlined,
   SafetyCertificateOutlined,
   SafetyOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { Alert, Button, Card, Form, Input, Modal, Select, Space, Spin, Typography } from 'antd';
-import { useCallback, useState } from 'react';
+import { Alert, Button, Card, Form, Input, Space, Typography } from 'antd';
+import { useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { BeianFooter } from '../components/BeianFooter';
-import {
-  AuthError,
-  oauthAuthorize,
-  oauthProviders,
-  oauthToken,
-  register,
-  resetPassword,
-  sendCode,
-  type CodeChannel,
-  type OAuthProvider,
-} from '../services/auth';
 import { getEdition, getEditionHomePath } from '../config/editions';
+import { AuthError } from '../services/auth';
 import { useAuthStore } from '../stores/auth';
-import { getTenantCode, setTenantCode, TENANT_CODE_STORAGE_KEY } from '../utils/tenant-code';
+import { getTenantCode, TENANT_CODE_STORAGE_KEY } from '../utils/tenant-code';
+import RegisterModal from './login/RegisterModal';
+import ResetModal from './login/ResetModal';
+import TrustedOAuthModal from './login/TrustedOAuthModal';
 
 const { Title, Text } = Typography;
 
@@ -79,24 +71,6 @@ interface PwdFormValues {
   username: string;
   password: string;
   tenantCode?: string;
-}
-
-interface CodeFormValues {
-  channel: CodeChannel;
-  target: string;
-  code: string;
-}
-
-interface RegisterFormValues extends CodeFormValues {
-  tenantCode?: string;
-  username: string;
-  displayName: string;
-  password: string;
-  inviteCode?: string;
-}
-
-interface ResetFormValues extends CodeFormValues {
-  newPassword: string;
 }
 
 export default function Login() {
@@ -414,261 +388,6 @@ export default function Login() {
   );
 }
 
-function RegisterModal({
-  open,
-  onClose,
-  onGo,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onGo: () => void;
-}) {
-  const [form] = Form.useForm<RegisterFormValues>();
-  const [submitting, setSubmitting] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-
-  const send = async () => {
-    const channel = form.getFieldValue('channel') as CodeChannel;
-    const target = form.getFieldValue('target') as string;
-    if (!target) {
-      setErr('请先输入手机号/邮箱');
-      return;
-    }
-    try {
-      await sendCode(channel, target, 'REGISTER');
-      setErr('验证码已发送（dev 日志查看）');
-    } catch {
-      setErr('发送失败（60 秒内请勿重复）');
-    }
-  };
-
-  const submit = async (values: RegisterFormValues) => {
-    setSubmitting(true);
-    setErr(null);
-    try {
-      // 单租户版（hideTenantInput）：固定用版别默认租户，不读表单输入
-      const edition = getEdition();
-      const tenant = edition.hideTenantInput
-        ? edition.defaultTenantCode
-        : values.tenantCode?.trim();
-      const token = await register({
-        tenantCode: tenant || undefined,
-        username: values.username,
-        displayName: values.displayName,
-        password: values.password,
-        channel: values.channel,
-        target: values.target,
-        code: values.code,
-        inviteCode: values.inviteCode || undefined,
-      });
-      if (tenant) setTenantCode(tenant);
-      useAuthStore.getState().setSession(token);
-      onClose();
-      onGo();
-    } catch (e) {
-      setErr(e instanceof AuthError ? `${e.code}: ${e.message}` : `注册失败: ${String(e)}`);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <Modal title="注册账号" open={open} onCancel={onClose} footer={null} destroyOnClose>
-      <Form<RegisterFormValues>
-        form={form}
-        layout="vertical"
-        onFinish={submit}
-        requiredMark={false}
-        initialValues={{ channel: 'SMS', tenantCode: getTenantCode() }}
-        style={{ marginTop: 16 }}
-      >
-        <Form.Item
-          label="租户编码"
-          name="tenantCode"
-          tooltip="加入哪个企业；有邀请码时忽略；默认猎手猫"
-        >
-          {getEdition().hideTenantInput ? (
-            <Input prefix={<UserOutlined />} disabled value={getEdition().defaultTenantCode} />
-          ) : (
-            <Input prefix={<UserOutlined />} placeholder={getEdition().defaultTenantCode} />
-          )}
-        </Form.Item>
-        <Form.Item
-          label="邀请码（可选）"
-          name="inviteCode"
-          tooltip="租户管理员发的邀请码；填写后自动加入该租户并分配角色"
-        >
-          <Input prefix={<LinkOutlined />} placeholder="如：AB12CD34" />
-        </Form.Item>
-        <Form.Item
-          label="用户名"
-          name="username"
-          rules={[
-            { required: true, message: '请输入用户名' },
-            { pattern: /^[a-zA-Z0-9_]{3,64}$/, message: '3-64 位字母/数字/下划线' },
-          ]}
-        >
-          <Input prefix={<UserOutlined />} placeholder="登录名" />
-        </Form.Item>
-        <Form.Item
-          label="显示名"
-          name="displayName"
-          rules={[{ required: true, message: '请输入显示名' }]}
-        >
-          <Input placeholder="如：李四" />
-        </Form.Item>
-        <Form.Item
-          label="密码"
-          name="password"
-          rules={[
-            { required: true, message: '请输入密码' },
-            { min: 6, message: '至少 6 位' },
-          ]}
-        >
-          <Input.Password prefix={<LockOutlined />} placeholder="至少 6 位" />
-        </Form.Item>
-        <Form.Item label="验证方式" name="channel">
-          <Select
-            options={[
-              { label: '手机号', value: 'SMS' },
-              { label: '邮箱', value: 'EMAIL' },
-            ]}
-          />
-        </Form.Item>
-        <Form.Item
-          label="手机号 / 邮箱"
-          name="target"
-          rules={[{ required: true, message: '请输入手机号或邮箱' }]}
-        >
-          <Input prefix={<MailOutlined />} placeholder="13800000000 / user@example.com" />
-        </Form.Item>
-        <Form.Item label="验证码" name="code" rules={[{ required: true, message: '请输入验证码' }]}>
-          <Space.Compact style={{ width: '100%' }}>
-            <Input prefix={<SafetyOutlined />} placeholder="6 位验证码" />
-            <Button onClick={send}>获取验证码</Button>
-          </Space.Compact>
-        </Form.Item>
-        {err && (
-          <Alert
-            type={err.includes('已发送') ? 'success' : 'error'}
-            message={err}
-            showIcon
-            style={{ marginBottom: 12 }}
-          />
-        )}
-        <Button type="primary" htmlType="submit" loading={submitting} block>
-          注册并登录
-        </Button>
-      </Form>
-    </Modal>
-  );
-}
-
-/** 忘记密码 Modal */
-function ResetModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [form] = Form.useForm<ResetFormValues>();
-  const [submitting, setSubmitting] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const [done, setDone] = useState(false);
-
-  const send = async () => {
-    const channel = form.getFieldValue('channel') as CodeChannel;
-    const target = form.getFieldValue('target') as string;
-    if (!target) {
-      setErr('请先输入手机号/邮箱');
-      return;
-    }
-    try {
-      await sendCode(channel, target, 'RESET_PASSWORD');
-      setErr('验证码已发送（dev 日志查看）');
-    } catch {
-      setErr('发送失败（60 秒内请勿重复）');
-    }
-  };
-
-  const submit = async (values: ResetFormValues) => {
-    setSubmitting(true);
-    setErr(null);
-    try {
-      await resetPassword(values.channel, values.target, values.code, values.newPassword);
-      setDone(true);
-    } catch (e) {
-      setErr(e instanceof AuthError ? `${e.code}: ${e.message}` : `重置失败: ${String(e)}`);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <Modal title="忘记密码" open={open} onCancel={onClose} footer={null} destroyOnClose>
-      {done ? (
-        <Alert
-          type="success"
-          message="密码已重置"
-          description="请返回登录页使用新密码登录。"
-          showIcon
-        />
-      ) : (
-        <Form<ResetFormValues>
-          form={form}
-          layout="vertical"
-          onFinish={submit}
-          requiredMark={false}
-          initialValues={{ channel: 'SMS' }}
-          style={{ marginTop: 16 }}
-        >
-          <Form.Item label="验证方式" name="channel">
-            <Select
-              options={[
-                { label: '手机号', value: 'SMS' },
-                { label: '邮箱', value: 'EMAIL' },
-              ]}
-            />
-          </Form.Item>
-          <Form.Item
-            label="手机号 / 邮箱"
-            name="target"
-            rules={[{ required: true, message: '请输入手机号或邮箱' }]}
-          >
-            <Input prefix={<MobileOutlined />} placeholder="13800000000 / user@example.com" />
-          </Form.Item>
-          <Form.Item
-            label="验证码"
-            name="code"
-            rules={[{ required: true, message: '请输入验证码' }]}
-          >
-            <Space.Compact style={{ width: '100%' }}>
-              <Input prefix={<SafetyOutlined />} placeholder="6 位验证码" />
-              <Button onClick={send}>获取验证码</Button>
-            </Space.Compact>
-          </Form.Item>
-          <Form.Item
-            label="新密码"
-            name="newPassword"
-            rules={[
-              { required: true, message: '请输入新密码' },
-              { min: 6, message: '至少 6 位' },
-            ]}
-          >
-            <Input.Password prefix={<LockOutlined />} placeholder="至少 6 位" />
-          </Form.Item>
-          {err && (
-            <Alert
-              type={err.includes('已发送') ? 'success' : 'error'}
-              message={err}
-              showIcon
-              style={{ marginBottom: 12 }}
-            />
-          )}
-          <Button type="primary" htmlType="submit" loading={submitting} block>
-            重置密码
-          </Button>
-        </Form>
-      )}
-    </Modal>
-  );
-}
-
 const styles: Record<string, React.CSSProperties> = {
   page: {
     minHeight: '100vh',
@@ -732,165 +451,3 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 12,
   },
 };
-
-/**
- * 可信身份登录 Modal（SECURE WORKSPACE · OAuth 授权码演示通道）.
- *
- * 流程：选择可信身份通道 → 组织成员核验（AUTH REQUIRED）→ 授权 →
- * 一次性授权码换组织 JWT 会话（不保存密码）。愿景「Sign in with ChatGPT」。
- */
-function TrustedOAuthModal({
-  open,
-  defaultTenant,
-  defaultUsername,
-  onClose,
-  onSuccess,
-}: {
-  open: boolean;
-  defaultTenant?: string;
-  defaultUsername?: string;
-  onClose: () => void;
-  onSuccess: (token: ReturnType<typeof oauthToken> extends Promise<infer T> ? T : never) => void;
-}) {
-  const [providers, setProviders] = useState<OAuthProvider[]>([]);
-  const [provider, setProvider] = useState('chatgpt');
-  const [memberUsername, setMemberUsername] = useState(defaultUsername ?? 'admin');
-  const [tenantCode, setTenantCode] = useState(defaultTenant ?? '');
-  const [step, setStep] = useState<'authorize' | 'exchanging'>('authorize');
-  const [submitting, setSubmitting] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const [sessionMsg, setSessionMsg] = useState<string | null>(null);
-
-  const openModal = useCallback(async () => {
-    setErr(null);
-    setSessionMsg(null);
-    setStep('authorize');
-    try {
-      setProviders(await oauthProviders());
-    } catch {
-      setProviders([]);
-    }
-  }, []);
-
-  // open 变化时预加载通道列表（演示数据）
-  const [prevOpen, setPrevOpen] = useState(false);
-  if (open !== prevOpen) {
-    setPrevOpen(open);
-    if (open) void openModal();
-  }
-
-  const authorize = async () => {
-    setSubmitting(true);
-    setErr(null);
-    try {
-      const tenant = tenantCode.trim() || undefined;
-      const result = await oauthAuthorize(provider, memberUsername.trim(), tenant);
-      // 组织成员核验通过（VERIFIED）→ 授权码换会话
-      setStep('exchanging');
-      const token = await oauthToken(result.code, tenant);
-      setSessionMsg(
-        `组织成员核验通过（${result.memberStatus}）· 安全会话已建立 · 上次安全登录：刚刚`,
-      );
-      onSuccess(token);
-    } catch (e) {
-      if (e instanceof AuthError) {
-        setErr(
-          e.code === 'OAUTH_AUTHORIZE_FAILED' ? `授权失败：${e.message}` : `登录失败：${e.message}`,
-        );
-      } else {
-        setErr(`可信身份登录失败: ${String(e)}`);
-      }
-      setStep('authorize');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const selectedProvider = providers.find((p) => p.provider === provider);
-
-  return (
-    <Modal
-      title="可信身份登录"
-      open={open}
-      onCancel={onClose}
-      footer={null}
-      width={480}
-      destroyOnClose
-    >
-      <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-        {/* 理念区 */}
-        <div style={{ background: '#f0f7ff', borderRadius: 8, padding: '12px 14px' }}>
-          <Space direction="vertical" size={4} style={{ width: '100%' }}>
-            <Text strong style={{ color: getEdition().primaryColor }}>
-              进入您的可信专业工作空间
-            </Text>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              可信身份登录 · 身份与案件职责分别管理
-            </Text>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              组织成员关系（AUTH REQUIRED）· 登录后核验资格与有效期
-            </Text>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              不保存密码 · 系统不在前端保存或模拟密码
-            </Text>
-          </Space>
-        </div>
-
-        {/* 通道选择 */}
-        <Space direction="vertical" size={6} style={{ width: '100%' }}>
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            选择可信身份通道
-          </Text>
-          <Space wrap>
-            {providers.length === 0 && <Spin size="small" />}
-            {providers.map((p) => (
-              <Button
-                key={p.provider}
-                type={provider === p.provider ? 'primary' : 'default'}
-                onClick={() => setProvider(p.provider)}
-              >
-                {p.name}
-              </Button>
-            ))}
-          </Space>
-        </Space>
-
-        {/* 成员绑定 */}
-        <Space direction="vertical" size={6} style={{ width: '100%' }}>
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            组织成员账号（{selectedProvider?.hint ?? '演示通道'}）
-          </Text>
-          <Input
-            value={memberUsername}
-            onChange={(e) => setMemberUsername(e.target.value)}
-            placeholder="组织成员用户名，如 admin"
-            data-testid="oauth-member-input"
-          />
-          <Input
-            value={tenantCode}
-            onChange={(e) => setTenantCode(e.target.value)}
-            placeholder="租户编码（留空使用默认）"
-            data-testid="oauth-tenant-input"
-          />
-        </Space>
-
-        {err && <Alert type="error" showIcon message={err} />}
-        {sessionMsg && <Alert type="success" showIcon message={sessionMsg} />}
-
-        <Button
-          type="primary"
-          block
-          loading={submitting}
-          disabled={!memberUsername.trim()}
-          onClick={() => void authorize()}
-          data-testid="oauth-authorize-button"
-        >
-          {step === 'exchanging' ? '正在建立安全会话…' : '授权并登录'}
-        </Button>
-        <Text type="secondary" style={{ fontSize: 11, display: 'block', textAlign: 'center' }}>
-          演示通道：可信身份 provider 已完成身份验证；正式环境由真实 OAuth provider 接管。
-        </Text>
-      </Space>
-    </Modal>
-  );
-}
