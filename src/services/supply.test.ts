@@ -1,22 +1,16 @@
 /**
- * 供应结算 service wrapper 单测（zhiye 教育行业版 · edu-service）.
+ * 供应结算 service wrapper 单测（zhiye 教育行业版 · edu-service · 2026-10 上收 core-web 后改测 ApiPort 传输）.
  *
- * 验证 URL path / query string / body 透传正确（api 层本身有独立测试）。
+ * 上收后 services/supply.ts 为 core-web 薄 re-export，实现走 requestApi →
+ * 注入的 ApiPort。本测试注入 portRequest spy，验证 URL path / query / body 透传
+ * （全路径带 /api 前缀）。
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { apiGet, apiPost, apiDelete } = vi.hoisted(() => ({
-  apiGet: vi.fn(),
-  apiPost: vi.fn(),
-  apiDelete: vi.fn(),
-}));
+import { configureCore } from '@lieshoucloud/core-web';
 
-vi.mock('./api', () => ({
-  api: {
-    get: apiGet,
-    post: apiPost,
-    delete: apiDelete,
-  },
+const { portRequest } = vi.hoisted(() => ({
+  portRequest: vi.fn(),
 }));
 
 import {
@@ -47,41 +41,50 @@ import {
   formatMoney,
 } from '@lieshoucloud/contract-types/business/supply';
 
-describe('supply service', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+beforeEach(() => {
+  portRequest.mockReset();
+  configureCore({
+    storage: { get: () => null, set: () => {}, remove: () => {} },
+    notifier: { success: () => {}, error: () => {} },
+    navigation: { to: () => {}, replace: () => {} },
+    api: { request: portRequest },
   });
+});
 
+const JSON_HEADERS = { 'Content-Type': 'application/json' };
+
+describe('supply service（core-web 上收 · ApiPort 传输）', () => {
   // ---------- 供应单 ----------
 
-  it('listSupplyOrders 无过滤 → /supplies', async () => {
-    apiGet.mockResolvedValue([]);
+  it('listSupplyOrders 无过滤 → /api/supplies', async () => {
+    portRequest.mockResolvedValue([]);
     await listSupplyOrders();
-    expect(apiGet).toHaveBeenCalledWith('/supplies');
+    expect(portRequest).toHaveBeenCalledWith('/api/supplies', undefined);
   });
 
   it('listSupplyOrders 带 keyword/status/partnerCustomerId → query string', async () => {
-    apiGet.mockResolvedValue([]);
+    portRequest.mockResolvedValue([]);
     await listSupplyOrders('启蒙', 'ACTIVE', 3);
-    expect(apiGet).toHaveBeenCalledWith(
-      '/supplies?keyword=%E5%90%AF%E8%92%99&status=ACTIVE&partnerCustomerId=3',
+    expect(portRequest).toHaveBeenCalledWith(
+      '/api/supplies?keyword=%E5%90%AF%E8%92%99&status=ACTIVE&partnerCustomerId=3',
+      undefined,
     );
   });
 
-  it('countSupplyOrders → /supplies/count', async () => {
-    apiGet.mockResolvedValue(4);
+  it('countSupplyOrders → /api/supplies/count', async () => {
+    portRequest.mockResolvedValue(4);
     await expect(countSupplyOrders()).resolves.toBe(4);
-    expect(apiGet).toHaveBeenCalledWith('/supplies/count');
+    expect(portRequest).toHaveBeenCalledWith('/api/supplies/count', undefined);
   });
 
-  it('getSupplyOrder → /supplies/{id}', async () => {
-    apiGet.mockResolvedValue({ id: 1 });
+  it('getSupplyOrder → /api/supplies/{id}', async () => {
+    portRequest.mockResolvedValue({ id: 1 });
     await getSupplyOrder(1);
-    expect(apiGet).toHaveBeenCalledWith('/supplies/1');
+    expect(portRequest).toHaveBeenCalledWith('/api/supplies/1', undefined);
   });
 
-  it('createSupplyOrder → POST /supplies + body 透传', async () => {
-    apiPost.mockResolvedValue({ id: 9 });
+  it('createSupplyOrder → POST /api/supplies + body 透传', async () => {
+    portRequest.mockResolvedValue({ id: 9 });
     const body = {
       partnerCustomerId: 3,
       partnerName: '南山区机器人培训中心',
@@ -93,46 +96,62 @@ describe('supply service', () => {
       remark: '秋季学期',
     };
     await createSupplyOrder(body);
-    expect(apiPost).toHaveBeenCalledWith('/supplies', body);
+    expect(portRequest).toHaveBeenCalledWith('/api/supplies', {
+      method: 'POST',
+      headers: JSON_HEADERS,
+      body: JSON.stringify(body),
+    });
   });
 
-  it('completeSupplyOrder / cancelSupplyOrder → POST /supplies/{id}/complete|/cancel', async () => {
-    apiPost.mockResolvedValue({ id: 1 });
+  it('completeSupplyOrder / cancelSupplyOrder → POST /api/supplies/{id}/complete|/cancel', async () => {
+    portRequest.mockResolvedValue({ id: 1 });
     await completeSupplyOrder(1);
-    expect(apiPost).toHaveBeenCalledWith('/supplies/1/complete', {});
+    expect(portRequest).toHaveBeenCalledWith('/api/supplies/1/complete', {
+      method: 'POST',
+      headers: JSON_HEADERS,
+      body: JSON.stringify({}),
+    });
     await cancelSupplyOrder(1);
-    expect(apiPost).toHaveBeenCalledWith('/supplies/1/cancel', {});
+    expect(portRequest).toHaveBeenCalledWith('/api/supplies/1/cancel', {
+      method: 'POST',
+      headers: JSON_HEADERS,
+      body: JSON.stringify({}),
+    });
   });
 
-  it('deleteSupplyOrder → DELETE /supplies/{id}', async () => {
+  it('deleteSupplyOrder → DELETE /api/supplies/{id}', async () => {
+    portRequest.mockResolvedValue(undefined);
     await deleteSupplyOrder(1);
-    expect(apiDelete).toHaveBeenCalledWith('/supplies/1');
+    expect(portRequest).toHaveBeenCalledWith('/api/supplies/1', { method: 'DELETE' });
   });
 
   // ---------- 消课明细 ----------
 
-  it('listConsumptions 无过滤 → /consumptions；带 supplyOrderId → query string', async () => {
-    apiGet.mockResolvedValue([]);
+  it('listConsumptions 无过滤 → /api/consumptions；带 supplyOrderId → query string', async () => {
+    portRequest.mockResolvedValue([]);
     await listConsumptions();
-    expect(apiGet).toHaveBeenCalledWith('/consumptions');
+    expect(portRequest).toHaveBeenCalledWith('/api/consumptions', undefined);
     await listConsumptions('启蒙', 1);
-    expect(apiGet).toHaveBeenCalledWith('/consumptions?keyword=%E5%90%AF%E8%92%99&supplyOrderId=1');
+    expect(portRequest).toHaveBeenCalledWith(
+      '/api/consumptions?keyword=%E5%90%AF%E8%92%99&supplyOrderId=1',
+      undefined,
+    );
   });
 
-  it('countConsumptions → /consumptions/count', async () => {
-    apiGet.mockResolvedValue(2);
+  it('countConsumptions → /api/consumptions/count', async () => {
+    portRequest.mockResolvedValue(2);
     await expect(countConsumptions()).resolves.toBe(2);
-    expect(apiGet).toHaveBeenCalledWith('/consumptions/count');
+    expect(portRequest).toHaveBeenCalledWith('/api/consumptions/count', undefined);
   });
 
-  it('getConsumption → /consumptions/{id}', async () => {
-    apiGet.mockResolvedValue({ id: 1 });
+  it('getConsumption → /api/consumptions/{id}', async () => {
+    portRequest.mockResolvedValue({ id: 1 });
     await getConsumption(1);
-    expect(apiGet).toHaveBeenCalledWith('/consumptions/1');
+    expect(portRequest).toHaveBeenCalledWith('/api/consumptions/1', undefined);
   });
 
-  it('createConsumption → POST /consumptions + body 透传', async () => {
-    apiPost.mockResolvedValue({ id: 9 });
+  it('createConsumption → POST /api/consumptions + body 透传', async () => {
+    portRequest.mockResolvedValue({ id: 9 });
     const body = {
       supplyOrderId: 1,
       consumedAt: '2026-09-01',
@@ -140,35 +159,40 @@ describe('supply service', () => {
       remark: '点名',
     };
     await createConsumption(body);
-    expect(apiPost).toHaveBeenCalledWith('/consumptions', body);
+    expect(portRequest).toHaveBeenCalledWith('/api/consumptions', {
+      method: 'POST',
+      headers: JSON_HEADERS,
+      body: JSON.stringify(body),
+    });
   });
 
   // ---------- 结算单 ----------
 
-  it('listSettlements 无过滤 → /settlements；带 keyword/status/partnerCustomerId → query string', async () => {
-    apiGet.mockResolvedValue([]);
+  it('listSettlements 无过滤 → /api/settlements；带 keyword/status/partnerCustomerId → query string', async () => {
+    portRequest.mockResolvedValue([]);
     await listSettlements();
-    expect(apiGet).toHaveBeenCalledWith('/settlements');
+    expect(portRequest).toHaveBeenCalledWith('/api/settlements', undefined);
     await listSettlements('南山', 'PENDING', 3);
-    expect(apiGet).toHaveBeenCalledWith(
-      '/settlements?keyword=%E5%8D%97%E5%B1%B1&status=PENDING&partnerCustomerId=3',
+    expect(portRequest).toHaveBeenCalledWith(
+      '/api/settlements?keyword=%E5%8D%97%E5%B1%B1&status=PENDING&partnerCustomerId=3',
+      undefined,
     );
   });
 
-  it('countSettlements → /settlements/count', async () => {
-    apiGet.mockResolvedValue(1);
+  it('countSettlements → /api/settlements/count', async () => {
+    portRequest.mockResolvedValue(1);
     await expect(countSettlements()).resolves.toBe(1);
-    expect(apiGet).toHaveBeenCalledWith('/settlements/count');
+    expect(portRequest).toHaveBeenCalledWith('/api/settlements/count', undefined);
   });
 
-  it('getSettlement → /settlements/{id}', async () => {
-    apiGet.mockResolvedValue({ id: 1 });
+  it('getSettlement → /api/settlements/{id}', async () => {
+    portRequest.mockResolvedValue({ id: 1 });
     await getSettlement(1);
-    expect(apiGet).toHaveBeenCalledWith('/settlements/1');
+    expect(portRequest).toHaveBeenCalledWith('/api/settlements/1', undefined);
   });
 
-  it('createSettlement → POST /settlements + body 透传（含分成比例）', async () => {
-    apiPost.mockResolvedValue({ id: 9 });
+  it('createSettlement → POST /api/settlements + body 透传（含分成比例）', async () => {
+    portRequest.mockResolvedValue({ id: 9 });
     const body = {
       partnerCustomerId: 3,
       partnerName: '南山区机器人培训中心',
@@ -178,20 +202,33 @@ describe('supply service', () => {
       remark: '9 月结算',
     };
     await createSettlement(body);
-    expect(apiPost).toHaveBeenCalledWith('/settlements', body);
+    expect(portRequest).toHaveBeenCalledWith('/api/settlements', {
+      method: 'POST',
+      headers: JSON_HEADERS,
+      body: JSON.stringify(body),
+    });
   });
 
-  it('approveSettlement / rejectSettlement → POST /settlements/{id}/approve|/reject', async () => {
-    apiPost.mockResolvedValue({ id: 1 });
+  it('approveSettlement / rejectSettlement → POST /api/settlements/{id}/approve|/reject', async () => {
+    portRequest.mockResolvedValue({ id: 1 });
     await approveSettlement(1);
-    expect(apiPost).toHaveBeenCalledWith('/settlements/1/approve', {});
+    expect(portRequest).toHaveBeenCalledWith('/api/settlements/1/approve', {
+      method: 'POST',
+      headers: JSON_HEADERS,
+      body: JSON.stringify({}),
+    });
     await rejectSettlement(1);
-    expect(apiPost).toHaveBeenCalledWith('/settlements/1/reject', {});
+    expect(portRequest).toHaveBeenCalledWith('/api/settlements/1/reject', {
+      method: 'POST',
+      headers: JSON_HEADERS,
+      body: JSON.stringify({}),
+    });
   });
 
-  it('deleteSettlement → DELETE /settlements/{id}', async () => {
+  it('deleteSettlement → DELETE /api/settlements/{id}', async () => {
+    portRequest.mockResolvedValue(undefined);
     await deleteSettlement(1);
-    expect(apiDelete).toHaveBeenCalledWith('/settlements/1');
+    expect(portRequest).toHaveBeenCalledWith('/api/settlements/1', { method: 'DELETE' });
   });
 });
 
