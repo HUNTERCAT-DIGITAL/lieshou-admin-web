@@ -165,6 +165,26 @@ test.describe('电子账务平台 · 银行功能', () => {
     await expect(page.getByText(/分类筛选：应收账款/)).toBeVisible({ timeout: 10_000 });
   });
 
+  test('Excel 导出：台账 / 凭证 / 报表按钮可下载 .xls', async ({ page }) => {
+    // 台账页
+    await page.goto('/daizhang/ledger/receivable-payable');
+    const dl1 = page.waitForEvent('download');
+    await page.getByText('导出 Excel', { exact: true }).click();
+    expect((await dl1).suggestedFilename()).toContain('应收应付台账');
+
+    // 凭证页
+    await page.goto('/daizhang/ledger/vouchers');
+    const dl2 = page.waitForEvent('download');
+    await page.getByRole('button', { name: /导出 Excel/ }).click();
+    expect((await dl2).suggestedFilename()).toContain('记账凭证');
+
+    // 报表页（分类汇总区）
+    await page.goto('/daizhang/bank/reports');
+    const dl3 = page.waitForEvent('download');
+    await page.getByRole('button', { name: /导出 Excel/ }).click();
+    expect((await dl3).suggestedFilename()).toContain('收支报表');
+  });
+
   test('工作台看板：本月收支统计 + 逾期预警 + 快捷入口', async ({ page }) => {
     await page.goto('/daizhang/workspace');
     // 本月收支概览卡（记账汇总）
