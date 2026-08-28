@@ -58,6 +58,21 @@ export interface EditionExtraRoute {
   accessKey?: string;
 }
 
+/**
+ * 顶栏提醒（客户仓注入 · 2026-10 账龄预警等）.
+ * load 返回提醒数（>0 显示红点）；点击跳 href；轮询刷新。
+ */
+export interface EditionAlert {
+  /** 提醒名（按钮 title / aria-label） */
+  label: string;
+  /** 点击跳转路径 */
+  href: string;
+  /** 加载提醒数（0 = 不显示红点；失败静默为 0） */
+  load: () => Promise<number>;
+  /** 轮询间隔 ms（缺省 60_000） */
+  pollMs?: number;
+}
+
 export interface EditionConfig {
   id: EditionId;
   /** 门户/登录品牌名（如「LieShouCloud · 开源版」） */
@@ -93,6 +108,11 @@ export interface EditionConfig {
    * 由客户仓 deploy 生成注入（各端 editions/<client>.extra.ts），平台只渲染槽位。
    */
   extraRoutes?: EditionExtraRoute[];
+  /**
+   * 顶栏提醒（客户仓注入 · 2026-10 账龄预警等）。
+   * 渲染在操作区（通知铃铛前），红点数量 = load() 结果，轮询刷新。
+   */
+  alerts?: EditionAlert[];
   /**
    * 版别专属门户（首页）组件工厂（懒加载）。
    * 缺省（undefined）用平台通用门户 GenericPortal；

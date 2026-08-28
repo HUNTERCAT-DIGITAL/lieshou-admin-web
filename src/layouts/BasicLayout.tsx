@@ -26,6 +26,7 @@ import {
   SwapOutlined,
   TeamOutlined,
   UserOutlined,
+  WarningOutlined,
 } from '@ant-design/icons';
 import { ProLayout } from '@ant-design/pro-components';
 import { App as AntdApp, Badge, Button, Dropdown, type MenuProps } from 'antd';
@@ -33,7 +34,7 @@ import { Suspense, useCallback, useEffect, useState, type ReactNode } from 'reac
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { createAccess, derivePermissions, type Access } from '../access';
-import { getEdition, getEditionHiddenMenus, isPathCapabilityEnabled } from '../config/editions';
+import { getEdition, getEditionHiddenMenus, isPathCapabilityEnabled, type EditionAlert } from '../config/editions';
 import DevTools from '../components/DevTools';
 import NotificationBell from '../components/NotificationBell';
 import { ErrorBoundary, PageLoading } from '@lieshoucloud/ui';
@@ -72,6 +73,40 @@ const ICON_MAP: Record<string, ReactNode> = {
   swap: <SwapOutlined />,
   'file-text': <FileTextOutlined />,
 };
+
+/** 顶栏提醒红点（Edition.alerts · 2026-10 账龄预警等）：轮询 load()，>0 显示红点 */
+function AlertBadge({ alert }: { alert: EditionAlert }) {
+  const navigate = useNavigate();
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    const tick = () =>
+      alert
+        .load()
+        .then((n) => {
+          if (alive) setCount(Number.isFinite(n) && n > 0 ? n : 0);
+        })
+        .catch(() => alive && setCount(0));
+    void tick();
+    const timer = setInterval(tick, alert.pollMs ?? 60_000);
+    return () => {
+      alive = false;
+      clearInterval(timer);
+    };
+  }, [alert]);
+  return (
+    <Badge count={count} size="small" overflowCount={99} offset={[-2, 4]}>
+      <Button
+        type="text"
+        icon={<WarningOutlined />}
+        aria-label={alert.label}
+        title={alert.label}
+        data-testid={`alert-${alert.label}`}
+        onClick={() => navigate(alert.href)}
+      />
+    </Badge>
+  );
+}
 
 /** 菜单路径 → 权限码（无权限码的路径默认可见） */
 const ACCESS_BY_PATH: Record<string, keyof Access> = {
@@ -451,6 +486,8 @@ export default function BasicLayout() {
                 </Dropdown>,
               ]
             : []),
+          /* 顶栏提醒红点（Edition.alerts · 2026-10 账龄预警等）：客户仓注入，轮询刷新 */
+          ...(getEdition().alerts ?? []).map((a) => <AlertBadge key={a.label} alert={a} />),
           /* 通知铃铛（未读数轮询 30s）—— 值班员也可见（通知与审批无关） */
           <NotificationBell key="notification-bell" />,
           /* 审批待办红点（每分钟轮询）—— 值班员控制台隐藏（通知功能未开发，值班员无审批） */

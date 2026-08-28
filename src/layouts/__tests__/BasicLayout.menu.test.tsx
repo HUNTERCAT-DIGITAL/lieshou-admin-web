@@ -127,6 +127,45 @@ describe('菜单数据驱动（阶段 4）', () => {
   });
 });
 
+describe('顶栏提醒红点（Edition.alerts · 2026-10 账龄预警）', () => {
+  it('alerts 配置 → 渲染红点（count>0）', async () => {
+    vi.mocked(getEdition).mockReturnValue({
+      ...getEdition(),
+      hiddenMenus: [],
+      alerts: [
+        {
+          label: '逾期应收应付',
+          href: '/daizhang/ledger/receivable-payable',
+          load: () => Promise.resolve(3),
+        },
+      ],
+    });
+    render(wrap());
+    const badge = await screen.findByTestId('alert-逾期应收应付');
+    expect(badge).toBeTruthy();
+    // 红点数 3 出现在容器内
+    await waitFor(() => expect(document.querySelector('.ant-badge-count')).toBeTruthy());
+    expect(document.querySelector('.ant-badge-count')?.textContent).toContain('3');
+    // 点击不抛错（navigate 走 MemoryRouter）
+    badge.click();
+    vi.mocked(getEdition).mockRestore();
+  });
+
+  it('load 返回 0 → 不显示红点', async () => {
+    vi.mocked(getEdition).mockReturnValue({
+      ...getEdition(),
+      hiddenMenus: [],
+      alerts: [{ label: '无提醒', href: '/x', load: () => Promise.resolve(0) }],
+    });
+    render(wrap());
+    await waitFor(() => expect(fetchUserMenus).toHaveBeenCalled());
+    const badge = screen.getByTestId('alert-无提醒');
+    expect(badge).toBeTruthy();
+    expect(document.querySelector('.ant-badge-count')).toBeFalsy();
+    vi.mocked(getEdition).mockRestore();
+  });
+});
+
 describe('客户菜单分组（extraRoutes.menu.group · 2026-10 菜单治理）', () => {
   it('同 group 项收进分组子菜单，无 group 项平铺，分组标题渲染', async () => {
     vi.mocked(getEdition).mockReturnValue({
