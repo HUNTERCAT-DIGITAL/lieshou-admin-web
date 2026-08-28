@@ -67,6 +67,9 @@ test.describe('电子账务平台 · 银行功能', () => {
     await firstCheckbox.check({ timeout: 10_000 });
     await expect(page.getByRole('button', { name: /转记账\(1\)/ })).toBeEnabled();
     await page.getByRole('button', { name: /转记账\(1\)/ }).click();
+    // 分类模板弹窗 → 确认转记账
+    await expect(page.getByText('转记账 · 选择分类')).toBeVisible({ timeout: 10_000 });
+    await page.getByRole('button', { name: /确认转记账/ }).click();
     await expect(page.getByText(/已转记账 \d+ 笔/)).toBeVisible({ timeout: 10_000 });
   });
 
