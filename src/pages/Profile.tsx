@@ -57,7 +57,7 @@ export default function Profile() {
       <ProCard bordered style={{ maxWidth: 720 }}>
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
           <Space size="middle">
-            <Avatar size={56} icon={<UserOutlined />} style={{ background: '#1677ff' }} />
+            <Avatar size={56} icon={<UserOutlined />} style={{ background: getEdition().primaryColor }} />
             <div>
               <Typography.Title level={4} style={{ margin: 0 }}>
                 {me?.username ?? '(unknown)'}

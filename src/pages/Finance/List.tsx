@@ -22,6 +22,7 @@ import {
 import dayjs, { type Dayjs } from 'dayjs';
 
 import { useApiError } from '../../hooks/useApiError';
+import { getEdition } from '../../config/editions';
 import {
   createLedger,
   deleteLedger,
@@ -245,7 +246,7 @@ export default function FinanceList() {
             title: '结余',
             value: summary.balance,
             prefix: '¥',
-            valueStyle: { color: summary.balance >= 0 ? '#1677ff' : '#f5222d' },
+            valueStyle: { color: summary.balance >= 0 ? getEdition().primaryColor : '#f5222d' },
           }}
         />
         <StatisticCard statistic={{ title: '记录数', value: summary.count }} />
@@ -365,7 +366,7 @@ function MonthlyBars({ data }: { data: MonthlySummary[] }) {
         return (
           <div key={d.month} style={{ flex: 1, textAlign: 'center' }}>
             <Typography.Text
-              style={{ fontSize: 11, color: d.balance >= 0 ? '#1677ff' : '#f5222d' }}
+              style={{ fontSize: 11, color: d.balance >= 0 ? getEdition().primaryColor : '#f5222d' }}
             >
               {d.balance >= 0 ? '+' : ''}
               {Number(d.balance).toFixed(0)}

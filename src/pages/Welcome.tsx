@@ -90,7 +90,7 @@ export default function Welcome() {
       <Space direction="vertical" size="middle" style={{ width: '100%' }}>
         <Card loading={loading}>
           <Space size="middle">
-            <Avatar size={48} icon={<UserOutlined />} style={{ background: '#1677ff' }} />
+            <Avatar size={48} icon={<UserOutlined />} style={{ background: getEdition().primaryColor }} />
             <div>
               <Title level={4} style={{ margin: 0 }}>
                 {me?.username ?? '(unknown)'}

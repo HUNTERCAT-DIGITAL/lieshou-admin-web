@@ -73,7 +73,7 @@ export function PortalHero({ edition, onLogin, onRegister }: HeroProps) {
         </Paragraph>
         <Space size="middle">
           {onRegister && edition.allowRegister && (
-            <Button type="primary" size="large" style={styles.heroBtn} onClick={onRegister}>
+            <Button type="primary" size="large" style={{ ...styles.heroBtn, color: edition.primaryColor }} onClick={onRegister}>
               免费注册体验 <ArrowRightOutlined />
             </Button>
           )}
@@ -405,7 +405,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: '#fff',
   },
   brandText: { fontSize: 18, fontWeight: 600, color: '#fff' },
-  heroBtn: { background: '#fff', color: '#1677ff' },
+  heroBtn: { background: '#fff' },
   footer: { background: '#001529', padding: '24px', textAlign: 'center' },
   statsRow: {
     maxWidth: 1080,

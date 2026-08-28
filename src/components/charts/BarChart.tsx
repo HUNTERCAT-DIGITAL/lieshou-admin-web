@@ -6,6 +6,7 @@
  */
 import { Tooltip } from 'antd';
 import { useMemo } from 'react';
+import { getEdition } from '../../config/editions';
 
 import type { DailyBucket } from '../../utils/analytics';
 import { seriesExtent } from '../../utils/analytics';
@@ -32,7 +33,7 @@ export default function BarChart({
   data,
   width = 560,
   height = 180,
-  fill = '#1677ff',
+  fill = getEdition().primaryColor,
 }: BarChartProps) {
   const { max } = useMemo(() => seriesExtent(data), [data]);
   const innerW = width - PAD_X * 2;

@@ -821,7 +821,7 @@ function TrustedOAuthModal({
         {/* 理念区 */}
         <div style={{ background: '#f0f7ff', borderRadius: 8, padding: '12px 14px' }}>
           <Space direction="vertical" size={4} style={{ width: '100%' }}>
-            <Text strong style={{ color: '#1677ff' }}>
+            <Text strong style={{ color: getEdition().primaryColor }}>
               进入您的可信专业工作空间
             </Text>
             <Text type="secondary" style={{ fontSize: 12 }}>

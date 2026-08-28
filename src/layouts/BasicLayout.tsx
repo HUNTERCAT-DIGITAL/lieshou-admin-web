@@ -241,6 +241,8 @@ function filterRoutes(
  */
 export default function BasicLayout() {
   const location = useLocation();
+  // 品牌主色（配置化 · UI.md §2.1a）：dwjk 版别由 extra 注入 #02429B，其余用版别默认
+  const primaryColor = getEdition().primaryColor;
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -414,7 +416,7 @@ export default function BasicLayout() {
         .ant-pro-sider .ant-menu-item-group-title {
           font-size: 14px !important;
           font-weight: 700 !important;
-          color: #1677ff !important;
+          color: ${primaryColor} !important;
           padding-left: 20px !important;
           padding-top: 14px !important;
           padding-bottom: 8px !important;
@@ -430,8 +432,8 @@ export default function BasicLayout() {
           width: 4px;
           height: 14px;
           border-radius: 2px;
-          background: linear-gradient(180deg, #1677ff, #69b1ff);
-          box-shadow: 0 0 6px rgba(22,119,255,0.4);
+          background: ${primaryColor};
+          box-shadow: 0 0 6px ${primaryColor}66;
         }
         /* 分组之间的细分隔线 */
         .ant-pro-sider .ant-menu-item-group + .ant-menu-item-group {
@@ -548,7 +550,7 @@ export default function BasicLayout() {
                           width: 28,
                           height: 28,
                           borderRadius: 14,
-                          background: '#1677ff',
+                          background: primaryColor,
                           color: '#fff',
                           display: 'inline-flex',
                           alignItems: 'center',
