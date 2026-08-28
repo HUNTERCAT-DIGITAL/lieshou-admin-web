@@ -22,11 +22,13 @@ async function login(page: Page): Promise<void> {
 }
 
 test.describe('登录流程', () => {
+  // 表单流程测试不带 storageState（auth.setup 已登录态会让 /login 直接跳转，见 53f9009）
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   test('admin/admin123 登录成功 → 进入主界面', async ({ page }) => {
     await login(page);
-    // 主界面菜单项在 DOM（可能同时出现在侧边栏/用户下拉，断言存在性）
-    await expect(page.getByText('工作台')).not.toHaveCount(0);
-    await expect(page.getByText('个人中心')).not.toHaveCount(0);
+    // 收敛后客户菜单在侧边栏；个人中心等已移入头像下拉，此处断言稳定项
+    await expect(page.getByText('电子账务工作台')).not.toHaveCount(0);
     await expect(page.getByText('用户中心')).not.toHaveCount(0);
   });
 
@@ -48,13 +50,14 @@ test.describe('登录流程', () => {
 });
 
 test.describe('开源演示闭环（菜单裁剪）', () => {
-  test('登录后显示开源模块，隐藏闭源商业模块', async ({ page }) => {
-    await login(page);
-    // 开源模块在菜单（DOM 存在）
+  test('登录后显示客户/开源模块，隐藏闭源商业模块', async ({ page }) => {
+    // storageState 已登录，直接进入主界面（菜单裁剪断言）
+    await page.goto('/welcome');
+    // 客户专属 + 开源模块在菜单（DOM 存在）
+    await expect(page.getByText('电子账务工作台')).not.toHaveCount(0);
     await expect(page.getByText('租户管理')).not.toHaveCount(0);
     await expect(page.getByText('用户中心')).not.toHaveCount(0);
     await expect(page.getByText('审批流')).not.toHaveCount(0);
-    await expect(page.getByText('通知中心')).not.toHaveCount(0);
     // 闭源商业模块不在侧边栏菜单（方向 A 演示闭环；exact 匹配避免命中用户下拉"快捷入口"）
     await expect(page.getByText('CRM 客户', { exact: true })).toHaveCount(0);
     await expect(page.getByText('进销存', { exact: true })).toHaveCount(0);
@@ -66,7 +69,7 @@ test.describe('开源演示闭环（菜单裁剪）', () => {
 
 test.describe('租户切换（先登录后选租户）', () => {
   test('多租户用户登录后顶栏显示租户切换器，可切换到其他租户', async ({ page }) => {
-    await login(page);
+    await page.goto('/welcome');
     // 顶栏租户切换器出现（admin 有两个租户；tenantName 由 fetchMe 异步填充，兼容 code 兜底）
     const switcher = page.getByTestId('tenant-switch');
     await expect(switcher).toBeVisible();
@@ -84,13 +87,13 @@ test.describe('租户切换（先登录后选租户）', () => {
 
 test.describe('通知铃铛与工作台', () => {
   test('顶栏通知铃铛可见（未读 Badge 或空态）', async ({ page }) => {
-    await login(page);
+    await page.goto('/welcome');
     const bell = page.getByTestId('notification-bell');
     await expect(bell).toBeVisible();
   });
 
   test('工作台：开源统计卡片加载（用户数等）', async ({ page }) => {
-    await login(page);
+    await page.goto('/welcome');
     await page.goto('/admin');
     await expect(page.getByText('数据看板')).toBeVisible();
     // 统计卡（用户数 / 租户数 / 审批待办）
