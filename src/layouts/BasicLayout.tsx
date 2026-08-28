@@ -1,4 +1,5 @@
 import {
+  AccountBookOutlined,
   ApiOutlined,
   ApartmentOutlined,
   AppstoreOutlined,
@@ -11,6 +12,7 @@ import {
   ContactsOutlined,
   DashboardOutlined,
   FileSearchOutlined,
+  FileTextOutlined,
   FundOutlined,
   LogoutOutlined,
   MoonOutlined,
@@ -20,6 +22,7 @@ import {
   SmileOutlined,
   SolutionOutlined,
   SunOutlined,
+  SwapOutlined,
   TeamOutlined,
   UserOutlined,
 } from '@ant-design/icons';
@@ -63,6 +66,9 @@ const ICON_MAP: Record<string, ReactNode> = {
   api: <ApiOutlined />,
   radar: <RadarChartOutlined />,
   apartment: <ApartmentOutlined />,
+  'account-book': <AccountBookOutlined />,
+  swap: <SwapOutlined />,
+  'file-text': <FileTextOutlined />,
 };
 
 /** 菜单路径 → 权限码（无权限码的路径默认可见） */
@@ -271,7 +277,21 @@ export default function BasicLayout() {
     remoteMenus === null
       ? null
       : remoteMenus.map(toRoute).filter((r): r is NonNullable<typeof r> => r !== null);
-  const visibleRoutes = remoteRoutes && remoteRoutes.length > 0 ? remoteRoutes : localRoutes;
+  // 客户专属菜单（extraRoutes.menu · 2026-09 客户聚合仓模式）：客户仓注入的专属页面
+  // 显示在通用菜单之前（按 menu.order 排序）；无 menu 声明的路由只挂路由不进菜单
+  const extraMenuRoutes =
+    (getEdition().extraRoutes ?? [])
+      .filter((r) => r.menu)
+      .sort((a, b) => (a.menu?.order ?? 99) - (b.menu?.order ?? 99))
+      .map((r) => ({
+        path: r.path,
+        name: r.menu?.name ?? r.path,
+        icon: ICON_MAP[r.menu?.icon ?? ''] ?? <AppstoreOutlined />,
+      }));
+  const visibleRoutes = [
+    ...extraMenuRoutes,
+    ...(remoteRoutes && remoteRoutes.length > 0 ? remoteRoutes : (localRoutes ?? [])),
+  ];
   const layoutProps = {
     ...defaultProps,
     route: { ...defaultProps.route, routes: visibleRoutes },
