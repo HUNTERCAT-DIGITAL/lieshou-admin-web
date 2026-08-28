@@ -7,7 +7,14 @@
  * @see BOTTOM_UP.md · L0-2
  */
 
-import { createApiClient } from '@lieshoucloud/contract-api';
+import {
+  createApiClient,
+  setAccessTokenProvider,
+  setBaseUrl,
+  setLogHandler,
+  setRefreshTokensProvider,
+  setUnauthorizedHandler as setModuleUnauthorizedHandler,
+} from '@lieshoucloud/contract-api';
 import { useAuthStore } from '../stores/auth';
 import { pushDevLog } from '../utils/devtools';
 
@@ -24,6 +31,8 @@ const BASE = resolveApiBase({ key: 'API_BASE_URL', defaultBase: '/api' });
 let unauthorizedHandler: (() => void) | null = null;
 export function setUnauthorizedHandler(fn: (() => void) | null): void {
   unauthorizedHandler = fn;
+  // 同步到模块级单例：客户包（@lieshoucloud/<client>）走 request 时同样触发 UI 登出出口
+  setModuleUnauthorizedHandler(fn);
 }
 
 export const api = createApiClient({
@@ -44,3 +53,18 @@ export const api = createApiClient({
     onLog: pushDevLog,
   },
 });
+
+// —— 模块级单例注册（客户包 request 复用同一 JWT/refresh/baseUrl，2026-09 客户聚合仓模式）——
+// 客户包（packages/<client>）无法 import 本应用内部 store，统一经 contract-api 模块级单例接入。
+setBaseUrl(BASE);
+setAccessTokenProvider(() => useAuthStore.getState().accessToken);
+setRefreshTokensProvider(async () => {
+  try {
+    await useAuthStore.getState().refresh();
+    return true;
+  } catch {
+    useAuthStore.getState().logout();
+    return false;
+  }
+});
+setLogHandler(pushDevLog);
