@@ -3,7 +3,9 @@
  *
  * 职责（端通用层 · 客户无关）：
  *  - 菜单渲染：从 edition.extraRoutes 中带 menu 声明的项生成侧栏菜单
- *    （name/icon/order/group + hiddenMenus 裁剪），客户经 extraRoutes 注入。
+ *    （name/icon/order/group/roles 角色裁剪/hiddenMenus 裁剪 + badge 角标），客户经 extraRoutes 注入。
+ *  - 角色裁剪：menu.roles 存在时，仅当 CurrentUser.roles 与其有交集才展示该菜单。
+ *  - 角标：menu.badge 声明端点 + 计数字段，端内轮询并渲染到菜单项（如告警「待确认」数）。
  *  - 顶栏：品牌名 + 值班员 + 退出登录。
  *  - 内容区：<Outlet />（嵌套路由渲染，行业页面自带 PageContainer）。
  *
@@ -27,9 +29,10 @@ import type { MenuDataItem } from '@ant-design/pro-components';
 import { ProLayout } from '@ant-design/pro-components';
 import { Avatar, Dropdown, Typography } from 'antd';
 import type { ReactNode } from 'react';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
+import { request } from '@lieshoucloud/contract-api';
 import { useAuthStore } from '@lieshoucloud/core-web';
 import type { EditionConfig, EditionExtraRoute } from '@lieshoucloud/contract-types';
 
@@ -58,22 +61,34 @@ function iconOf(name?: string): ReactNode {
   return (name && ICON_MAP[name]) || <AppstoreOutlined />;
 }
 
-/** 单个路由 → 菜单项（MenuDataItem） */
-function toMenuItem(r: EditionExtraRoute): MenuDataItem {
+/** 单个路由 → 菜单项（MenuDataItem，含角标数字） */
+function toMenuItem(r: EditionExtraRoute, badge?: number): MenuDataItem {
   return {
     path: r.path,
     name: r.menu?.name ?? r.title ?? r.path,
     icon: iconOf(r.menu?.icon),
+    badge: badge != null && badge > 0 ? badge : undefined,
   };
 }
 
-/** extraRoutes（带 menu 声明）→ ProLayout 菜单树（group 分组 + order 排序 + hiddenMenus 裁剪） */
-export function buildMenuItems(edition: EditionConfig): MenuDataItem[] {
+/** extraRoutes（带 menu 声明）→ ProLayout 菜单树（group 分组 + order 排序 + 角色/hiddenMenus 裁剪 + badge） */
+export function buildMenuItems(
+  edition: EditionConfig,
+  userRoles?: string[],
+  badges?: Record<string, number>,
+): MenuDataItem[] {
   const routes = (edition.extraRoutes ?? []).filter((r) => r.menu);
   const hidden = new Set(edition.hiddenMenus ?? []);
 
-  // 裁剪：隐藏非本客户业务菜单
-  const visible = routes.filter((r) => !hidden.has(r.path));
+  // 裁剪：hiddenMenus + roles 角色过滤（menu.roles 存在时需与 userRoles 有交集）
+  const visible = routes.filter((r) => {
+    if (hidden.has(r.path)) return false;
+    const roles = r.menu?.roles;
+    if (roles && roles.length > 0) {
+      return (userRoles ?? []).some((role) => roles.includes(role));
+    }
+    return true;
+  });
 
   // group 分组：同 group 收进子菜单；无 group 平铺
   const groups = new Map<string, EditionExtraRoute[]>();
@@ -91,15 +106,16 @@ export function buildMenuItems(edition: EditionConfig): MenuDataItem[] {
 
   const byOrder = (a: EditionExtraRoute, b: EditionExtraRoute) =>
     (a.menu?.order ?? 99) - (b.menu?.order ?? 99);
+  const itemOf = (r: EditionExtraRoute) => toMenuItem(r, badges?.[r.path]);
 
   const items: MenuDataItem[] = [
-    ...flat.sort(byOrder).map(toMenuItem),
+    ...flat.sort(byOrder).map(itemOf),
     ...[...groups.entries()]
       .sort((a, b) => (a[1][0]?.menu?.order ?? 99) - (b[1][0]?.menu?.order ?? 99))
       .map(([name, list]) => ({
         name,
         icon: <MenuOutlined />,
-        children: list.sort(byOrder).map(toMenuItem),
+        children: list.sort(byOrder).map(itemOf),
       })),
   ];
   return items;
@@ -110,6 +126,41 @@ export function shouldUseConsole(edition: EditionConfig): boolean {
   return edition.dutyConsole === true || (edition.extraRoutes ?? []).some((r) => r.menu);
 }
 
+/** 轮询带 badge 声明的菜单端点 → { path: 计数 } */
+function useMenuBadges(routes: EditionExtraRoute[]): Record<string, number> {
+  const [badges, setBadges] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    const withBadge = routes.filter((r) => r.menu?.badge);
+    if (withBadge.length === 0) return;
+    let alive = true;
+
+    const poll = async () => {
+      for (const r of withBadge) {
+        const b = r.menu?.badge;
+        if (!b) continue;
+        try {
+          const data = await request<Record<string, unknown>>({ method: 'GET', path: b.endpoint });
+          const val = Number((data as Record<string, unknown>)[b.field] ?? 0);
+          if (alive) setBadges((prev) => ({ ...prev, [r.path]: Number.isFinite(val) ? val : 0 }));
+        } catch {
+          /* 轮询失败保持原值 */
+        }
+      }
+    };
+
+    void poll();
+    const interval = withBadge[0]?.menu?.badge?.intervalMs ?? 30_000;
+    const t = setInterval(() => void poll(), interval);
+    return () => {
+      alive = false;
+      clearInterval(t);
+    };
+  }, [routes]);
+
+  return badges;
+}
+
 export default function ConsoleLayout() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -117,7 +168,12 @@ export default function ConsoleLayout() {
   const logout = useAuthStore((s) => s.logout);
 
   const edition = getEdition();
-  const menuItems = useMemo(() => buildMenuItems(edition), [edition]);
+  const extraRoutes = edition.extraRoutes ?? [];
+  const badges = useMenuBadges(extraRoutes);
+  const menuItems = useMemo(
+    () => buildMenuItems(edition, user?.roles, badges),
+    [edition, user?.roles, badges],
+  );
 
   return (
     <ProLayout
