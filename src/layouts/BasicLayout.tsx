@@ -5,6 +5,7 @@ import {
   AppstoreOutlined,
   AuditOutlined,
   BellOutlined,
+  GlobalOutlined,
   BookOutlined,
   BulbOutlined,
   RiseOutlined,
@@ -39,6 +40,7 @@ import DevTools from '../components/DevTools';
 import NotificationBell from '../components/NotificationBell';
 import { ErrorBoundary, PageLoading } from '@lieshoucloud/ui';
 import { useThemeMode } from '../hooks/useThemeMode';
+import { useI18n } from '../hooks/useI18n';
 import { setUnauthorizedHandler } from '../services/api';
 import { getApprovalCounts } from '../services/approval';
 import { fetchUserMenus } from '../services/menu';
@@ -253,6 +255,7 @@ export default function BasicLayout() {
   const switchTenant = useAuthStore((s) => s.switchTenant);
   const { message: messageApi } = AntdApp.useApp();
   const { mode: themeMode, setMode: setThemeMode } = useThemeMode();
+  const { locale, setLocale, t } = useI18n();
   const resolvedTheme = useThemeStore((s) => s.resolved);
 
   // 审批待办红点：进布局拉一次 + 每分钟轮询（失败静默，不打扰）
@@ -506,7 +509,7 @@ export default function BasicLayout() {
                   <Button
                     type="text"
                     icon={<BellOutlined />}
-                    aria-label="审批待办"
+                    aria-label={t("common.approval.pending")}
                     onClick={() => navigate('/approval/list')}
                   />
                 </Badge>,
@@ -516,9 +519,9 @@ export default function BasicLayout() {
             key="theme"
             menu={{
               items: [
-                { key: 'light', label: '明亮', onClick: () => setThemeMode('light') },
-                { key: 'dark', label: '暗黑', onClick: () => setThemeMode('dark') },
-                { key: 'system', label: '跟随系统', onClick: () => setThemeMode('system') },
+                { key: 'light', label: t('common.theme.light'), onClick: () => setThemeMode('light') },
+                { key: 'dark', label: t('common.theme.dark'), onClick: () => setThemeMode('dark') },
+                { key: 'system', label: t('common.theme.system'), onClick: () => setThemeMode('system') },
               ],
               selectedKeys: [themeMode],
             }}
@@ -527,8 +530,28 @@ export default function BasicLayout() {
             <Button
               type="text"
               icon={resolvedTheme === 'dark' ? <MoonOutlined /> : <SunOutlined />}
-              aria-label="切换主题"
+              aria-label={t("common.theme.switch")}
               data-testid="theme-switcher"
+            />
+          </Dropdown>,
+          /* 语言切换（共享 i18n · 2026-09） */
+          <Dropdown
+            key="lang"
+            menu={{
+              items: [
+                { key: 'zh-CN', label: '中文' },
+                { key: 'en-US', label: 'English' },
+              ],
+              selectedKeys: [locale],
+              onClick: ({ key }) => setLocale(key as 'zh-CN' | 'en-US'),
+            }}
+            placement="bottomRight"
+          >
+            <Button
+              type="text"
+              icon={<GlobalOutlined />}
+              aria-label={t("common.lang.switch")}
+              data-testid="lang-switcher"
             />
           </Dropdown>,
         ]}

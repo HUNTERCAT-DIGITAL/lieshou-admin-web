@@ -1,6 +1,8 @@
 import { theme } from 'antd';
 import { App as AntdApp, ConfigProvider } from 'antd';
+import enUS from 'antd/locale/en_US';
 import zhCN from 'antd/locale/zh_CN';
+import dayjs from 'dayjs';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import 'antd/dist/reset.css';
@@ -10,6 +12,7 @@ import App from './App';
 import { configureCore, useAuthStore } from '@lieshoucloud/core-web';
 import { message } from 'antd';
 import { api } from './services/api';
+import { restoreLocale, useLocale } from './hooks/useI18n';
 
 // —— 注入 core-web 端口（业务核心层 · 2026-09 试点）——
 configureCore({
@@ -57,11 +60,14 @@ import { useThemeMode } from './hooks/useThemeMode';
 function ThemedApp(): React.JSX.Element {
   const { resolved } = useThemeMode();
   const edition = getEdition();
+  // 语言跟随共享 i18n（antd 组件内置文案 + dayjs 随语言切换）
+  const locale = useLocale();
+  dayjs.locale(locale === 'en-US' ? 'en' : 'zh-cn');
   // 品牌配置化（ADR-0035）：浏览器标题跟随版别 brandName，运行时覆盖 index.html 静态默认
   document.title = edition.brandName || '数字化平台';
   return (
     <ConfigProvider
-      locale={zhCN}
+      locale={locale === 'en-US' ? enUS : zhCN}
       theme={{
         algorithm: resolved === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: { colorPrimary: getEdition().primaryColor },
@@ -76,6 +82,7 @@ function ThemedApp(): React.JSX.Element {
 
 const rootEl = document.getElementById('root');
 if (!rootEl) throw new Error('Missing #root mount element');
+restoreLocale(); // 启动时恢复上次语言（在首帧渲染前）
 ReactDOM.createRoot(rootEl).render(
   <React.StrictMode>
     <ThemedApp />
