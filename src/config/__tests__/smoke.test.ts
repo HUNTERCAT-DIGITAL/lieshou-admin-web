@@ -14,7 +14,9 @@ describe('冒烟', () => {
   it('getEdition 返回 generic 版别配置', () => {
     const e = getEdition();
     expect(e.id).toBe('generic');
-    expect(e.brandName).toBe('猎手云');
+    // brandName 可能被客户 extra.ts 叠加（客户仓环境），只锁「非空」不锁具体值
+    expect(typeof e.brandName).toBe('string');
+    expect(e.brandName.length).toBeGreaterThan(0);
     expect(e.login?.required).toBe(true);
   });
 });
