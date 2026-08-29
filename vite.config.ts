@@ -29,6 +29,8 @@ export default defineConfig({
   },
   server: {
     host: true,
+    // 联调域名/内网 IP 访问 dev 需放行（vite 6 allowedHosts 校验 · 2026-08 E10）
+    allowedHosts: true,
     port: 21300,
     proxy: {
       '/api': {
