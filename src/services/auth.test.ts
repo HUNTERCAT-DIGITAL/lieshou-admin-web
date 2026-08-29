@@ -49,10 +49,10 @@ describe('auth 匿名接口（core-web 上收 · ApiPort 传输）', () => {
 
   it('loginWithCode → POST /api/auth/login/code + tenantCode 可选', async () => {
     portRequest.mockResolvedValue({ accessToken: 'a', refreshToken: 'r', expiresIn: 1800 });
-    await loginWithCode('jxlkas', 'EMAIL', 'a@b.com', '123456');
+    await loginWithCode('default', 'EMAIL', 'a@b.com', '123456');
     expect(portRequest).toHaveBeenCalledWith('/api/auth/login/code', expect.anything());
     expect(JSON.parse(portRequest.mock.calls[0][1].body)).toEqual({
-      tenantCode: 'jxlkas',
+      tenantCode: 'default',
       channel: 'EMAIL',
       target: 'a@b.com',
       code: '123456',
@@ -95,20 +95,20 @@ describe('auth 匿名接口（core-web 上收 · ApiPort 传输）', () => {
   });
 
   it('oauthAuthorize → POST /api/auth/oauth/authorize', async () => {
-    portRequest.mockResolvedValue({ code: 'c', state: 's', expiresInSeconds: 60, memberUsername: 'm', tenantCode: 'jxlkas', memberStatus: 'ACTIVE' });
-    await oauthAuthorize('member', 'm', 'jxlkas');
+    portRequest.mockResolvedValue({ code: 'c', state: 's', expiresInSeconds: 60, memberUsername: 'm', tenantCode: 'default', memberStatus: 'ACTIVE' });
+    await oauthAuthorize('member', 'm', 'default');
     expect(portRequest).toHaveBeenCalledWith('/api/auth/oauth/authorize', expect.anything());
     expect(JSON.parse(portRequest.mock.calls[0][1].body)).toEqual({
       provider: 'member',
       memberUsername: 'm',
-      tenantCode: 'jxlkas',
+      tenantCode: 'default',
     });
   });
 
   it('oauthToken → POST /api/auth/oauth/token', async () => {
     portRequest.mockResolvedValue({ accessToken: 'a', refreshToken: 'r', expiresIn: 1800, provider: 'member', memberStatus: 'ACTIVE', sessionAt: 'x' });
-    await oauthToken('code1', 'jxlkas');
+    await oauthToken('code1', 'default');
     expect(portRequest).toHaveBeenCalledWith('/api/auth/oauth/token', expect.anything());
-    expect(JSON.parse(portRequest.mock.calls[0][1].body)).toEqual({ code: 'code1', tenantCode: 'jxlkas' });
+    expect(JSON.parse(portRequest.mock.calls[0][1].body)).toEqual({ code: 'code1', tenantCode: 'default' });
   });
 });

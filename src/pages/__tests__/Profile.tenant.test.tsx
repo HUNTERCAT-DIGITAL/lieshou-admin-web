@@ -18,7 +18,7 @@ beforeEach(() => {
     user: {
       userId: 1,
       tenantId: 1,
-      tenantCode: 'jxlkas',
+      tenantCode: 'default',
       username: 'ops',
       roles: ['PLATFORM_ADMIN'],
     } as CurrentUser,
@@ -49,7 +49,7 @@ async function loadProfile(showLegal: boolean) {
     user: {
       userId: 1,
       tenantId: 1,
-      tenantCode: 'jxlkas',
+      tenantCode: 'default',
       username: 'ops',
       roles: ['PLATFORM_ADMIN'],
     } as CurrentUser,
@@ -74,7 +74,7 @@ describe('Profile · 租户展示（法律版隐藏）', () => {
     const GenericProfile = await loadProfile(false);
     const { unmount } = render(<GenericProfile />, { wrapper: wrap });
     await waitFor(() => {
-      expect(screen.getByText(/租户：jxlkas/)).toBeTruthy();
+      expect(screen.getByText(/租户：default/)).toBeTruthy();
     });
     unmount();
   });

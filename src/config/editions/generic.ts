@@ -16,7 +16,7 @@ export const genericEdition: EditionConfig = {
       'LieShouCloud（猎手云）开源版演示项目：多租户 SaaS 数字化平台，前后端全栈开源（Apache-2.0），支持 Web / 桌面 / 移动 / 小程序四端，一键自部署即可体验。',
     logo: '/logo.png',
     primaryColor: '#1677ff',
-    defaultTenantCode: 'jxlkas',
+    defaultTenantCode: 'default',
     allowRegister: true,
     industriesText: ['多租户 SaaS', 'CRM 客户管理', '进销存', '财务记账', '审批流', '四端覆盖'],
     features: [
@@ -58,7 +58,7 @@ export const genericEdition: EditionConfig = {
       },
       {
         q: '如何体验？',
-        a: '开源版支持自助开通：门户/登录页「免费开通」→ 填写租户与管理员 → 立即创建租户并登录；也可在登录页注册体验（默认租户 jxlkas）。',
+        a: '开源版支持自助开通：门户/登录页「免费开通」→ 填写租户与管理员 → 立即创建租户并登录；也可在登录页注册体验（默认租户 default）。',
       },
       {
         q: '多租户数据安全吗？',

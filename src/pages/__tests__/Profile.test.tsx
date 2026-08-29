@@ -51,7 +51,7 @@ describe('Profile 页', () => {
     mockMe({
       userId: 42,
       tenantId: 7,
-      tenantCode: 'jxlkas',
+      tenantCode: 'default',
       username: 'futurewl',
       roles: ['PLATFORM_ADMIN', 'USER'],
     });
@@ -67,7 +67,7 @@ describe('Profile 页', () => {
       // 期望 (username) 文本在 h4 里
       expect(screen.getByRole('heading', { level: 4, name: 'futurewl' })).toBeInTheDocument();
     });
-    expect(screen.getByText(/租户：jxlkas/)).toBeInTheDocument();
+    expect(screen.getByText(/租户：default/)).toBeInTheDocument();
     expect(screen.getByText('42')).toBeInTheDocument();
     // RoleTag 中文化（2026-08-25）：PLATFORM_ADMIN → 平台管理员
     expect(screen.getByText('平台管理员')).toBeInTheDocument();

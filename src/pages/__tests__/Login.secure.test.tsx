@@ -50,7 +50,7 @@ async function loadLogin(showLegal: boolean) {
       hideTenantInput: false,
       brandName: 'LegalMind · 智法云枢',
       logo: '/logo-legalmind.png',
-      defaultTenantCode: 'jxlkas',
+      defaultTenantCode: 'default',
       allowRegister: false,
       hiddenMenus: [],
     }),
@@ -128,7 +128,7 @@ describe('登录页 · 可信身份 OAuth 通道', () => {
       state: 'st_test',
       expiresInSeconds: 300,
       memberUsername: 'admin',
-      tenantCode: 'jxlkas',
+      tenantCode: 'default',
       memberStatus: 'VERIFIED',
     } as never);
     vi.mocked(oauthToken).mockResolvedValue({
@@ -138,7 +138,7 @@ describe('登录页 · 可信身份 OAuth 通道', () => {
       tokenType: 'Bearer',
       userId: 1,
       username: 'admin',
-      tenantCode: 'jxlkas',
+      tenantCode: 'default',
       tenantName: '凌科安时',
       tenantEdition: 'LEGALMIND',
       provider: 'chatgpt',
@@ -152,9 +152,9 @@ describe('登录页 · 可信身份 OAuth 通道', () => {
     await screen.findByText('进入您的可信专业工作空间');
     fireEvent.click(screen.getByTestId('oauth-authorize-button'));
 
-    // 默认租户来自版别配置（jxlkas）→ 授权携带租户
-    await waitFor(() => expect(oauthAuthorize).toHaveBeenCalledWith('chatgpt', 'admin', 'jxlkas'));
-    await waitFor(() => expect(oauthToken).toHaveBeenCalledWith('oc_test', 'jxlkas'));
+    // 默认租户来自版别配置（default）→ 授权携带租户
+    await waitFor(() => expect(oauthAuthorize).toHaveBeenCalledWith('chatgpt', 'admin', 'default'));
+    await waitFor(() => expect(oauthToken).toHaveBeenCalledWith('oc_test', 'default'));
     // 授权成功后 onSuccess → setSession + 跳转（页面卸载）→ 授权按钮消失
     await waitFor(() => expect(screen.queryByTestId('oauth-authorize-button')).toBeNull());
     unmount();

@@ -16,9 +16,9 @@ afterEach(() => {
 });
 
 describe('getTenantCode', () => {
-  it('空 localStorage → 默认 jxlkas', () => {
+  it('空 localStorage → 默认 default', () => {
     expect(getTenantCode()).toBe(DEFAULT_TENANT_CODE);
-    expect(getTenantCode()).toBe('jxlkas');
+    expect(getTenantCode()).toBe('default');
   });
 
   it('有值 → 返回记忆值', () => {
