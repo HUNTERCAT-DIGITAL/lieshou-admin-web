@@ -16,3 +16,6 @@
 [submodule "open/charts"]
 	path = open/charts
 	url = git@github.com:HUNTERCAT-DIGITAL/lieshou-charts.git
+[submodule "open/i18n"]
+	path = open/i18n
+	url = git@github.com:HUNTERCAT-DIGITAL/lieshou-i18n.git
