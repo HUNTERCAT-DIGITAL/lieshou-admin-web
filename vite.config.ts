@@ -45,7 +45,9 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: process.env.VITE_PROXY_TARGET ?? 'http://127.0.0.1:21000',
-        changeOrigin: true,
+        // ⚠️ changeOrigin 必须 false：gateway CorsConfig「同源放行」依赖 Origin==Host
+        // （2026-08 修复），proxy 改 Host 会破坏同源判断 → 浏览器登录 POST 403（对齐 desktop 409f89e）
+        changeOrigin: false,
       },
     },
   },
