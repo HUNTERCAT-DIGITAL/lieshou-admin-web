@@ -2,7 +2,7 @@
  * 管理后台 · 路由装配（端自身骨架 · 登录态来自 core-web useAuthStore）
  * /login 登录页；/、/home 启动页（登录守卫）；客户 extraRoutes 懒加载注入。
  */
-import { Suspense, lazy, type ComponentType } from 'react';
+import { Suspense, lazy, useMemo, type ComponentType } from 'react';
 import {
   BrowserRouter,
   Navigate,
@@ -18,7 +18,9 @@ import LoginPage from './pages/LoginPage';
 
 /** 客户注入路由的懒加载出口 */
 function LazyRoute({ load }: { load: () => Promise<{ default: ComponentType }> }) {
-  const Lazy = lazy(load);
+  // useMemo 缓存 lazy 组件：避免每次渲染重建组件身份（否则叠加 v7 BrowserRouter
+  // 默认 startTransition 导航，懒加载页面内 navigate/Link 会挂起并卡在旧 UI · E13）
+  const Lazy = useMemo(() => lazy(load), [load]);
   return (
     <Suspense fallback={<div className="page-loading">加载中…</div>}>
       <Lazy />
@@ -42,7 +44,7 @@ export default function App() {
   const standaloneRoutes = extraRoutes.filter((r) => r.standalone);
 
   return (
-    <BrowserRouter basename={import.meta.env.BASE_URL}>
+    <BrowserRouter basename={import.meta.env.BASE_URL} useTransitions={false}>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route element={<RequireAuth />}>
