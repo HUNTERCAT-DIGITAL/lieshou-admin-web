@@ -47,6 +47,7 @@ const RoleList = lazy(() => import('./pages/Role/List'));
 const TenantList = lazy(() => import('./pages/Tenant/List'));
 const UserList = lazy(() => import('./pages/User/List'));
 const Welcome = lazy(() => import('./pages/Welcome'));
+const About = lazy(() => import('./pages/About'));
 
 /** 客户专属路由槽（extraRoutes · 2026-09 客户聚合仓）：内容由客户仓注入 */
 function ExtraRoute({ route }: { route: EditionExtraRoute }) {
@@ -88,6 +89,7 @@ export const routes = (
       {/* 受保护: 走 BasicLayout + AuthGuard */}
       <Route element={<ProtectedLayout />}>
         <Route path="/welcome" element={<Welcome />} />
+        <Route path="/about" element={<About />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/notification" element={<NotificationList />} />

@@ -17,6 +17,8 @@ export const genericEdition: EditionConfig = {
     logo: '/logo.png',
     primaryColor: '#1677ff',
     defaultTenantCode: 'default',
+    // 上游薄壳化(2026-08-29): generic 登录后落地引用包介绍页
+    homePath: '/about',
     login: { required: true, mode: 'password' },
     allowRegister: true,
     industriesText: ['多租户 SaaS', 'CRM 客户管理', '进销存', '财务记账', '审批流', '四端覆盖'],
