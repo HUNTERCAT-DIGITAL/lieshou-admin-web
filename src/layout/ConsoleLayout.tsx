@@ -80,12 +80,14 @@ export function buildMenuItems(
   const routes = (edition.extraRoutes ?? []).filter((r) => r.menu);
   const hidden = new Set(edition.hiddenMenus ?? []);
 
-  // 裁剪：hiddenMenus + roles 角色过滤（menu.roles 存在时需与 userRoles 有交集）
+  // 裁剪：hiddenMenus + roles 角色过滤（menu.roles 存在时需与 userRoles 有交集；平台超管 PLATFORM_ADMIN 绕过）
   const visible = routes.filter((r) => {
     if (hidden.has(r.path)) return false;
     const roles = r.menu?.roles;
     if (roles && roles.length > 0) {
-      return (userRoles ?? []).some((role) => roles.includes(role));
+      const mine = userRoles ?? [];
+      if (mine.includes('PLATFORM_ADMIN')) return true;
+      return mine.some((role) => roles.includes(role));
     }
     return true;
   });
