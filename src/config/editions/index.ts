@@ -1,8 +1,9 @@
 /**
- * 版别聚合 + 客户注入（端自身骨架 · 对齐既有 editions 模式）。
+ * 版别聚合 + 客户注入（端自身骨架 · 类型来自共享契约 contract-types）。
  * 客户仓 deploy 生成 config/editions/<client>.extra.ts，glob 自动收集。
  */
-import type { EditionConfig } from './types';
+import type { EditionConfig } from '@lieshoucloud/contract-types';
+
 import { genericEdition } from './generic';
 
 /** 客户注入的 Edition 增强（extraRoutes 等） */
