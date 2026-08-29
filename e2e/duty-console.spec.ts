@@ -5,8 +5,8 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 
-/** mock 后端 API：登录（PLATFORM_ADMIN）+ 工作台总览（含 CRITICAL 告警）+ 设备/告警列表 */
-async function mockApi(page: Page): Promise<void> {
+/** mock 后端 API：登录 + 工作台总览（含 CRITICAL 告警）+ 设备/告警列表；roles 可参数化（验收角色裁剪差异） */
+async function mockApi(page: Page, roles: string[] = ['PLATFORM_ADMIN']): Promise<void> {
   await page.route('**/api/auth/login', (route) =>
     route.fulfill({
       status: 200,
@@ -15,7 +15,7 @@ async function mockApi(page: Page): Promise<void> {
         accessToken: 'e2e-access-token',
         refreshToken: 'e2e-refresh-token',
         userId: 1,
-        username: 'admin',
+        username: roles.includes('DUTY_OFFICER') ? 'duty' : 'admin',
         tenantCode: 'default',
         tenantName: '默认租户',
         availableTenants: [],
@@ -32,8 +32,8 @@ async function mockApi(page: Page): Promise<void> {
         tenantId: 1,
         tenantCode: 'default',
         tenantName: '默认租户',
-        username: 'admin',
-        roles: ['PLATFORM_ADMIN'],
+        username: roles.includes('DUTY_OFFICER') ? 'duty' : 'admin',
+        roles,
       }),
     }),
   );
@@ -135,4 +135,24 @@ test('工作台离线设备卡 → 设备页 status 预置筛选', async ({ page
 
   // 设备管理页可达
   await expect(page.getByText('设备管理')).toBeVisible();
+});
+
+test('duty 值班员（DUTY_OFFICER）→ 菜单裁剪：隐藏设备/配置，保留只读监控', async ({ page }) => {
+  await mockApi(page, ['DUTY_OFFICER']);
+
+  await page.goto('/login');
+  await page.fill('input[placeholder="用户名"]', 'duty');
+  await page.fill('input[placeholder="密码"]', 'admin123');
+  await page.click('button:has-text("登 录")');
+
+  await expect(page).toHaveURL(/\/$/);
+
+  // 只读监控菜单可见
+  await expect(page.getByRole('menuitem', { name: '告警' })).toBeVisible();
+  await expect(page.getByRole('menuitem', { name: '拓扑' })).toBeVisible();
+  await expect(page.getByRole('menuitem', { name: '监控总览' })).toBeVisible();
+
+  // 配置类菜单（设备/产品/规则）被角色裁剪隐藏
+  await expect(page.getByRole('menuitem', { name: '设备' })).toHaveCount(0);
+  await expect(page.getByText('配置', { exact: true })).toHaveCount(0);
 });
