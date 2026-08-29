@@ -9,7 +9,9 @@ export const genericEdition: EditionConfig = {
     industries: [],
     // 开源交付包只提供开源服务模块（user/admin/auth/approval + 基础）；
     // CRM/进销存/财务/IoT/案件等闭源商业模块不在交付包内，演示端隐藏入口（gateway 侧同步配置开关）
-    hiddenMenus: ['/customer', '/inventory', '/finance', '/iot', '/legal'],
+    // 上游薄壳化(2026-08-29): generic 清理业务导航(CRM/进销存/财务/合同/质检/行业), 仅保留平台基础能力;
+    // 业务页代码保留为可装配能力(客户 edition.industries/capabilities 启用)
+    hiddenMenus: ['/customer', '/lead', '/contact', '/contract', '/inventory', '/quality', '/finance', '/iot', '/legal'],
     brandName: 'LieShouCloud',
     slogan: '开源的数字化平台 · 全栈演示项目',
     heroDesc:
