@@ -2,11 +2,32 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 
 import { configureCore, useAuthStore } from '@lieshoucloud/core-web';
-import { createApiClient } from '@lieshoucloud/contract-api';
+import {
+  createApiClient,
+  setAccessTokenProvider,
+  setBaseUrl,
+  setRefreshTokensProvider,
+  setUnauthorizedHandler,
+} from '@lieshoucloud/contract-api';
 
 import App from './App';
 import { getEdition } from './config/editions';
 import './styles/global.css';
+
+// —— contract-api 模块级单例配置（客户包 dwjk/api 等走模块级 request 需要；ApiPort 走实例不受影响）——
+setBaseUrl('');
+setAccessTokenProvider(() => useAuthStore.getState().accessToken);
+setRefreshTokensProvider(async () => {
+  try {
+    await useAuthStore.getState().refresh();
+    return true;
+  } catch {
+    return false;
+  }
+});
+setUnauthorizedHandler(() => {
+  useAuthStore.getState().logout();
+});
 
 // —— API 客户端（contract-api：token 注入 + 401 单飞刷新 + 会话过期兜底）——
 const api = createApiClient({
