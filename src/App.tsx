@@ -1,6 +1,8 @@
 /**
- * 管理后台 · 路由装配（端自身骨架 · 登录态来自 core-web useAuthStore）
+ * 管理后台 · 路由装配（端自身骨架 · 登录态来自 core-web useAuthStore）.
  * /login 登录页；/、/home 启动页（登录守卫）；客户 extraRoutes 懒加载注入。
+ * 有客户菜单声明（或 dutyConsole 值班员模式）时套 ProLayout 控制台壳；
+ * 无菜单版别（generic 骨架）保持扁平路由。
  */
 import { Suspense, lazy, useMemo, type ComponentType } from 'react';
 import {
@@ -13,6 +15,7 @@ import {
 import { useAuthStore } from '@lieshoucloud/core-web';
 
 import { getEdition } from './config/editions';
+import ConsoleLayout, { shouldUseConsole } from './layout/ConsoleLayout';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 
@@ -40,23 +43,38 @@ function RequireAuth() {
 export default function App() {
   const edition = getEdition();
   const extraRoutes = edition.extraRoutes ?? [];
-  const layoutRoutes = extraRoutes.filter((r) => !r.standalone);
+  const useConsole = shouldUseConsole(edition);
+  const fallbackPath = edition.homePath ?? '/home';
+
+  // 工作台/首页：客户可注入 path='/' 或 '/home' 覆盖骨架 HomePage
+  const homeRoute = extraRoutes.find((r) => r.path === '/' || r.path === '/home');
+  const homeElement = homeRoute ? <LazyRoute load={homeRoute.load} /> : <HomePage />;
+
+  const layoutRoutes = extraRoutes.filter(
+    (r) => !r.standalone && r.path !== '/' && r.path !== '/home',
+  );
   const standaloneRoutes = extraRoutes.filter((r) => r.standalone);
+
+  const layoutChildren = (
+    <>
+      <Route path="/" element={homeElement} />
+      <Route path="/home" element={homeElement} />
+      {layoutRoutes.map((r) => (
+        <Route
+          key={r.path}
+          path={r.path.replace(/^\//, '')}
+          element={<LazyRoute load={r.load} />}
+        />
+      ))}
+    </>
+  );
 
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL} useTransitions={false}>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route element={<RequireAuth />}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/home" element={<HomePage />} />
-          {layoutRoutes.map((r) => (
-            <Route
-              key={r.path}
-              path={r.path.replace(/^\//, '')}
-              element={<LazyRoute load={r.load} />}
-            />
-          ))}
+          {useConsole ? <Route element={<ConsoleLayout />}>{layoutChildren}</Route> : layoutChildren}
         </Route>
         {standaloneRoutes.map((r) => (
           <Route
@@ -65,7 +83,7 @@ export default function App() {
             element={<LazyRoute load={r.load} />}
           />
         ))}
-        <Route path="*" element={<Navigate to="/home" replace />} />
+        <Route path="*" element={<Navigate to={fallbackPath} replace />} />
       </Routes>
     </BrowserRouter>
   );

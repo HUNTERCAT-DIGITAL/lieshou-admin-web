@@ -18,7 +18,17 @@ export default defineConfig({
       { find: '@lieshoucloud/contract-config', replacement: path.resolve(__dirname, 'open/contract-config/src') },
       { find: '@lieshoucloud/contract-types', replacement: path.resolve(__dirname, 'open/contract-types/src') },
       { find: '@lieshoucloud/core-web', replacement: path.resolve(__dirname, 'open/core-web/src') },
+      { find: /^@lieshoucloud\/ui($|\/)/, replacement: path.resolve(__dirname, 'open/ui/src') + '$1' },
+      { find: /^@lieshoucloud\/charts($|\/)/, replacement: path.resolve(__dirname, 'open/charts/src') + '$1' },
       { find: '@lieshoucloud/i18n', replacement: path.resolve(__dirname, 'open/i18n/src') },
+      // 第三方依赖显式 alias（嵌套 workspace：客户包 packages/dwjk 在仓外，从它向上解析不到端内 node_modules → 强制指向端内顶层软链 · E13）
+      { find: /^react($|\/)/, replacement: path.resolve(__dirname, 'node_modules/react') + '$1' },
+      { find: /^react-dom($|\/)/, replacement: path.resolve(__dirname, 'node_modules/react-dom') + '$1' },
+      { find: /^react-router-dom($|\/)/, replacement: path.resolve(__dirname, 'node_modules/react-router-dom') + '$1' },
+      { find: /^antd($|\/)/, replacement: path.resolve(__dirname, 'node_modules/antd') + '$1' },
+      { find: /^@ant-design\/icons($|\/)/, replacement: path.resolve(__dirname, 'node_modules/@ant-design/icons') + '$1' },
+      { find: /^@ant-design\/pro-components($|\/)/, replacement: path.resolve(__dirname, 'node_modules/@ant-design/pro-components') + '$1' },
+      { find: /^dayjs($|\/)/, replacement: path.resolve(__dirname, 'node_modules/dayjs') + '$1' },
       // 客户包兜底：@lieshoucloud/<client>[/<subpath>] → ../packages/<client>/src[/<subpath>]
       // （正则捕获组 + $1/$2 由 Vite alias 字符串替换展开；共享包走 workspace，排除避免误命中）
       {

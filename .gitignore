@@ -36,3 +36,7 @@ playwright-report/
 
 # LieShouBoot prepare.mjs 生成的版别注入（勿提交）
 src/config/editions/*.extra.ts
+
+# prepare.mjs 生成的 tsconfig.<client>.json（勿提交；tsconfig.node.json 为端自身文件）
+tsconfig.*.json
+!tsconfig.node.json
