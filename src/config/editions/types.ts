@@ -11,7 +11,7 @@
  *       而是声明 industries: ['legal'] 并叠加客户定制。
  */
 import type { ComponentType } from 'react';
-import type { IndustryId } from '@lieshoucloud/contract-types';
+import type { EditionLogin, IndustryId } from '@lieshoucloud/contract-types';
 
 export type EditionId = 'generic' | 'layer';
 
@@ -103,6 +103,8 @@ export interface EditionConfig {
    * 与菜单路径一致（去掉前导 '/'）。可跨行业组合（如律所 + 设备监控）。
    */
   capabilities?: string[];
+  /** 登录能力配置（端薄壳化 · 2026-08-29：required=false 游客直达, mode 定登录形态） */
+  login?: EditionLogin;
   /**
    * 客户专属路由（客户聚合仓模式 · 2026-09）。
    * 由客户仓 deploy 生成注入（各端 editions/<client>.extra.ts），平台只渲染槽位。

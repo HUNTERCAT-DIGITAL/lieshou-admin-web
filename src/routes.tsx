@@ -14,7 +14,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import type { ComponentType } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
-import { getExtraEdition } from './config/editions';
+import { getEdition, getExtraEdition } from './config/editions';
 import type { EditionExtraRoute } from './config/editions';
 import { AccessGuard } from './components/AccessGuard';
 import { EditionGuard } from './components/EditionGuard';
@@ -67,8 +67,11 @@ const EXTRA_ROUTES = getExtraEdition().extraRoutes ?? [];
  */
 function ProtectedLayout() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const edition = getEdition();
+  // 端薄壳化(2026-08-29): login.required=false 时游客直达, 不拦截路由
+  const authed = edition.login?.required === false ? true : isAuthenticated;
   return (
-    <AuthGuard isAuthenticated={isAuthenticated}>
+    <AuthGuard isAuthenticated={authed}>
       <BasicLayout />
     </AuthGuard>
   );
