@@ -68,9 +68,7 @@ export default function LoginPage() {
   const [forgotError, setForgotError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  if (isAuthenticated) return <Navigate to={edition.homePath ?? '/home'} replace />;
-
-  // 倒计时
+  // 倒计时（hooks 必须在 early return 之前，否则登录后 hooks 数量变化 → React 报错白屏）
   useEffect(() => {
     if (countdown <= 0) return;
     const t = setInterval(() => setCountdown((c) => c - 1), 1000);
@@ -81,6 +79,8 @@ export default function LoginPage() {
     const t = setInterval(() => setForgotCountdown((c) => c - 1), 1000);
     return () => clearInterval(t);
   }, [forgotCountdown]);
+
+  if (isAuthenticated) return <Navigate to={edition.homePath ?? '/home'} replace />;
 
   async function handlePasswordLogin(e: FormEvent): Promise<void> {
     e.preventDefault();
