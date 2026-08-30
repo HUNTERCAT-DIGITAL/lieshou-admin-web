@@ -38,6 +38,7 @@ import { useAuthStore } from '@lieshoucloud/core-web';
 import type { EditionConfig, EditionExtraRoute } from '@lieshoucloud/contract-types';
 
 import { getEdition } from '../config/editions';
+import OperationGuide from '../components/OperationGuide';
 
 /** 菜单图标：string 名称 → antd 图标（未知名称兜底默认图标） */
 const ICON_MAP: Record<string, ReactNode> = {
@@ -219,7 +220,7 @@ export default function ConsoleLayout() {
           </Dropdown>
         ),
       }}
-      actionsRender={() => []}
+      actionsRender={() => [<OperationGuide key="guide" />]}
     >
       <Outlet />
     </ProLayout>
