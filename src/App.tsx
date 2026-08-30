@@ -19,6 +19,7 @@ import ConsoleLayout, { shouldUseConsole } from './layout/ConsoleLayout';
 import AboutPage from './pages/AboutPage';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
+import PortalPage from './pages/PortalPage';
 
 /** 客户注入路由的懒加载出口 */
 function LazyRoute({ load }: { load: () => Promise<{ default: ComponentType }> }) {
@@ -75,6 +76,7 @@ export default function App() {
     <BrowserRouter basename={import.meta.env.BASE_URL} useTransitions={false}>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/portal" element={<PortalPage />} />
         <Route element={<RequireAuth />}>
           {useConsole ? <Route element={<ConsoleLayout />}>{layoutChildren}</Route> : layoutChildren}
         </Route>
