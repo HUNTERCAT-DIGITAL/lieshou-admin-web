@@ -22,6 +22,7 @@ import {
   HomeOutlined,
   InfoCircleOutlined,
   LogoutOutlined,
+  UserOutlined,
   MenuOutlined,
   ThunderboltOutlined,
   ToolOutlined,
@@ -201,6 +202,12 @@ export default function ConsoleLayout() {
           <Dropdown
             menu={{
               items: [
+                {
+                  key: 'profile',
+                  icon: <UserOutlined />,
+                  label: '个人中心',
+                  onClick: () => navigate('/profile'),
+                },
                 {
                   key: 'about',
                   icon: <InfoCircleOutlined />,

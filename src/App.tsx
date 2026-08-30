@@ -20,6 +20,7 @@ import AboutPage from './pages/AboutPage';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import PortalPage from './pages/PortalPage';
+import ProfilePage from './pages/ProfilePage';
 
 /** 客户注入路由的懒加载出口 */
 function LazyRoute({ load }: { load: () => Promise<{ default: ComponentType }> }) {
@@ -62,6 +63,7 @@ export default function App() {
       <Route path="/" element={homeElement} />
       <Route path="/home" element={homeElement} />
       <Route path="about" element={<AboutPage />} />
+      <Route path="profile" element={<ProfilePage />} />
       {layoutRoutes.map((r) => (
         <Route
           key={r.path}
