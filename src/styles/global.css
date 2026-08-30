@@ -146,6 +146,44 @@ body {
   flex: 1;
 }
 
+/* 左上角「前往门户」按钮 */
+.portal-link-top {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #fff;
+  border-radius: 20px;
+  padding: 6px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  z-index: 10;
+}
+
+.portal-link-top:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* 登录成功进入系统 loading 遮罩 */
+.login-entering {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #02429b;
+}
+
+.login-entering p {
+  margin: 0;
+  font-size: 16px;
+}
+
 /* ---------- 启动页 / 关于页 ---------- */
 .home-page,
 .about-page {

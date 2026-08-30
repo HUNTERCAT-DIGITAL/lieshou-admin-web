@@ -5,7 +5,7 @@
  * 单租户部署（login.hideTenantInput）隐藏租户框，固定 edition.tenantCode。
  */
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { Button, Input, Modal, Segmented } from 'antd';
+import { Button, Input, Modal, Segmented, Spin } from 'antd';
 import { Navigate, useNavigate } from 'react-router-dom';
 import {
   loginWithCode,
@@ -67,6 +67,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [forgotError, setForgotError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [entering, setEntering] = useState(false);
 
   // 倒计时（hooks 必须在 early return 之前，否则登录后 hooks 数量变化 → React 报错白屏）
   useEffect(() => {
@@ -80,21 +81,23 @@ export default function LoginPage() {
     return () => clearInterval(t);
   }, [forgotCountdown]);
 
-  if (isAuthenticated) return <Navigate to={edition.homePath ?? '/home'} replace />;
+  if (isAuthenticated && !entering) return <Navigate to={edition.homePath ?? '/home'} replace />;
 
   async function handlePasswordLogin(e: FormEvent): Promise<void> {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
     try {
+      setEntering(true);
       await login(account.trim(), password, tenantCode);
       if (remember) {
         localStorage.setItem(REMEMBER_KEY, JSON.stringify({ account: account.trim(), password }));
       } else {
         localStorage.removeItem(REMEMBER_KEY);
       }
-      navigate(edition.homePath ?? '/home', { replace: true });
+      window.setTimeout(() => navigate(edition.homePath ?? '/home', { replace: true }), 600);
     } catch (err) {
+      setEntering(false);
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setSubmitting(false);
@@ -116,10 +119,12 @@ export default function LoginPage() {
     setError(null);
     setSubmitting(true);
     try {
+      setEntering(true);
       const token = await loginWithCode(tenantCode, 'SMS', phone.trim(), code.trim());
       setSession(token);
-      navigate(edition.homePath ?? '/home', { replace: true });
+      window.setTimeout(() => navigate(edition.homePath ?? '/home', { replace: true }), 600);
     } catch (err) {
+      setEntering(false);
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setSubmitting(false);
@@ -156,6 +161,9 @@ export default function LoginPage() {
 
   return (
     <div className="login-page">
+      <button className="portal-link-top" type="button" onClick={() => navigate('/portal')}>
+        前往门户
+      </button>
       <div className="login-brand">
         <h1 className="login-title">{edition.brandName}</h1>
         {edition.slogan && <p className="login-slogan">{edition.slogan}</p>}
@@ -285,14 +293,14 @@ export default function LoginPage() {
           {mode === 'password' ? '登 录' : '验证码登录'}
         </Button>
 
-        <Button
-          block
-          style={{ marginTop: 8 }}
-          onClick={() => navigate('/portal')}
-        >
-          前往门户
-        </Button>
       </form>
+
+      {entering && (
+        <div className="login-entering">
+          <Spin size="large" />
+          <p>正在进入系统…</p>
+        </div>
+      )}
 
       {/* 忘记密码 */}
       <Modal
