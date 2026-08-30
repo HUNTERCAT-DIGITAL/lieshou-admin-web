@@ -17,21 +17,23 @@
     "test:coverage": "vitest run --coverage --passWithNoTests"
   },
   "dependencies": {
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
-    "react-router-dom": "^7.18.2",
-    "antd": "5.22.0",
     "@ant-design/icons": "~5.5.1",
     "@ant-design/pro-components": "^2.8.0",
-    "dayjs": "~1.11.13",
     "@lieshoucloud/contract-api": "workspace:*",
     "@lieshoucloud/contract-config": "workspace:*",
     "@lieshoucloud/contract-types": "workspace:*",
     "@lieshoucloud/core-web": "workspace:*",
-    "@lieshoucloud/i18n": "workspace:*"
+    "@lieshoucloud/i18n": "workspace:*",
+    "antd": "5.22.0",
+    "dayjs": "~1.11.13",
+    "qrcode.react": "^4.2.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-router-dom": "^7.18.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
+    "@playwright/test": "^1.62.1",
     "@testing-library/jest-dom": "6.6.3",
     "@testing-library/react": "16.1.0",
     "@testing-library/user-event": "^14.5.2",

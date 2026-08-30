@@ -217,17 +217,14 @@ body {
 /* ---------- 门户页 ---------- */
 .portal-page {
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: linear-gradient(160deg, #02429b 0%, #0a6bd8 60%, #f5f6f7 60.1%);
+  background: #f5f6f7;
 }
 
 .portal-hero {
   text-align: center;
   color: #fff;
-  max-width: 640px;
+  padding: 80px 24px 96px;
+  background: linear-gradient(160deg, #02429b 0%, #0a6bd8 100%);
 }
 
 .portal-logo {
@@ -247,10 +244,11 @@ body {
 }
 
 .portal-desc {
-  margin: 0 0 32px;
+  margin: 0 auto 32px;
   font-size: 15px;
-  opacity: 0.75;
+  opacity: 0.8;
   line-height: 1.6;
+  max-width: 560px;
 }
 
 .portal-cta {
@@ -267,6 +265,110 @@ body {
 
 .portal-cta:hover {
   opacity: 0.9;
+}
+
+.portal-section {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+.portal-section-title {
+  text-align: center;
+  font-size: 28px;
+  color: #1f1f1f;
+  margin: 0 0 28px;
+}
+
+.portal-intro {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.portal-intro p {
+  font-size: 15px;
+  line-height: 1.8;
+  color: #555;
+  margin: 0 0 12px;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.feature-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 4%);
+}
+
+.feature-title {
+  margin: 0 0 8px;
+  font-size: 17px;
+  color: #1f1f1f;
+}
+
+.feature-desc {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #8c8c8c;
+}
+
+.entry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.entry-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 4%);
+}
+
+.entry-title {
+  margin: 0 0 8px;
+  font-size: 16px;
+  color: #1f1f1f;
+}
+
+.entry-desc {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: #8c8c8c;
+}
+
+.entry-qrcode {
+  display: block;
+  margin: 0 auto;
+}
+
+.entry-btn {
+  display: inline-block;
+  padding: 8px 28px;
+  border-radius: 20px;
+  background: #02429b;
+  color: #fff;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.entry-btn:hover {
+  opacity: 0.9;
+  color: #fff;
+}
+
+.portal-footer {
+  text-align: center;
+  padding: 32px 24px;
+  color: #8c8c8c;
+  font-size: 13px;
 }
 
 /* 登录页「前往门户」按钮 */
