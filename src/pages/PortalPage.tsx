@@ -1,10 +1,11 @@
 /**
  * 管理后台 · 门户页（公开官网 landing · 端自身骨架）.
  *
- * 结构：品牌 hero（logo/slogan/heroDesc + 登录 CTA）→ 产品介绍 → 产品功能卡片 → 多端入口
- * （H5 二维码 / 桌面端下载 / 移动端下载 / 小程序二维码）。
+ * 结构：顶部导航（品牌 + 锚点 + 下载下拉 + 登录）→ 品牌 hero → 产品介绍 → 产品功能 → 多端入口。
  * 内容（介绍/功能/入口）由 edition.portal 注入，端层只渲染结构。
  */
+import { DownloadOutlined, LoginOutlined } from '@ant-design/icons';
+import { Button, Dropdown } from 'antd';
 import { QRCodeSVG } from 'qrcode.react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@lieshoucloud/core-web';
@@ -19,28 +20,67 @@ export default function PortalPage() {
 
   const go = () => navigate(isAuthenticated ? (edition.homePath ?? '/home') : '/login');
 
+  const downloadEntries = (portal?.entries ?? []).filter((e) => e.kind === 'download');
+
   return (
     <div className="portal-page">
+      {/* 顶部导航 */}
+      <header className="portal-nav">
+        <div className="portal-nav-inner">
+          <a className="portal-nav-brand" href="#hero">
+            {edition.logo && (
+              <img
+                className="portal-nav-logo"
+                src={`${import.meta.env.BASE_URL}${edition.logo.replace(/^\//, '')}`}
+                alt={edition.brandName}
+              />
+            )}
+            <span>{edition.brandName}</span>
+          </a>
+          <nav className="portal-nav-links">
+            {portal?.intro && portal.intro.length > 0 && <a href="#intro">产品介绍</a>}
+            {portal?.features && portal.features.length > 0 && <a href="#features">产品功能</a>}
+            {portal?.entries && portal.entries.length > 0 && <a href="#entries">多端访问</a>}
+          </nav>
+          <div className="portal-nav-actions">
+            {downloadEntries.length > 0 && (
+              <Dropdown
+                menu={{
+                  items: downloadEntries.map((e) => ({
+                    key: e.label,
+                    label: (
+                      <a href={e.url} target="_blank" rel="noreferrer">
+                        {e.label}
+                      </a>
+                    ),
+                  })),
+                }}
+              >
+                <Button icon={<DownloadOutlined />} size="middle">
+                  下载
+                </Button>
+              </Dropdown>
+            )}
+            <Button type="primary" icon={<LoginOutlined />} onClick={go}>
+              {isAuthenticated ? '进入工作台' : '登录'}
+            </Button>
+          </div>
+        </div>
+      </header>
+
       {/* ① 品牌 hero */}
-      <section className="portal-hero">
-        {edition.logo && (
-          <img
-            className="portal-logo"
-            src={`${import.meta.env.BASE_URL}${edition.logo.replace(/^\//, '')}`}
-            alt={edition.brandName}
-          />
-        )}
+      <section className="portal-hero" id="hero">
         <h1 className="portal-title">{edition.brandName}</h1>
         {edition.slogan && <p className="portal-slogan">{edition.slogan}</p>}
         {edition.heroDesc && <p className="portal-desc">{edition.heroDesc}</p>}
         <button type="button" className="portal-cta" onClick={go}>
-          {isAuthenticated ? '进入工作台' : '登录进入'}
+          {isAuthenticated ? '进入工作台' : '立即登录'}
         </button>
       </section>
 
       {/* ② 产品介绍 */}
       {portal?.intro && portal.intro.length > 0 && (
-        <section className="portal-section">
+        <section className="portal-section" id="intro">
           <h2 className="portal-section-title">产品介绍</h2>
           <div className="portal-intro">
             {portal.intro.map((p, i) => (
@@ -52,7 +92,7 @@ export default function PortalPage() {
 
       {/* ③ 产品功能 */}
       {portal?.features && portal.features.length > 0 && (
-        <section className="portal-section">
+        <section className="portal-section" id="features">
           <h2 className="portal-section-title">产品功能</h2>
           <div className="feature-grid">
             {portal.features.map((f) => (
@@ -67,7 +107,7 @@ export default function PortalPage() {
 
       {/* ④ 多端入口 */}
       {portal?.entries && portal.entries.length > 0 && (
-        <section className="portal-section">
+        <section className="portal-section" id="entries">
           <h2 className="portal-section-title">多端访问</h2>
           <div className="entry-grid">
             {portal.entries.map((e) => (
@@ -78,12 +118,7 @@ export default function PortalPage() {
                   <QRCodeSVG value={e.url} size={132} className="entry-qrcode" />
                 )}
                 {e.kind === 'download' && e.url && (
-                  <a
-                    className="entry-btn"
-                    href={e.url}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
+                  <a className="entry-btn" href={e.url} target="_blank" rel="noreferrer">
                     下载
                   </a>
                 )}
