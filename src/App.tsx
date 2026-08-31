@@ -19,6 +19,7 @@ import ConsoleLayout, { shouldUseConsole } from './layout/ConsoleLayout';
 import AboutPage from './pages/AboutPage';
 import HomePage from './pages/HomePage';
 import WelcomePage from './pages/WelcomePage';
+import UsersPage from './pages/UsersPage';
 import LoginPage from './pages/LoginPage';
 import ActivatePage from './pages/ActivatePage';
 import PortalPage from './pages/PortalPage';
@@ -66,6 +67,7 @@ export default function App() {
       <Route path="/home" element={homeElement} />
       <Route path="about" element={<AboutPage />} />
       <Route path="profile" element={<ProfilePage />} />
+      <Route path="users" element={<UsersPage />} />
       {layoutRoutes.map((r) => (
         <Route
           key={r.path}

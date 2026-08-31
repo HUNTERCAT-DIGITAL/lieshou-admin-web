@@ -26,6 +26,7 @@ import {
   MenuOutlined,
   ThunderboltOutlined,
   ToolOutlined,
+  TeamOutlined,
 } from '@ant-design/icons';
 import type { MenuDataItem } from '@ant-design/pro-components';
 import { ProLayout } from '@ant-design/pro-components';
@@ -113,7 +114,23 @@ export function buildMenuItems(
     (a.menu?.order ?? 99) - (b.menu?.order ?? 99);
   const itemOf = (r: EditionExtraRoute) => toMenuItem(r, badges?.[r.path]);
 
+  const mine = userRoles ?? [];
+  const isAdmin = mine.includes('PLATFORM_ADMIN') || mine.includes('TENANT_ADMIN');
+  // 平台管理菜单（管理员可见 · 2026-08 认证体系：新增用户/激活管理）
+  const platformMenus: MenuDataItem[] = isAdmin
+    ? [
+        {
+          name: '用户管理',
+          icon: <TeamOutlined />,
+          children: [
+            { name: '账号管理', path: '/users', icon: <UserOutlined /> },
+          ],
+        },
+      ]
+    : [];
+
   const items: MenuDataItem[] = [
+    ...platformMenus,
     ...flat.sort(byOrder).map(itemOf),
     ...[...groups.entries()]
       .sort((a, b) => (a[1][0]?.menu?.order ?? 99) - (b[1][0]?.menu?.order ?? 99))
