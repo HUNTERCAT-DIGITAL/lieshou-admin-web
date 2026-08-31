@@ -32,7 +32,7 @@ export default function AboutPage() {
       setCheck({
         loading: false,
         ok: true,
-        message: `后端连通正常（${me.username ?? '已登录'} @ ${me.tenantCode ?? '-'}）`,
+        message: `后端连通正常（${me.username ?? '已登录'}）`,
       });
     } catch (err) {
       setCheck({
@@ -66,15 +66,10 @@ export default function AboutPage() {
           <span className="home-key">版本</span>
           <span className="home-value">{APP_VERSION}</span>
         </div>
-        <div className="home-row">
-          <span className="home-key">版别</span>
-          <span className="home-value">{edition.id}</span>
-        </div>
-        <div className="home-row">
+                <div className="home-row">
           <span className="home-key">用户</span>
           <span className="home-value">
             {user?.username || '未登录'}
-            {user?.tenantName ? `（${user.tenantName}）` : ''}
           </span>
         </div>
       </section>
