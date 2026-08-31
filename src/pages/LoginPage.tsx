@@ -152,7 +152,7 @@ export default function LoginPage() {
     setForgotError(null);
     setSubmitting(true);
     try {
-      await resetPassword('SMS', forgotPhone.trim(), forgotCode.trim(), forgotPassword);
+      await resetPassword(edition.tenantCode, 'SMS', forgotPhone.trim(), forgotCode.trim(), forgotPassword);
       setForgotOpen(false);
       setForgotPhone('');
       setForgotCode('');
