@@ -15,6 +15,7 @@ export default defineConfig({
       { find: '@', replacement: path.resolve(__dirname, 'src') },
       // 共享包显式 alias（嵌套 workspace（客户仓 submodule）场景 symlink 解析漂移 → 强制端内 open/*）
       { find: '@lieshoucloud/contract-api', replacement: path.resolve(__dirname, 'open/contract-api/src') },
+      { find: '@lieshoucloud/api-client', replacement: path.resolve(__dirname, 'open/contract-api/src') },
       { find: '@lieshoucloud/contract-config', replacement: path.resolve(__dirname, 'open/contract-config/src') },
       { find: '@lieshoucloud/contract-types', replacement: path.resolve(__dirname, 'open/contract-types/src') },
       { find: '@lieshoucloud/core-web', replacement: path.resolve(__dirname, 'open/core-web/src') },

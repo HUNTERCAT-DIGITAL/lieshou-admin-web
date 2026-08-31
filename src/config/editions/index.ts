@@ -1,6 +1,8 @@
 /**
  * 版别聚合 + 客户注入（端自身骨架 · 类型来自共享契约 contract-types）。
  * 客户仓 deploy 生成 config/editions/<client>.extra.ts，glob 自动收集。
+ * 2026-08-31 fix：withExtras 按当前 edition id 过滤 extra（多客户共存时
+ * 不再把全部客户的 brandName/extraRoutes 叠加进每个构建）。
  */
 import type { EditionConfig } from '@lieshoucloud/contract-types';
 
@@ -23,10 +25,12 @@ export function resolveEditionId(): string {
 // glob 默认返回 { default: ... }（客户 extra 文件 default 导出；独立仓库无匹配）
 const EXTRA_MODULES = import.meta.glob<EditionExtraModule>('./*.extra.ts', { eager: true });
 
-/** 合并客户注入 → 完整 Edition（客户字段覆盖；extraRoutes 追加） */
+/** 合并客户注入 → 完整 Edition（仅当前 edition 的 extra；客户字段覆盖；extraRoutes 追加） */
 function withExtras(base: EditionConfig): EditionConfig {
-  const extras = Object.values(EXTRA_MODULES)
-    .map((m) => m.default)
+  const id = resolveEditionId();
+  const extras = Object.entries(EXTRA_MODULES)
+    .filter(([p]) => p.includes(`/${id}.extra.ts`))
+    .map(([, m]) => m.default)
     .filter((m): m is Partial<EditionConfig> => !!m);
   if (extras.length === 0) return base;
   return extras.reduce<EditionConfig>(
@@ -39,7 +43,7 @@ function withExtras(base: EditionConfig): EditionConfig {
   );
 }
 
-/** 当前部署版别配置（generic 基准 + 客户 extra 叠加；非内置版别以 generic 为底） */
+/** 当前部署版别配置（generic 基准 + 当前 edition 的 extra；非内置版别以 generic 为底） */
 export function getEdition(): EditionConfig {
   const id = resolveEditionId();
   if (id === 'generic') return withExtras(genericEdition);
