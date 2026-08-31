@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 
-import { ConfigProvider } from 'antd';
+import { App as AntdApp, ConfigProvider } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
@@ -109,7 +109,11 @@ ReactDOM.createRoot(rootEl).render(
       locale={zhCN}
       theme={{ token: { colorPrimary: edition.primaryColor ?? '#1677ff' } }}
     >
-      <App />
+      {/* antd App 上下文（2026-08-31：缺此包裹时 App.useApp() 的 messageApi 为空壳，
+          新建规则等保存成功但提示/关闭中断 → 表现“保存没反应”） */}
+      <AntdApp>
+        <App />
+      </AntdApp>
     </ConfigProvider>
   </React.StrictMode>,
 );
