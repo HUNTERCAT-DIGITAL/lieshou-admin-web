@@ -143,7 +143,7 @@ export default function UsersPage() {
         />
         <ProFormText
           name="phone"
-          label="手机号（告警短信接收人）"
+          label="手机号"
           rules={[{ pattern: /^1\d{10}$/, message: '请输入 11 位手机号' }]}
           fieldProps={{ maxLength: 11 }}
         />
@@ -161,7 +161,7 @@ export default function UsersPage() {
         />
       </ModalForm>
       <Modal
-        title="新增用户（首次登录用手机验证码激活并设置密码）"
+        title="新增用户"
         open={createOpen}
         onCancel={() => {
           setCreateOpen(false);
@@ -215,7 +215,7 @@ export default function UsersPage() {
             label="账号"
             rules={[{ required: true, message: '请输入账号' }]}
           >
-            <Input placeholder="登录账号" />
+            <Input placeholder="账号" />
           </Form.Item>
           <Form.Item
             name="displayName"
@@ -226,10 +226,10 @@ export default function UsersPage() {
           </Form.Item>
           <Form.Item
             name="phone"
-            label="手机号（首次登录激活用）"
+            label="手机号"
             rules={[{ required: true, pattern: /^1\d{10}$/, message: '请输入 11 位手机号' }]}
           >
-            <Input placeholder="11 位手机号" maxLength={11} />
+            <Input placeholder="手机号" maxLength={11} />
           </Form.Item>
           {createError && (
             <p style={{ color: '#cf1322', marginBottom: 0 }}>创建失败：{createError}</p>

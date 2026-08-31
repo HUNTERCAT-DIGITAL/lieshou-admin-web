@@ -94,7 +94,7 @@ export default function ProfilePage() {
             <Input placeholder="如 13800000000" maxLength={11} />
           </Form.Item>
           <Form.Item name="email" label="邮箱">
-            <Input placeholder="邮箱（选填）" />
+            <Input placeholder="邮箱" />
           </Form.Item>
           <Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={onSave}>
             保存
