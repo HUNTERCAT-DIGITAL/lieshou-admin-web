@@ -49,7 +49,7 @@ export default function AboutPage() {
         {edition.logo && (
           <img
             className="home-logo"
-            src={`${import.meta.env.BASE_URL}${edition.logo.replace(/^\//, '')}`}
+            src={`${import.meta.env.BASE_URL.replace(/\/$/, '')}/${edition.logo.replace(/^\//, '')}`}
             alt={edition.brandName}
           />
         )}
