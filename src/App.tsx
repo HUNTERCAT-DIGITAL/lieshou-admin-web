@@ -20,6 +20,7 @@ import AboutPage from './pages/AboutPage';
 import HomePage from './pages/HomePage';
 import WelcomePage from './pages/WelcomePage';
 import LoginPage from './pages/LoginPage';
+import ActivatePage from './pages/ActivatePage';
 import PortalPage from './pages/PortalPage';
 import ProfilePage from './pages/ProfilePage';
 
@@ -80,6 +81,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<WelcomePage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/activate" element={<ActivatePage />} />
         <Route path="/portal" element={<PortalPage />} />
         <Route element={<RequireAuth />}>
           {useConsole ? <Route element={<ConsoleLayout />}>{layoutChildren}</Route> : layoutChildren}

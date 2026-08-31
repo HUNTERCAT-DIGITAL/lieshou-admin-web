@@ -121,6 +121,12 @@ export default function LoginPage() {
     try {
       setEntering(true);
       const token = await loginWithCode(tenantCode, 'SMS', phone.trim(), code.trim());
+      if (token.activationRequired) {
+        // 首次登录(管理员建用户未设密码) → 引导激活设置密码
+        setSession(token);
+        window.setTimeout(() => navigate('/activate', { replace: true }), 300);
+        return;
+      }
       setSession(token);
       window.setTimeout(() => navigate(edition.homePath ?? '/home', { replace: true }), 600);
     } catch (err) {

@@ -9,7 +9,7 @@ import { useRef, useState } from 'react';
 import { App, Tag, Typography } from 'antd';
 import { PageContainer, ProTable, ModalForm, ProFormText, ProFormSelect, type ActionType, type ProColumns } from '@ant-design/pro-components';
 
-import { listRoles, listUsers, updateUser } from '@lieshoucloud/core-web';
+import { createUser, listRoles, listUsers, updateUser } from '@lieshoucloud/core-web';
 import { STATUS_META } from '@lieshoucloud/contract-types/business/user';
 import type { Role } from '@lieshoucloud/contract-types/business/role';
 import type { User } from '@lieshoucloud/contract-types/business/user';
@@ -27,6 +27,7 @@ export default function UsersPage() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [editing, setEditing] = useState<User | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const reload = () => actionRef.current?.reload();
 
@@ -91,6 +92,25 @@ export default function UsersPage() {
           setRoles(rs);
           return { data: users, success: true };
         }}
+        toolBarRender={() => [
+          <button
+            key="add"
+            type="button"
+            style={{
+              height: 32,
+              padding: '0 16px',
+              borderRadius: 6,
+              border: '1px solid #d9d9d9',
+              background: '#1677ff',
+              color: '#fff',
+              fontSize: 14,
+              cursor: 'pointer',
+            }}
+            onClick={() => setCreateOpen(true)}
+          >
+            + 新增用户
+          </button>,
+        ]}
         pagination={{ pageSize: 10 }}
       />
       <ModalForm<User>
@@ -135,6 +155,40 @@ export default function UsersPage() {
           label="状态"
           options={Object.entries(STATUS_META).map(([value, m]) => ({ label: m.text, value }))}
           rules={[{ required: true }]}
+        />
+      </ModalForm>
+      <ModalForm
+        title="新增用户（首次登录用手机验证码激活并设置密码）"
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        modalProps={{ destroyOnClose: true }}
+        onFinish={async (values) => {
+          await createUser({
+            username: values.username,
+            displayName: values.displayName,
+            phone: values.phone || undefined,
+          });
+          message.success('已创建（未设密码，用户首次登录用手机验证码激活）');
+          setCreateOpen(false);
+          reload();
+          return true;
+        }}
+      >
+        <ProFormText
+          name="username"
+          label="账号"
+          rules={[{ required: true, message: '请输入账号' }]}
+        />
+        <ProFormText
+          name="displayName"
+          label="姓名"
+          rules={[{ required: true, message: '请输入姓名' }]}
+        />
+        <ProFormText
+          name="phone"
+          label="手机号（首次登录激活用）"
+          rules={[{ required: true, pattern: /^1\d{10}$/, message: '请输入 11 位手机号' }]}
+          fieldProps={{ maxLength: 11 }}
         />
       </ModalForm>
     </PageContainer>
