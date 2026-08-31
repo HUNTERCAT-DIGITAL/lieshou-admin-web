@@ -218,7 +218,7 @@ export default function ConsoleLayout() {
                   key: 'logout',
                   icon: <LogoutOutlined />,
                   label: '退出登录',
-                  onClick: () => logout(),
+                  onClick: () => { logout(); navigate('/portal'); },
                 },
               ],
             }}

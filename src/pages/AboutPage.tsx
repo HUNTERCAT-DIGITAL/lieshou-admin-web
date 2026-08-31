@@ -7,6 +7,7 @@
 import { useCallback, useState } from 'react';
 import { useAuthStore } from '@lieshoucloud/core-web';
 
+import { useNavigate } from 'react-router-dom';
 import { getEdition } from '../config/editions';
 import { APP_VERSION } from '../config/version';
 
@@ -18,6 +19,7 @@ interface CheckState {
 
 export default function AboutPage() {
   const edition = getEdition();
+  const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const fetchMe = useAuthStore((s) => s.fetchMe);
   const logout = useAuthStore((s) => s.logout);
@@ -84,7 +86,7 @@ export default function AboutPage() {
         {check.message && (
           <p className={check.ok ? 'check-ok' : 'check-fail'}>{check.message}</p>
         )}
-        <button type="button" className="btn-ghost" onClick={() => logout()}>
+        <button type="button" className="btn-ghost" onClick={() => { logout(); navigate('/portal'); }}>
           退出登录
         </button>
       </section>

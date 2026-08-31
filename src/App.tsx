@@ -18,6 +18,7 @@ import { getEdition } from './config/editions';
 import ConsoleLayout, { shouldUseConsole } from './layout/ConsoleLayout';
 import AboutPage from './pages/AboutPage';
 import HomePage from './pages/HomePage';
+import WelcomePage from './pages/WelcomePage';
 import LoginPage from './pages/LoginPage';
 import PortalPage from './pages/PortalPage';
 import ProfilePage from './pages/ProfilePage';
@@ -77,6 +78,7 @@ export default function App() {
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL} useTransitions={false}>
       <Routes>
+        <Route path="/" element={<WelcomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/portal" element={<PortalPage />} />
         <Route element={<RequireAuth />}>

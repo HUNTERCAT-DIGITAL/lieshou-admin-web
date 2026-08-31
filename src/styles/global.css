@@ -519,3 +519,39 @@ body {
   font-size: 14px;
   cursor: pointer;
 }
+
+/* 欢迎页（2026-08-31 · 未登录首个页面） */
+.welcome-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5f6f7 0%, #eef1f6 100%);
+}
+.welcome-inner {
+  text-align: center;
+  padding: 48px 24px;
+  max-width: 560px;
+}
+.welcome-logo {
+  height: 72px;
+  margin-bottom: 24px;
+}
+.welcome-brand {
+  font-size: 40px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #1f1f1f;
+}
+.welcome-slogan {
+  color: #666;
+  font-size: 18px;
+  margin-bottom: 36px;
+}
+.welcome-actions {
+  margin-bottom: 28px;
+}
+.welcome-tip {
+  color: #999;
+  font-size: 13px;
+}
