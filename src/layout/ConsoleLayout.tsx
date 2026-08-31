@@ -27,6 +27,10 @@ import {
   ThunderboltOutlined,
   ToolOutlined,
   TeamOutlined,
+  FileTextOutlined,
+  ClockCircleOutlined,
+  BookOutlined,
+  RobotOutlined,
 } from '@ant-design/icons';
 import type { MenuDataItem } from '@ant-design/pro-components';
 import { ProLayout } from '@ant-design/pro-components';
@@ -59,6 +63,11 @@ const ICON_MAP: Record<string, ReactNode> = {
   ops: <ToolOutlined />,
   cockpit: <FundProjectionScreenOutlined />,
   menu: <MenuOutlined />,
+  file: <FileTextOutlined />,
+  team: <TeamOutlined />,
+  clock: <ClockCircleOutlined />,
+  book: <BookOutlined />,
+  ai: <RobotOutlined />,
 };
 
 function iconOf(name?: string): ReactNode {
