@@ -6,7 +6,7 @@
  * 此处统一维护值班员/管理员的接收号码。
  */
 import { useRef, useState } from 'react';
-import { App, Tag, Typography } from 'antd';
+import { App, Form, Input, Modal, Tag, Typography } from 'antd';
 import { PageContainer, ProTable, ModalForm, ProFormText, ProFormSelect, type ActionType, type ProColumns } from '@ant-design/pro-components';
 
 import { createUser, listRoles, listUsers, updateUser } from '@lieshoucloud/core-web';
@@ -28,6 +28,9 @@ export default function UsersPage() {
   const [editing, setEditing] = useState<User | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const createForm = Form.useForm()[0];
 
   const reload = () => actionRef.current?.reload();
 
@@ -157,40 +160,82 @@ export default function UsersPage() {
           rules={[{ required: true }]}
         />
       </ModalForm>
-      <ModalForm
+      <Modal
         title="新增用户（首次登录用手机验证码激活并设置密码）"
         open={createOpen}
-        onOpenChange={setCreateOpen}
-        modalProps={{ destroyOnClose: true }}
-        onFinish={async (values) => {
-          await createUser({
-            username: values.username,
-            displayName: values.displayName,
-            phone: values.phone || undefined,
-          });
-          message.success('已创建（未设密码，用户首次登录用手机验证码激活）');
+        onCancel={() => {
           setCreateOpen(false);
-          reload();
-          return true;
+          setCreateError(null);
+          createForm.resetFields();
         }}
+        onOk={async () => {
+          setCreateError(null);
+          try {
+            // 字段校验:账号/姓名/手机号必填,手机号 11 位(Form.Item 红字提示)
+            const values = await createForm.validateFields();
+            setCreating(true);
+            const created = await createUser({
+              username: values.username,
+              displayName: values.displayName,
+              phone: values.phone || undefined,
+            });
+            message.success(
+              `已创建 ${created.username}（未设密码，用户首次登录用手机验证码激活）`,
+            );
+            setCreateOpen(false);
+            createForm.resetFields();
+            reload();
+          } catch (err) {
+            // validateFields 校验错误(errorFields)→ Form.Item 已红字;仅 API 错误在此显示
+            const hasFieldErr = !!(
+              err &&
+              typeof err === 'object' &&
+              'errorFields' in err
+            );
+            if (!hasFieldErr) {
+              const e = err as { message?: unknown };
+              setCreateError(
+                typeof e?.message === 'string' && e.message
+                  ? e.message
+                  : '创建失败，请检查填写内容',
+              );
+            }
+          } finally {
+            setCreating(false);
+          }
+        }}
+        confirmLoading={creating}
+        okText="确定"
+        cancelText="取消"
+        destroyOnClose
       >
-        <ProFormText
-          name="username"
-          label="账号"
-          rules={[{ required: true, message: '请输入账号' }]}
-        />
-        <ProFormText
-          name="displayName"
-          label="姓名"
-          rules={[{ required: true, message: '请输入姓名' }]}
-        />
-        <ProFormText
-          name="phone"
-          label="手机号（首次登录激活用）"
-          rules={[{ required: true, pattern: /^1\d{10}$/, message: '请输入 11 位手机号' }]}
-          fieldProps={{ maxLength: 11 }}
-        />
-      </ModalForm>
+        <Form form={createForm} layout="vertical">
+          <Form.Item
+            name="username"
+            label="账号"
+            rules={[{ required: true, message: '请输入账号' }]}
+          >
+            <Input placeholder="登录账号" />
+          </Form.Item>
+          <Form.Item
+            name="displayName"
+            label="姓名"
+            rules={[{ required: true, message: '请输入姓名' }]}
+          >
+            <Input placeholder="姓名" />
+          </Form.Item>
+          <Form.Item
+            name="phone"
+            label="手机号（首次登录激活用）"
+            rules={[{ required: true, pattern: /^1\d{10}$/, message: '请输入 11 位手机号' }]}
+          >
+            <Input placeholder="11 位手机号" maxLength={11} />
+          </Form.Item>
+          {createError && (
+            <p style={{ color: '#cf1322', marginBottom: 0 }}>创建失败：{createError}</p>
+          )}
+        </Form>
+      </Modal>
     </PageContainer>
   );
 }
