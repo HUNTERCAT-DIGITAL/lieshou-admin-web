@@ -15,13 +15,43 @@ import { PageContainer, ProTable, type ActionType, type ProColumns } from '@ant-
 
 import { useApiError } from '@lieshoucloud/ui';
 import NotificationDetailModal, { type NotificationDetail } from '../components/NotificationDetailModal';
-import {
-  deleteAllNotifications,
-  listAllNotifications,
-  markNotificationReadAny,
-  type NotificationAdminItem,
-} from '@lieshoucloud/dwjk/api';
-import { formatDateTime } from '@lieshoucloud/dwjk/industry/utils/time';
+import { request } from '@lieshoucloud/contract-api';
+
+/** 通知管理项（通用 iot 端点 · 上游直接调用避免客户包依赖） */
+export interface NotificationAdminItem {
+  id: number;
+  userId?: number;
+  userName?: string;
+  type: string;
+  title: string;
+  content?: string;
+  link?: string;
+  read: boolean;
+  createdAt: string;
+}
+async function listAllNotifications(params?: { type?: string; read?: string; keyword?: string }) {
+  const qs = new URLSearchParams();
+  if (params?.type) qs.set('type', params.type);
+  if (params?.read) qs.set('read', params.read);
+  if (params?.keyword) qs.set('keyword', params.keyword);
+  const q = qs.toString();
+  return request<NotificationAdminItem[]>({
+    method: 'GET',
+    path: `/api/iot/notifications/admin${q ? `?${q}` : ''}`,
+  });
+}
+async function deleteAllNotifications() {
+  await request({ method: 'DELETE', path: '/api/iot/notifications' });
+}
+async function markNotificationReadAny(id: number) {
+  await request({ method: 'PATCH', path: `/api/iot/notifications/${id}/read` });
+}
+function formatDateTime(v?: string) {
+  if (!v) return '';
+  const d = new Date(v);
+  const p = (x: number) => String(x).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
 
 const TYPE_META: Record<string, { text: string; color: string }> = {
   TICKET: { text: '工单', color: 'blue' },

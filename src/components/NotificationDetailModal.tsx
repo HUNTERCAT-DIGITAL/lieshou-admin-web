@@ -12,8 +12,24 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
-import { deleteNotification, markNotificationReadAny, markNotificationRead } from '@lieshoucloud/dwjk/api';
-import { formatDateTime } from '@lieshoucloud/dwjk/industry/utils/time';
+import { request } from '@lieshoucloud/contract-api';
+
+/** 通用通知端点（iot 服务 · dwjk 客户包同源封装，上游通用仓直接调用避免客户包依赖） */
+async function markNotificationReadAny(id: number) {
+  await request({ method: 'PATCH', path: `/api/iot/notifications/${id}/read` });
+}
+async function markNotificationRead(id: number) {
+  await request({ method: 'PATCH', path: `/api/iot/notifications/${id}/read` });
+}
+async function deleteNotification(id: number) {
+  await request({ method: 'DELETE', path: `/api/iot/notifications/${id}` });
+}
+function formatDateTime(v?: string) {
+  if (!v) return '';
+  const d = new Date(v);
+  const p = (x: number) => String(x).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
 
 export interface NotificationDetail {
   id: number;
