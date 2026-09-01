@@ -19,6 +19,7 @@ import {
   DashboardOutlined,
   FundOutlined,
   FundProjectionScreenOutlined,
+  ProjectOutlined,
   HomeOutlined,
   InfoCircleOutlined,
   LogoutOutlined,
@@ -45,6 +46,7 @@ import type { EditionConfig, EditionExtraRoute } from '@lieshoucloud/contract-ty
 
 import { getEdition } from '../config/editions';
 import NotificationBell from '../components/NotificationBell';
+import ProjectSwitcher from '../components/ProjectSwitcher';
 
 /** 菜单图标：string 名称 → antd 图标（未知名称兜底默认图标） */
 const ICON_MAP: Record<string, ReactNode> = {
@@ -202,6 +204,8 @@ export default function ConsoleLayout() {
   const edition = getEdition();
   const extraRoutes = edition.extraRoutes ?? [];
   const badges = useMenuBadges(extraRoutes);
+  // 管理员（平台超管/租户管理员）可见「项目管理」（平台功能 · 右上角）
+  const isAdmin = (user?.roles ?? []).some((r) => r === 'PLATFORM_ADMIN' || r === 'TENANT_ADMIN');
   const menuItems = useMemo(
     () => buildMenuItems(edition, user?.roles, badges),
     [edition, user?.roles, badges],
@@ -255,6 +259,7 @@ export default function ConsoleLayout() {
         ),
       }}
       actionsRender={() => [
+        <ProjectSwitcher key="project" />,
         <NotificationBell key="notif" />,
         ...(edition.headerActions ?? []).map((a) => (
           <Button
@@ -267,6 +272,17 @@ export default function ConsoleLayout() {
             {a.label}
           </Button>
         )),
+        // 项目管理入口（平台功能 · 管理员专用，放右上角而非左侧菜单）
+        isAdmin && (
+          <Button
+            key="projects"
+            icon={<ProjectOutlined />}
+            style={{ marginLeft: 8 }}
+            onClick={() => navigate('/iot/projects')}
+          >
+            项目管理
+          </Button>
+        ),
       ]}
     >
       <Outlet />
