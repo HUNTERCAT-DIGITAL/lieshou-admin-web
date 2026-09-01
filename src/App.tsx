@@ -4,13 +4,14 @@
  * 有客户菜单声明（或 dutyConsole 值班员模式）时套 ProLayout 控制台壳；
  * 无菜单版别（generic 骨架）保持扁平路由。
  */
-import { Suspense, lazy, useMemo, type ComponentType } from 'react';
+import { Suspense, lazy, useEffect, useMemo, type ComponentType } from 'react';
 import {
   BrowserRouter,
   Navigate,
   Outlet,
   Route,
   Routes,
+  useNavigate,
 } from 'react-router-dom';
 import { useAuthStore } from '@lieshoucloud/core-web';
 
@@ -44,6 +45,41 @@ function RequireAuth() {
   const required = edition.login?.required !== false;
   if (required && !isAuthenticated) return <Navigate to="/login" replace />;
   return <Outlet />;
+}
+
+/**
+ * 会话过期主动检测（2026-09-01）：无 API 请求的页面也到点自动退出。
+ * 解析 accessToken 的 exp，定时检查；到点 logout + 跳登录。
+ */
+function SessionGuard() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const logout = useAuthStore((s) => s.logout);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isAuthenticated || !accessToken) return;
+    let exp = 0;
+    try {
+      exp = (JSON.parse(atob(accessToken.split('.')[1])) as { exp?: number }).exp ?? 0;
+    } catch {
+      return;
+    }
+    if (!exp) return;
+    const deadline = exp * 1000;
+    const check = () => {
+      if (Date.now() >= deadline) {
+        logout();
+        navigate('/login', { replace: true });
+      }
+    };
+    // 已过期（如恢复会话）立即退出；否则每 2 秒检查
+    check();
+    const t = setInterval(check, 2000);
+    return () => clearInterval(t);
+  }, [isAuthenticated, accessToken, logout, navigate]);
+
+  return null;
 }
 
 export default function App() {
@@ -80,6 +116,8 @@ export default function App() {
 
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL} useTransitions={false}>
+      {/* 会话过期主动检测（无请求页面也到点退出） */}
+      <SessionGuard />
       <Routes>
         <Route path="/" element={<WelcomePage />} />
         <Route path="/login" element={<LoginPage />} />
