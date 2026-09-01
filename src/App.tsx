@@ -29,9 +29,22 @@ import ProfilePage from './pages/ProfilePage';
 
 /** 客户注入路由的懒加载出口 */
 function LazyRoute({ load }: { load: () => Promise<{ default: ComponentType }> }) {
+  // 动态导入失败（部署后旧 chunk 删除）：提示一次 + 自动刷新恢复（避免用户卡在错误页）
+  const loadWithRecover = useMemo(() => {
+    let retried = false;
+    return () =>
+      load().catch((err: unknown) => {
+        if (!retried) {
+          retried = true;
+          console.warn('[LazyRoute] 动态导入失败，自动刷新恢复', err);
+          window.location.reload();
+        }
+        throw err;
+      });
+  }, [load]);
   // useMemo 缓存 lazy 组件：避免每次渲染重建组件身份（否则叠加 v7 BrowserRouter
   // 默认 startTransition 导航，懒加载页面内 navigate/Link 会挂起并卡在旧 UI · E13）
-  const Lazy = useMemo(() => lazy(load), [load]);
+  const Lazy = useMemo(() => lazy(loadWithRecover), [loadWithRecover]);
   return (
     <Suspense fallback={<div className="page-loading">加载中…</div>}>
       {/* 错误边界：发布后旧 chunk 404 → 中文提示刷新（2026-09-01） */}

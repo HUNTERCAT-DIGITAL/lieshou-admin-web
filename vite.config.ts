@@ -57,5 +57,8 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+    // 保留旧 chunk：新构建不清空 dist，避免已缓存的旧主 bundle 引用旧 chunk 时
+    // 动态导入 404（Failed to fetch dynamically imported module）；旧文件按需手动清理
+    emptyOutDir: false,
   },
 });
