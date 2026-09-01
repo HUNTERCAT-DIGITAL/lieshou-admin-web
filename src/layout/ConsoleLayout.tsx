@@ -34,7 +34,7 @@ import {
 } from '@ant-design/icons';
 import type { MenuDataItem } from '@ant-design/pro-components';
 import { ProLayout } from '@ant-design/pro-components';
-import { Avatar, Dropdown, Typography } from 'antd';
+import { Avatar, Button, Dropdown, Typography } from 'antd';
 import type { ReactNode } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
@@ -254,7 +254,20 @@ export default function ConsoleLayout() {
           </Dropdown>
         ),
       }}
-      actionsRender={() => [<OperationGuide key="guide" />]}
+      actionsRender={() => [
+        ...(edition.headerActions ?? []).map((a) => (
+          <Button
+            key={a.path}
+            type="link"
+            icon={<FundProjectionScreenOutlined />}
+            style={{ color: '#1677ff', fontWeight: 600 }}
+            onClick={() => navigate(a.path)}
+          >
+            {a.label}
+          </Button>
+        )),
+        <OperationGuide key="guide" />,
+      ]}
     >
       <Outlet />
     </ProLayout>
