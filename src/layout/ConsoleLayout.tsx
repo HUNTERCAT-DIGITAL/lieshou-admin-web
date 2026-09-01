@@ -139,7 +139,6 @@ export function buildMenuItems(
     : [];
 
   const items: MenuDataItem[] = [
-    ...platformMenus,
     ...flat.sort(byOrder).map(itemOf),
     ...[...groups.entries()]
       .sort((a, b) => (a[1][0]?.menu?.order ?? 99) - (b[1][0]?.menu?.order ?? 99))
@@ -148,6 +147,8 @@ export function buildMenuItems(
         icon: <MenuOutlined />,
         children: list.sort(byOrder).map(itemOf),
       })),
+    // 平台管理（用户管理等）放菜单末尾（2026-09-01：业务菜单优先，平台管理靠后）
+    ...platformMenus,
   ];
   return items;
 }
