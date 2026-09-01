@@ -11,6 +11,7 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
 import { Button, Layout, Menu, Spin, Typography } from 'antd';
 import {
+  BellOutlined,
   CloseOutlined,
   FileTextOutlined,
   InfoCircleOutlined,
@@ -21,11 +22,12 @@ import {
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import UsersPage from './UsersPage';
+import NotificationsPage from './NotificationsPage';
 import AboutPage from './AboutPage';
 
 const { Sider, Content } = Layout;
 
-type SettingsKey = 'projects' | 'users' | 'about' | 'changelog';
+type SettingsKey = 'projects' | 'users' | 'notifications' | 'about' | 'changelog';
 
 /**
  * 客户 industry 页可选匹配（dwjk 等客户包带 industry/pages/*；haizan 等无则隐藏对应菜单）。
@@ -50,6 +52,7 @@ const MENU_ITEMS = [
         { key: 'changelog' as const, icon: <FileTextOutlined />, label: '版本更新' },
       ]
     : []),
+  { key: 'notifications' as const, icon: <BellOutlined />, label: '通知管理' },
   { key: 'users' as const, icon: <TeamOutlined />, label: '用户管理' },
   { key: 'about' as const, icon: <InfoCircleOutlined />, label: '关于' },
 ];
@@ -57,7 +60,11 @@ const MENU_ITEMS = [
 /** 支持 URL ?tab=changelog 直达（更新弹窗「查看全部」跳转） */
 function initialTab(search: URLSearchParams): SettingsKey {
   const t = search.get('tab');
-  return t === 'changelog' ? 'changelog' : t === 'users' ? 'users' : t === 'about' ? 'about' : HAS_INDUSTRY_PAGES ? 'projects' : 'users';
+  return t === 'changelog' ? 'changelog'
+    : t === 'notifications' ? 'notifications'
+    : t === 'users' ? 'users'
+    : t === 'about' ? 'about'
+    : HAS_INDUSTRY_PAGES ? 'projects' : 'users';
 }
 
 export default function SettingsPage() {
@@ -73,6 +80,8 @@ export default function SettingsPage() {
             <ProjectsPage />
           </Suspense>
         ) : null;
+      case 'notifications':
+        return <NotificationsPage />;
       case 'changelog':
         return ChangelogPage ? (
           <Suspense fallback={<Spin style={{ display: 'block', margin: '40px auto' }} />}>

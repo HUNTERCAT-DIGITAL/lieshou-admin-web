@@ -99,11 +99,16 @@ export default function NotificationBell() {
         onClose={() => setOpen(false)}
         width={360}
         extra={
-          count > 0 && (
-            <Button size="small" type="link" onClick={markAll}>
-              全部已读
+          <>
+            <Button size="small" type="link" onClick={() => navigate('/settings?tab=notifications')}>
+              查看全部
             </Button>
-          )
+            {count > 0 && (
+              <Button size="small" type="link" onClick={markAll}>
+                全部已读
+              </Button>
+            )}
+          </>
         }
       >
         <List
