@@ -198,13 +198,14 @@ export default function ConsoleLayout() {
     <ProLayout
       title={edition.brandName}
       logo={false}
-      menuHeaderRender={(logoDom, titleDom) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingRight: 12 }}>
+      headerTitleRender={(logoDom, titleDom) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {logoDom}
           {titleDom}
           <ProjectSwitcher />
         </div>
       )}
+
       layout="mix"
       fixSiderbar
       fixedHeader
