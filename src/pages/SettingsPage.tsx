@@ -33,7 +33,8 @@ type SettingsKey = 'projects' | 'users' | 'notifications' | 'about' | 'changelog
  * 客户 industry 页可选匹配（dwjk 等客户包带 industry/pages/*；haizan 等无则隐藏对应菜单）。
  * glob 只匹配存在路径；客户包无该目录时数组为空 → HAS_INDUSTRY_PAGES=false。
  */
-const INDUSTRY_MODULES = import.meta.glob('../packages/*/src/industry/pages/**/*.tsx');
+// 只匹配 pages 顶层（不含 __tests__ 子目录），避免打包测试文件
+const INDUSTRY_MODULES = import.meta.glob('../../../packages/*/src/industry/pages/*.tsx');
 const HAS_INDUSTRY_PAGES = Object.keys(INDUSTRY_MODULES).length > 0;
 
 /** 懒加载客户 industry 页：从 glob 结果按文件名取模块（避免静态 import 触发 tsc 解析 dwjk 路径） */
