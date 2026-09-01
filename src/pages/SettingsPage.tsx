@@ -6,19 +6,12 @@
  * 左侧主菜单不再承载平台管理项（项目/用户均为项目外平台功能）。
  */
 import { useState } from 'react';
-import { Layout, Menu, Typography } from 'antd';
-import {
-  ArrowLeftOutlined,
-  InfoCircleOutlined,
-  ProjectOutlined,
-  SettingOutlined,
-  TeamOutlined,
-} from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { Button, Descriptions, Layout, Menu, Tag, Typography } from 'antd';
+import { InfoCircleOutlined, ProjectOutlined, SettingOutlined, TeamOutlined } from '@ant-design/icons';
 
+import { CHANGELOG, CURRENT_VERSION } from '@lieshoucloud/dwjk/industry/changelog';
 import ProjectsPage from '@lieshoucloud/dwjk/industry/pages/Projects';
 import UsersPage from './UsersPage';
-import AboutPage from './AboutPage';
 
 const { Sider, Content } = Layout;
 
@@ -30,8 +23,32 @@ const MENU_ITEMS = [
   { key: 'about', icon: <InfoCircleOutlined />, label: '系统信息' },
 ];
 
+function SettingsAbout() {
+  const latest = CHANGELOG[0];
+  return (
+    <div style={{ maxWidth: 560 }}>
+      <Typography.Title level={5} style={{ marginTop: 0 }}>
+        系统信息
+      </Typography.Title>
+      <Descriptions column={1} bordered size="small">
+        <Descriptions.Item label="当前版本">
+          <Tag color="blue" style={{ fontSize: 13 }}>v{CURRENT_VERSION}</Tag>
+          <Typography.Text type="secondary" style={{ fontSize: 12, marginLeft: 8 }}>
+            {latest?.date} · {latest?.title}
+          </Typography.Text>
+        </Descriptions.Item>
+        <Descriptions.Item label="技术栈">
+          Vite 6 + React 19 + Ant Design 5 · Java 21 + Spring Boot 3.5
+        </Descriptions.Item>
+      </Descriptions>
+      <Button type="link" style={{ paddingLeft: 0 }} onClick={() => window.location.assign('/about')}>
+        查看完整系统信息（关于页） ›
+      </Button>
+    </div>
+  );
+}
+
 export default function SettingsPage() {
-  const navigate = useNavigate();
   const [active, setActive] = useState<SettingsKey>('projects');
 
   return (
@@ -50,17 +67,12 @@ export default function SettingsPage() {
           onClick={({ key }) => setActive(key as SettingsKey)}
           style={{ borderInlineEnd: 'none' }}
         />
-        <div style={{ padding: 16 }}>
-          <Typography.Link onClick={() => navigate('/home')}>
-            <ArrowLeftOutlined style={{ marginRight: 4 }} />
-            返回主界面
-          </Typography.Link>
-        </div>
+
       </Sider>
       <Content style={{ padding: 16, background: '#f5f5f5', overflow: 'auto' }}>
         {active === 'projects' && <ProjectsPage />}
         {active === 'users' && <UsersPage />}
-        {active === 'about' && <AboutPage />}
+        {active === 'about' && <SettingsAbout />}
       </Content>
     </Layout>
   );

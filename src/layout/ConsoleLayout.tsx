@@ -198,6 +198,13 @@ export default function ConsoleLayout() {
     <ProLayout
       title={edition.brandName}
       logo={false}
+      menuHeaderRender={(logoDom, titleDom) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingRight: 12 }}>
+          {logoDom}
+          {titleDom}
+          <ProjectSwitcher />
+        </div>
+      )}
       layout="mix"
       fixSiderbar
       fixedHeader
@@ -222,6 +229,17 @@ export default function ConsoleLayout() {
                   label: '个人中心',
                   onClick: () => navigate('/profile'),
                 },
+                // 系统设置（平台功能 · 管理员，个人中心下面）
+                ...(isAdmin
+                  ? [
+                      {
+                        key: 'settings',
+                        icon: <SettingOutlined />,
+                        label: '系统设置',
+                        onClick: () => navigate('/settings'),
+                      },
+                    ]
+                  : []),
                 {
                   key: 'about',
                   icon: <InfoCircleOutlined />,
@@ -242,7 +260,6 @@ export default function ConsoleLayout() {
         ),
       }}
       actionsRender={() => [
-        <ProjectSwitcher key="project" />,
         <NotificationBell key="notif" />,
         ...(edition.headerActions ?? []).map((a) => (
           <Button
@@ -255,17 +272,6 @@ export default function ConsoleLayout() {
             {a.label}
           </Button>
         )),
-        // 系统设置入口（平台功能集中管理 · 管理员专用，右上角 → 自带左侧菜单的设置页）
-        isAdmin && (
-          <Button
-            key="settings"
-            icon={<SettingOutlined />}
-            style={{ marginLeft: 8 }}
-            onClick={() => navigate('/settings')}
-          >
-            系统设置
-          </Button>
-        ),
       ]}
     >
       <Outlet />
