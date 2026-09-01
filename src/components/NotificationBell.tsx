@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { Badge, Button, Drawer, Empty, List, Typography } from 'antd';
 import { BellOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import NotificationDetailModal, { type NotificationDetail } from './NotificationDetailModal';
 import { request } from '@lieshoucloud/contract-api';
 
 interface NotifItem {
@@ -59,17 +60,19 @@ export default function NotificationBell() {
       .finally(() => setLoading(false));
   };
 
+  const [detail, setDetail] = useState<NotificationDetail | null>(null);
+
+  // 点击通知 → 对话框查看详情（不再直接跳转）
   const onOpenItem = (n: NotifItem) => {
-    if (!n.read) {
-      request({ method: 'PATCH', path: `/api/iot/notifications/${n.id}/read` })
-        .catch(() => {
-          /* ignore */
-        })
-        .finally(() => refreshCount());
-      setItems((list) => list.map((x) => (x.id === n.id ? { ...x, read: true } : x)));
-    }
-    setOpen(false);
-    if (n.link) navigate(n.link);
+    setDetail({
+      id: n.id,
+      type: n.type,
+      title: n.title,
+      content: n.content,
+      link: n.link,
+      read: n.read,
+      createdAt: n.createdAt,
+    });
   };
 
   const markAll = () => {
@@ -151,6 +154,15 @@ export default function NotificationBell() {
           )}
         />
       </Drawer>
+      {/* 通知详情对话框（全局复用） */}
+      <NotificationDetailModal
+        notification={detail}
+        onClose={() => setDetail(null)}
+        onChanged={() => {
+          refreshCount();
+          openList();
+        }}
+      />
     </>
   );
 }

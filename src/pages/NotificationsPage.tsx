@@ -4,8 +4,8 @@
  * 管理员管理租户内全部通知：查看（接收人/类型/内容/状态）、筛选、标记已读、删除/清空。
  * 通知类型：TICKET 工单 / ALERT 告警（后续扩展）。
  */
-import { useRef } from 'react';
-import { App, Button, Popconfirm, Tag, Typography } from 'antd';
+import { useRef, useState } from 'react';
+import { App, Button, Popconfirm, Tag } from 'antd';
 import {
   CheckCircleOutlined,
   DeleteOutlined,
@@ -14,6 +14,7 @@ import {
 import { PageContainer, ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
 
 import { useApiError } from '@lieshoucloud/ui';
+import NotificationDetailModal, { type NotificationDetail } from '../components/NotificationDetailModal';
 import {
   deleteAllNotifications,
   deleteNotification,
@@ -32,6 +33,7 @@ export default function NotificationsPage() {
   const { message: messageApi } = App.useApp();
   const handleError = useApiError();
   const actionRef = useRef<ActionType | undefined>(undefined);
+  const [detail, setDetail] = useState<NotificationDetail | null>(null);
 
   const columns: ProColumns<NotificationAdminItem>[] = [
     {
@@ -79,9 +81,29 @@ export default function NotificationsPage() {
     {
       title: '操作',
       valueType: 'option',
-      width: 130,
+      width: 170,
       fixed: 'right',
       render: (_, r) => [
+        <Button
+          key="detail"
+          type="link"
+          size="small"
+          onClick={() =>
+            setDetail({
+              id: r.id,
+              userId: r.userId,
+              userName: r.userName,
+              type: r.type,
+              title: r.title,
+              content: r.content,
+              link: r.link,
+              read: r.read,
+              createdAt: r.createdAt,
+            })
+          }
+        >
+          详情
+        </Button>,
         !r.read && (
           <Button
             key="read"
@@ -150,6 +172,21 @@ export default function NotificationsPage() {
         actionRef={actionRef}
         rowKey="id"
         columns={columns}
+        onRow={(r) => ({
+          onClick: () =>
+            setDetail({
+              id: r.id,
+              userId: r.userId,
+              userName: r.userName,
+              type: r.type,
+              title: r.title,
+              content: r.content,
+              link: r.link,
+              read: r.read,
+              createdAt: r.createdAt,
+            }),
+          style: { cursor: 'pointer' },
+        })}
         request={async (params) => {
           try {
             const data = await listAllNotifications({
@@ -169,18 +206,12 @@ export default function NotificationsPage() {
         options={{ setting: { draggable: true, checkable: true } }}
         cardBordered
         scroll={{ x: 1000 }}
-        expandable={{
-          expandedRowRender: (r) => (
-            <Typography.Paragraph style={{ margin: 0 }}>
-              {r.content ?? '—'}
-              {r.link ? (
-                <Typography.Text type="secondary" style={{ display: 'block', fontSize: 12 }}>
-                  跳转：{r.link}
-                </Typography.Text>
-              ) : null}
-            </Typography.Paragraph>
-          ),
-        }}
+      />
+      {/* 通知详情对话框（全局复用） */}
+      <NotificationDetailModal
+        notification={detail}
+        onClose={() => setDetail(null)}
+        onChanged={() => actionRef.current?.reload()}
       />
     </PageContainer>
   );
