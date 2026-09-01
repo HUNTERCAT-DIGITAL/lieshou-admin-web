@@ -6,7 +6,7 @@
  * 进入后不再显示业务左侧菜单（平台功能与项目内功能隔离）。
  */
 import { useState } from 'react';
-import { Button, Descriptions, Layout, Menu, Tag, Typography } from 'antd';
+import { Button, Layout, Menu, Typography } from 'antd';
 import {
   CloseOutlined,
   InfoCircleOutlined,
@@ -16,9 +16,9 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
-import { CHANGELOG, CURRENT_VERSION } from '@lieshoucloud/dwjk/industry/changelog';
 import ProjectsPage from '@lieshoucloud/dwjk/industry/pages/Projects';
 import UsersPage from './UsersPage';
+import AboutPage from './AboutPage';
 
 const { Sider, Content } = Layout;
 
@@ -27,33 +27,8 @@ type SettingsKey = 'projects' | 'users' | 'about';
 const MENU_ITEMS = [
   { key: 'projects', icon: <ProjectOutlined />, label: '项目管理' },
   { key: 'users', icon: <TeamOutlined />, label: '用户管理' },
-  { key: 'about', icon: <InfoCircleOutlined />, label: '系统信息' },
+  { key: 'about', icon: <InfoCircleOutlined />, label: '关于' },
 ];
-
-function SettingsAbout() {
-  const latest = CHANGELOG[0];
-  return (
-    <div style={{ maxWidth: 560 }}>
-      <Typography.Title level={5} style={{ marginTop: 0 }}>
-        系统信息
-      </Typography.Title>
-      <Descriptions column={1} bordered size="small">
-        <Descriptions.Item label="当前版本">
-          <Tag color="blue" style={{ fontSize: 13 }}>v{CURRENT_VERSION}</Tag>
-          <Typography.Text type="secondary" style={{ fontSize: 12, marginLeft: 8 }}>
-            {latest?.date} · {latest?.title}
-          </Typography.Text>
-        </Descriptions.Item>
-        <Descriptions.Item label="技术栈">
-          Vite 6 + React 19 + Ant Design 5 · Java 21 + Spring Boot 3.5
-        </Descriptions.Item>
-      </Descriptions>
-      <Button type="link" style={{ paddingLeft: 0 }} onClick={() => window.location.assign('/about')}>
-        查看完整系统信息（关于页） ›
-      </Button>
-    </div>
-  );
-}
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -98,7 +73,7 @@ export default function SettingsPage() {
         <Content style={{ padding: 20, background: '#fff' }}>
           {active === 'projects' && <ProjectsPage />}
           {active === 'users' && <UsersPage />}
-          {active === 'about' && <SettingsAbout />}
+          {active === 'about' && <AboutPage />}
         </Content>
       </Layout>
     </Layout>

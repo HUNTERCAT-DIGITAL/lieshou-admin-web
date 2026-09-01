@@ -21,7 +21,6 @@ import {
   FundProjectionScreenOutlined,
   SettingOutlined,
   HomeOutlined,
-  InfoCircleOutlined,
   LogoutOutlined,
   UserOutlined,
   MenuOutlined,
@@ -241,12 +240,6 @@ export default function ConsoleLayout() {
                       },
                     ]
                   : []),
-                {
-                  key: 'about',
-                  icon: <InfoCircleOutlined />,
-                  label: '关于',
-                  onClick: () => navigate('/about'),
-                },
                 {
                   key: 'logout',
                   icon: <LogoutOutlined />,
