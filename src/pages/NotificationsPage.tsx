@@ -17,7 +17,6 @@ import { useApiError } from '@lieshoucloud/ui';
 import NotificationDetailModal, { type NotificationDetail } from '../components/NotificationDetailModal';
 import {
   deleteAllNotifications,
-  deleteNotification,
   listAllNotifications,
   markNotificationReadAny,
   type NotificationAdminItem,
@@ -119,22 +118,7 @@ export default function NotificationsPage() {
             已读
           </Button>
         ),
-        <Popconfirm
-          key="del"
-          title="删除该通知？"
-          okText="删除"
-          cancelText="取消"
-          okButtonProps={{ danger: true }}
-          onConfirm={async () => {
-            await deleteNotification(r.id);
-            messageApi.success('已删除');
-            actionRef.current?.reload();
-          }}
-        >
-          <Button type="link" size="small" danger icon={<DeleteOutlined />}>
-            删除
-          </Button>
-        </Popconfirm>,
+
       ],
     },
   ];

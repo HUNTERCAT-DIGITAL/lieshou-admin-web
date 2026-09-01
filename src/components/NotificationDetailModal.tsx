@@ -4,7 +4,7 @@
  * 铃铛抽屉 / 通知管理页点击通知 → 以对话框展示完整内容：
  * 类型/接收人/时间 + 全文 + 操作（标记已读 / 跳转 link / 删除）。
  */
-import { App, Button, Descriptions, Modal, Space, Tag, Typography } from 'antd';
+import { App, Button, Descriptions, Modal, Popconfirm, Space, Tag, Typography } from 'antd';
 import {
   CheckCircleOutlined,
   DeleteOutlined,
@@ -94,9 +94,17 @@ export default function NotificationDetailModal({ notification: n, onClose, onCh
               查看详情
             </Button>
           )}
-          <Button danger icon={<DeleteOutlined />} onClick={() => void remove()}>
-            删除
-          </Button>
+          <Popconfirm
+            title="确定删除该通知？"
+            okText="删除"
+            cancelText="取消"
+            okButtonProps={{ danger: true }}
+            onConfirm={() => void remove()}
+          >
+            <Button danger icon={<DeleteOutlined />}>
+              删除
+            </Button>
+          </Popconfirm>
           <Button onClick={onClose}>关闭</Button>
         </Space>
       }
