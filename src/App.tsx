@@ -5,6 +5,7 @@
  * 无菜单版别（generic 骨架）保持扁平路由。
  */
 import { Suspense, lazy, useEffect, useMemo, type ComponentType } from 'react';
+import AppErrorBoundary from './components/AppErrorBoundary';
 import {
   BrowserRouter,
   Navigate,
@@ -33,7 +34,10 @@ function LazyRoute({ load }: { load: () => Promise<{ default: ComponentType }> }
   const Lazy = useMemo(() => lazy(load), [load]);
   return (
     <Suspense fallback={<div className="page-loading">加载中…</div>}>
-      <Lazy />
+      {/* 错误边界：发布后旧 chunk 404 → 中文提示刷新（2026-09-01） */}
+      <AppErrorBoundary>
+        <Lazy />
+      </AppErrorBoundary>
     </Suspense>
   );
 }

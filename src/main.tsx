@@ -16,6 +16,7 @@ import {
 } from '@lieshoucloud/contract-api';
 
 import App from './App';
+import AppErrorBoundary from './components/AppErrorBoundary';
 import { getEdition } from './config/editions';
 import './styles/global.css';
 
@@ -112,7 +113,10 @@ ReactDOM.createRoot(rootEl).render(
       {/* antd App 上下文（2026-08-31：缺此包裹时 App.useApp() 的 messageApi 为空壳，
           新建规则等保存成功但提示/关闭中断 → 表现“保存没反应”） */}
       <AntdApp>
-        <App />
+        {/* 全局错误边界：发布后旧 chunk 404 / 渲染异常 → 中文友好提示（2026-09-01） */}
+        <AppErrorBoundary>
+          <App />
+        </AppErrorBoundary>
       </AntdApp>
     </ConfigProvider>
   </React.StrictMode>,
