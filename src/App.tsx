@@ -49,19 +49,21 @@ function RequireAuth() {
 
 /**
  * 会话过期主动检测（2026-09-01）：无 API 请求的页面也到点自动退出。
- * 解析 accessToken 的 exp，定时检查；到点 logout + 跳登录。
+ * 首次登录解析 accessToken 的 exp 固定 deadline（登录时间到期即退出，
+ * 不随 refresh 续期重置倒计时），每 2 秒检查；到点 logout + 跳登录。
  */
 function SessionGuard() {
-  const accessToken = useAuthStore((s) => s.accessToken);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const logout = useAuthStore((s) => s.logout);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isAuthenticated || !accessToken) return;
+    if (!isAuthenticated) return;
+    const tok = useAuthStore.getState().accessToken;
+    if (!tok) return;
     let exp = 0;
     try {
-      exp = (JSON.parse(atob(accessToken.split('.')[1])) as { exp?: number }).exp ?? 0;
+      exp = (JSON.parse(atob(tok.split('.')[1])) as { exp?: number }).exp ?? 0;
     } catch {
       return;
     }
@@ -73,11 +75,10 @@ function SessionGuard() {
         navigate('/login', { replace: true });
       }
     };
-    // 已过期（如恢复会话）立即退出；否则每 2 秒检查
     check();
     const t = setInterval(check, 2000);
     return () => clearInterval(t);
-  }, [isAuthenticated, accessToken, logout, navigate]);
+  }, [isAuthenticated, logout, navigate]);
 
   return null;
 }
