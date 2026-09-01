@@ -12,6 +12,13 @@ import { PageContainer } from '@ant-design/pro-components';
 
 import { getUser, updateUser, useAuthStore } from '@lieshoucloud/core-web';
 import { STATUS_META, type User } from '@lieshoucloud/contract-types/business/user';
+import { t, type TranslationKey } from '@lieshoucloud/i18n';
+
+/** 角色 code → 中文（i18n user.roles.*，缺省回退 code） */
+function roleLabel(role: string): string {
+  const label = t(`user.roles.${role}` as TranslationKey);
+  return label.includes('user.roles') ? role : label;
+}
 
 export default function ProfilePage() {
   const { message } = App.useApp();
@@ -98,7 +105,7 @@ export default function ProfilePage() {
           <Descriptions.Item label="账号">{detail?.username}</Descriptions.Item>
           <Descriptions.Item label="角色">
             {(detail?.roles ?? []).map((r) => (
-              <Tag key={r} color="blue">{r}</Tag>
+              <Tag key={r} color="blue">{roleLabel(r)}</Tag>
             ))}
           </Descriptions.Item>
           <Descriptions.Item label="状态">
