@@ -19,7 +19,7 @@ import {
   DashboardOutlined,
   FundOutlined,
   FundProjectionScreenOutlined,
-  ProjectOutlined,
+  SettingOutlined,
   HomeOutlined,
   InfoCircleOutlined,
   LogoutOutlined,
@@ -125,21 +125,6 @@ export function buildMenuItems(
     (a.menu?.order ?? 99) - (b.menu?.order ?? 99);
   const itemOf = (r: EditionExtraRoute) => toMenuItem(r, badges?.[r.path]);
 
-  const mine = userRoles ?? [];
-  const isAdmin = mine.includes('PLATFORM_ADMIN') || mine.includes('TENANT_ADMIN');
-  // 平台管理菜单（管理员可见 · 2026-08 认证体系：新增用户/激活管理）
-  const platformMenus: MenuDataItem[] = isAdmin
-    ? [
-        {
-          name: '用户管理',
-          icon: <TeamOutlined />,
-          children: [
-            { name: '账号管理', path: '/users', icon: <UserOutlined /> },
-          ],
-        },
-      ]
-    : [];
-
   const items: MenuDataItem[] = [
     ...flat.sort(byOrder).map(itemOf),
     ...[...groups.entries()]
@@ -149,8 +134,6 @@ export function buildMenuItems(
         icon: <MenuOutlined />,
         children: list.sort(byOrder).map(itemOf),
       })),
-    // 平台管理（用户管理等）放菜单末尾（2026-09-01：业务菜单优先，平台管理靠后）
-    ...platformMenus,
   ];
   return items;
 }
@@ -272,15 +255,15 @@ export default function ConsoleLayout() {
             {a.label}
           </Button>
         )),
-        // 项目管理入口（平台功能 · 管理员专用，放右上角而非左侧菜单）
+        // 系统设置入口（平台功能集中管理 · 管理员专用，右上角 → 自带左侧菜单的设置页）
         isAdmin && (
           <Button
-            key="projects"
-            icon={<ProjectOutlined />}
+            key="settings"
+            icon={<SettingOutlined />}
             style={{ marginLeft: 8 }}
-            onClick={() => navigate('/iot/projects')}
+            onClick={() => navigate('/settings')}
           >
-            项目管理
+            系统设置
           </Button>
         ),
       ]}

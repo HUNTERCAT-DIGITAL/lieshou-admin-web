@@ -52,6 +52,39 @@
       ],
       "@lieshoucloud/dwjk/*": [
         "../packages/dwjk/src/*"
+      ],
+      "react": [
+        "./node_modules/@types/react"
+      ],
+      "react/*": [
+        "./node_modules/@types/react/*"
+      ],
+      "react-dom": [
+        "./node_modules/@types/react-dom"
+      ],
+      "react-dom/*": [
+        "./node_modules/@types/react-dom/*"
+      ],
+      "react-router-dom": [
+        "./node_modules/react-router-dom"
+      ],
+      "antd": [
+        "./node_modules/antd"
+      ],
+      "@ant-design/icons": [
+        "./node_modules/@ant-design/icons"
+      ],
+      "@ant-design/pro-components": [
+        "./node_modules/@ant-design/pro-components"
+      ],
+      "dayjs": [
+        "./node_modules/dayjs"
+      ],
+      "qrcode.react": [
+        "./node_modules/qrcode.react"
+      ],
+      "@lieshoucloud/ui": [
+        "open/ui/src"
       ]
     }
   },
