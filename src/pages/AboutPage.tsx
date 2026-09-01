@@ -1,21 +1,29 @@
 /**
- * 管理后台 · 关于页（端自身骨架 · 底包信息预览）.
+ * 管理后台 · 关于页（2026-09-01 优化）.
  *
- * 品牌 + 平台标识 + 版本 + 版别 + 登录用户 + 后端连通性检查（GET /api/auth/me）+ 退出登录。
- * 收纳端自身骨架信息（对齐 mobile-web AboutPage），业务首页由客户包 extraRoutes 注入。
+ * 品牌区 + 系统信息（版本取自 dwjk 交付包 changelog）+ 近期更新 + 后端连通性检查 + 退出登录。
  */
 import { useCallback, useState } from 'react';
+import { Badge, Button, Card, Descriptions, Space, Tag, Timeline, Typography } from 'antd';
+import { CheckCircleOutlined, CloseCircleOutlined, ReloadOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@lieshoucloud/core-web';
 
-import { useNavigate } from 'react-router-dom';
 import { getEdition } from '../config/editions';
-import { APP_VERSION } from '../config/version';
+import { CHANGELOG, CURRENT_VERSION } from '@lieshoucloud/dwjk/industry/changelog';
 
 interface CheckState {
   loading: boolean;
   ok: boolean;
   message: string;
 }
+
+const TYPE_META: Record<string, { text: string; color: string }> = {
+  feat: { text: '新功能', color: 'blue' },
+  fix: { text: '修复', color: 'red' },
+  improve: { text: '优化', color: 'green' },
+  breaking: { text: '重要', color: 'orange' },
+};
 
 export default function AboutPage() {
   const edition = getEdition();
@@ -43,48 +51,123 @@ export default function AboutPage() {
     }
   }, [fetchMe]);
 
+  const latest = CHANGELOG[0];
+  const recent = CHANGELOG.slice(0, 4);
+
   return (
-    <div className="about-page">
-      <header className="home-header">
+    <div className="about-page" style={{ maxWidth: 720, margin: '0 auto', padding: 32 }}>
+      <div style={{ textAlign: 'center', marginBottom: 24 }}>
         {edition.logo && (
           <img
-            className="home-logo"
+            style={{ height: 64, marginBottom: 8 }}
             src={`${import.meta.env.BASE_URL.replace(/\/$/, '')}/${edition.logo.replace(/^\//, '')}`}
             alt={edition.brandName}
           />
         )}
-        <h2 className="home-title">{edition.brandName}</h2>
-        <p className="home-slogan">{edition.slogan}</p>
-      </header>
+        <Typography.Title level={3} style={{ margin: '4px 0 0' }}>
+          {edition.brandName}
+        </Typography.Title>
+        <Typography.Text type="secondary">{edition.slogan}</Typography.Text>
+      </div>
 
-      <section className="home-card">
-        <div className="home-row">
-          <span className="home-key">平台</span>
-          <span className="home-value">管理后台 · Vite 6 + React 19</span>
-        </div>
-        <div className="home-row">
-          <span className="home-key">版本</span>
-          <span className="home-value">{APP_VERSION}</span>
-        </div>
-                <div className="home-row">
-          <span className="home-key">用户</span>
-          <span className="home-value">
-            {user?.username || '未登录'}
-          </span>
-        </div>
-      </section>
+      <Space direction="vertical" size={16} style={{ width: '100%' }}>
+        {/* 系统信息 */}
+        <Card size="small" title="系统信息">
+          <Descriptions column={1} size="small">
+            <Descriptions.Item label="系统名称">{edition.brandName}</Descriptions.Item>
+            <Descriptions.Item label="当前版本">
+              <Space size={8}>
+                <Tag color="blue" style={{ fontSize: 14, padding: '2px 10px' }}>
+                  v{CURRENT_VERSION}
+                </Tag>
+                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                  {latest?.date} · {latest?.title}
+                </Typography.Text>
+              </Space>
+            </Descriptions.Item>
+            <Descriptions.Item label="技术栈">
+              Vite 6 + React 19 + Ant Design 5 · Java 21 + Spring Boot 3.5
+            </Descriptions.Item>
+            <Descriptions.Item label="登录用户">{user?.username || '未登录'}</Descriptions.Item>
+            <Descriptions.Item label="后端状态">
+              <Space size={8}>
+                {check.loading ? (
+                  <Tag icon={<ReloadOutlined spin />}>检查中…</Tag>
+                ) : check.ok ? (
+                  <Tag color="success" icon={<CheckCircleOutlined />}>
+                    连通正常
+                  </Tag>
+                ) : check.message ? (
+                  <Tag color="error" icon={<CloseCircleOutlined />}>
+                    异常
+                  </Tag>
+                ) : (
+                  <Badge status="default" text="未检测" />
+                )}
+                <Button size="small" onClick={runCheck} disabled={check.loading}>
+                  检测连通性
+                </Button>
+              </Space>
+            </Descriptions.Item>
+          </Descriptions>
+          {check.message && (
+            <Typography.Paragraph
+              type={check.ok ? 'success' : 'danger'}
+              style={{ margin: '8px 0 0', fontSize: 12 }}
+            >
+              {check.message}
+            </Typography.Paragraph>
+          )}
+        </Card>
 
-      <section className="home-actions">
-        <button type="button" className="btn-primary" onClick={runCheck} disabled={check.loading}>
-          {check.loading ? '检查中…' : '检查后端连通性'}
-        </button>
-        {check.message && (
-          <p className={check.ok ? 'check-ok' : 'check-fail'}>{check.message}</p>
-        )}
-        <button type="button" className="btn-ghost" onClick={() => { logout(); navigate('/portal'); }}>
-          退出登录
-        </button>
-      </section>
+        {/* 近期更新 */}
+        <Card
+          size="small"
+          title="近期更新"
+          extra={
+            <Button type="link" size="small" onClick={() => navigate('/changelog')}>
+              查看全部
+            </Button>
+          }
+        >
+          <Timeline
+            items={recent.map((e) => ({
+              color: e.type === 'breaking' ? 'orange' : e.type === 'feat' ? 'blue' : 'green',
+              children: (
+                <div>
+                  <Space size={8}>
+                    <Typography.Text strong>v{e.version}</Typography.Text>
+                    <Tag color={TYPE_META[e.type]?.color}>{TYPE_META[e.type]?.text ?? e.type}</Tag>
+                    <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                      {e.date}
+                    </Typography.Text>
+                  </Space>
+                  <div>
+                    <Typography.Text style={{ fontSize: 13 }}>{e.title}</Typography.Text>
+                  </div>
+                </div>
+              ),
+            }))}
+          />
+        </Card>
+
+        {/* 操作 */}
+        <Card size="small">
+          <Space>
+            <Button onClick={() => navigate('/changelog')}>版本更新记录</Button>
+            <Button
+              type="primary"
+              danger
+              onClick={() => {
+                logout();
+                navigate('/portal');
+              }}
+            >
+              退出登录
+            </Button>
+          </Space>
+        </Card>
+      </Space>
     </div>
   );
 }

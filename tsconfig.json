@@ -46,6 +46,12 @@
       ],
       "@lieshoucloud/i18n": [
         "open/i18n/src"
+      ],
+      "@lieshoucloud/dwjk": [
+        "../packages/dwjk/src"
+      ],
+      "@lieshoucloud/dwjk/*": [
+        "../packages/dwjk/src/*"
       ]
     }
   },
