@@ -10,7 +10,25 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@lieshoucloud/core-web';
 
 import { getEdition } from '../config/editions';
-import { CHANGELOG, CURRENT_VERSION } from '@lieshoucloud/dwjk/industry/changelog';
+
+/**
+ * 客户 changelog 动态导入：匹配客户包 industry/changelog（dwjk 等），无则空。
+ * 消除对特定客户包的编译期硬依赖（2026-09 修复：原硬 import dwjk 破坏其他客户构建）。
+ */
+interface ChangelogEntry {
+  version: string;
+  date?: string;
+  title?: string;
+  type: string;
+  items?: string[];
+}
+const CHANGELOG_MODULES = import.meta.glob('../packages/*/src/industry/changelog*', { eager: true }) as Record<
+  string,
+  { default?: { changelog?: ChangelogEntry[]; currentVersion?: string } }
+>;
+const changelogMod = Object.values(CHANGELOG_MODULES)[0]?.default;
+const CHANGELOG: ChangelogEntry[] = changelogMod?.changelog ?? [];
+const CURRENT_VERSION: string = changelogMod?.currentVersion ?? '1.0.0';
 
 interface CheckState {
   loading: boolean;
@@ -51,7 +69,7 @@ export default function AboutPage() {
     }
   }, [fetchMe]);
 
-  const latest = CHANGELOG[0];
+  const latest = CHANGELOG[0] ?? { version: CURRENT_VERSION, title: '—' };
   const recent = CHANGELOG.slice(0, 6);
 
   return (
@@ -172,7 +190,7 @@ export default function AboutPage() {
                       <Typography.Text style={{ fontSize: 13 }}>{e.title}</Typography.Text>
                     </div>
                     <ul style={{ margin: '4px 0 0', paddingLeft: 18 }}>
-                      {e.items.slice(0, 3).map((it) => (
+                      {(e.items ?? []).slice(0, 3).map((it) => (
                         <li key={it}>
                           <Typography.Text style={{ fontSize: 12 }}>{it}</Typography.Text>
                         </li>
