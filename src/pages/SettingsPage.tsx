@@ -9,30 +9,40 @@ import { useState } from 'react';
 import { Button, Layout, Menu, Typography } from 'antd';
 import {
   CloseOutlined,
+  FileTextOutlined,
   InfoCircleOutlined,
   ProjectOutlined,
   SettingOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import ProjectsPage from '@lieshoucloud/dwjk/industry/pages/Projects';
+import ChangelogPage from '@lieshoucloud/dwjk/industry/pages/Changelog';
 import UsersPage from './UsersPage';
 import AboutPage from './AboutPage';
 
 const { Sider, Content } = Layout;
 
-type SettingsKey = 'projects' | 'users' | 'about';
+type SettingsKey = 'projects' | 'users' | 'about' | 'changelog';
 
 const MENU_ITEMS = [
   { key: 'projects', icon: <ProjectOutlined />, label: '项目管理' },
   { key: 'users', icon: <TeamOutlined />, label: '用户管理' },
+  { key: 'changelog', icon: <FileTextOutlined />, label: '版本更新' },
   { key: 'about', icon: <InfoCircleOutlined />, label: '关于' },
 ];
 
+/** 支持 URL ?tab=changelog 直达（更新弹窗「查看全部」跳转） */
+function initialTab(search: URLSearchParams): SettingsKey {
+  const t = search.get('tab');
+  return t === 'changelog' ? 'changelog' : t === 'users' ? 'users' : t === 'about' ? 'about' : 'projects';
+}
+
 export default function SettingsPage() {
   const navigate = useNavigate();
-  const [active, setActive] = useState<SettingsKey>('projects');
+  const [searchParams] = useSearchParams();
+  const [active, setActive] = useState<SettingsKey>(() => initialTab(searchParams));
 
   return (
     <Layout style={{ minHeight: '100vh', background: '#fff' }}>
@@ -73,6 +83,7 @@ export default function SettingsPage() {
         <Content style={{ padding: 20, background: '#fff' }}>
           {active === 'projects' && <ProjectsPage />}
           {active === 'users' && <UsersPage />}
+          {active === 'changelog' && <ChangelogPage />}
           {active === 'about' && <AboutPage />}
         </Content>
       </Layout>

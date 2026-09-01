@@ -144,7 +144,7 @@ export default function AboutPage() {
 
             <Card size="small">
               <Space>
-                <Button type="primary" onClick={() => navigate('/changelog')}>
+                <Button type="primary" onClick={() => navigate('/settings?tab=changelog')}>
                   版本更新记录
                 </Button>
                 <Button
@@ -167,7 +167,7 @@ export default function AboutPage() {
             size="small"
             title="近期更新"
             extra={
-              <Button type="link" size="small" onClick={() => navigate('/changelog')}>
+              <Button type="link" size="small" onClick={() => navigate('/settings?tab=changelog')}>
                 查看全部
               </Button>
             }
