@@ -8,18 +8,27 @@ import { useEffect, useState } from 'react';
 import { Dropdown, Tag, Typography } from 'antd';
 import { DownOutlined, ProjectOutlined } from '@ant-design/icons';
 
-import { listIotProjects } from '@lieshoucloud/dwjk/industry/api';
-import type { IotProject } from '@lieshoucloud/dwjk/industry/types';
+// 客户 industry 能力可选匹配（dwjk 等客户包带 industry/api；haizan 等无则隐藏）
+// 2026-09-01 修复：消除对 dwjk 客户包的编译期硬依赖（与 AboutPage/SettingsPage 同款 glob）
+const INDUSTRY_MODULES = import.meta.glob('../packages/*/src/industry/api*');
+const HAS_INDUSTRY_API = Object.keys(INDUSTRY_MODULES).length > 0;
 
 const STORAGE_KEY = 'dwjk:current-project';
 
+type IndustryProject = { id: number; name: string; code?: string };
+
 export default function ProjectSwitcher() {
-  const [projects, setProjects] = useState<IotProject[]>([]);
+  const [projects, setProjects] = useState<IndustryProject[]>([]);
   const [current, setCurrent] = useState<number | null>(null);
 
   useEffect(() => {
-    listIotProjects()
-      .then((ps) => {
+    // 无客户 industry 能力（haizan 等）→ 不渲染
+    if (!HAS_INDUSTRY_API) return;
+    const path = Object.keys(INDUSTRY_MODULES).find((p) => p.endsWith('/api.ts') || p.endsWith('/api/index.ts'));
+    if (!path) return;
+    void INDUSTRY_MODULES[path]()
+      .then((m) => (m as { listIotProjects?: () => Promise<IndustryProject[]> }).listIotProjects?.() ?? Promise.resolve([] as IndustryProject[]))
+      .then((ps: IndustryProject[]) => {
         setProjects(ps);
         // 恢复上次选择；无则默认第一个（首个项目 = 最近创建）
         const saved = localStorage.getItem(STORAGE_KEY);
@@ -28,6 +37,8 @@ export default function ProjectSwitcher() {
       })
       .catch(() => {});
   }, []);
+
+  if (!HAS_INDUSTRY_API) return null;
 
   const select = (id: number | null) => {
     setCurrent(id);

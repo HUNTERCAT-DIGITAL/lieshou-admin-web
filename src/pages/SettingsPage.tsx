@@ -2,11 +2,14 @@
  * 系统设置页（2026-09-01 · standalone 独立壳）.
  *
  * 用户下拉「系统设置」进入（管理员）——独立于业务主壳：
- * 顶部栏（品牌 + 返回 ×）+ 自带左侧菜单栏（项目管理/用户管理/系统信息）+ 内容区。
+ * 顶部栏（品牌 + 返回 ×）+ 自带左侧菜单栏（用户管理/关于 + 客户 industry 可选）+ 内容区。
  * 进入后不再显示业务左侧菜单（平台功能与项目内功能隔离）。
+ *
+ * 2026-09-01 修复：移除对 dwjk 客户包的编译期硬依赖（ProjectsPage/ChangelogPage），
+ * 改为客户包 industry/pages glob 可选匹配（dwjk 有 → 显示；haizan 等无 → 隐藏）。
  */
-import { useState } from 'react';
-import { Button, Layout, Menu, Typography } from 'antd';
+import { lazy, Suspense, useMemo, useState } from 'react';
+import { Button, Layout, Menu, Spin, Typography } from 'antd';
 import {
   CloseOutlined,
   FileTextOutlined,
@@ -17,8 +20,6 @@ import {
 } from '@ant-design/icons';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import ProjectsPage from '@lieshoucloud/dwjk/industry/pages/Projects';
-import ChangelogPage from '@lieshoucloud/dwjk/industry/pages/Changelog';
 import UsersPage from './UsersPage';
 import AboutPage from './AboutPage';
 
@@ -26,23 +27,64 @@ const { Sider, Content } = Layout;
 
 type SettingsKey = 'projects' | 'users' | 'about' | 'changelog';
 
+/**
+ * 客户 industry 页可选匹配（dwjk 等客户包带 industry/pages/*；haizan 等无则隐藏对应菜单）。
+ * glob 只匹配存在路径；客户包无该目录时数组为空 → HAS_INDUSTRY_PAGES=false。
+ */
+const INDUSTRY_MODULES = import.meta.glob('../packages/*/src/industry/pages/**/*.tsx');
+const HAS_INDUSTRY_PAGES = Object.keys(INDUSTRY_MODULES).length > 0;
+
+/** 懒加载客户 industry 页：从 glob 结果按文件名取模块（避免静态 import 触发 tsc 解析 dwjk 路径） */
+function lazyIndustry(leaf: 'Projects' | 'Changelog') {
+  const path = Object.keys(INDUSTRY_MODULES).find((p) => p.endsWith(`/${leaf}.tsx`));
+  if (!path) return null;
+  return lazy(INDUSTRY_MODULES[path] as () => Promise<{ default: React.ComponentType }>);
+}
+const ProjectsPage = lazyIndustry('Projects');
+const ChangelogPage = lazyIndustry('Changelog');
+
 const MENU_ITEMS = [
-  { key: 'projects', icon: <ProjectOutlined />, label: '项目管理' },
-  { key: 'users', icon: <TeamOutlined />, label: '用户管理' },
-  { key: 'changelog', icon: <FileTextOutlined />, label: '版本更新' },
-  { key: 'about', icon: <InfoCircleOutlined />, label: '关于' },
+  ...(HAS_INDUSTRY_PAGES
+    ? [
+        { key: 'projects' as const, icon: <ProjectOutlined />, label: '项目管理' },
+        { key: 'changelog' as const, icon: <FileTextOutlined />, label: '版本更新' },
+      ]
+    : []),
+  { key: 'users' as const, icon: <TeamOutlined />, label: '用户管理' },
+  { key: 'about' as const, icon: <InfoCircleOutlined />, label: '关于' },
 ];
 
 /** 支持 URL ?tab=changelog 直达（更新弹窗「查看全部」跳转） */
 function initialTab(search: URLSearchParams): SettingsKey {
   const t = search.get('tab');
-  return t === 'changelog' ? 'changelog' : t === 'users' ? 'users' : t === 'about' ? 'about' : 'projects';
+  return t === 'changelog' ? 'changelog' : t === 'users' ? 'users' : t === 'about' ? 'about' : HAS_INDUSTRY_PAGES ? 'projects' : 'users';
 }
 
 export default function SettingsPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [active, setActive] = useState<SettingsKey>(() => initialTab(searchParams));
+
+  const content = useMemo(() => {
+    switch (active) {
+      case 'projects':
+        return ProjectsPage ? (
+          <Suspense fallback={<Spin style={{ display: 'block', margin: '40px auto' }} />}>
+            <ProjectsPage />
+          </Suspense>
+        ) : null;
+      case 'changelog':
+        return ChangelogPage ? (
+          <Suspense fallback={<Spin style={{ display: 'block', margin: '40px auto' }} />}>
+            <ChangelogPage />
+          </Suspense>
+        ) : null;
+      case 'users':
+        return <UsersPage />;
+      default:
+        return <AboutPage />;
+    }
+  }, [active]);
 
   return (
     <Layout style={{ minHeight: '100vh', background: '#fff' }}>
@@ -80,12 +122,7 @@ export default function SettingsPage() {
             style={{ borderInlineEnd: 'none' }}
           />
         </Sider>
-        <Content style={{ padding: 20, background: '#fff' }}>
-          {active === 'projects' && <ProjectsPage />}
-          {active === 'users' && <UsersPage />}
-          {active === 'changelog' && <ChangelogPage />}
-          {active === 'about' && <AboutPage />}
-        </Content>
+        <Content style={{ padding: 20, background: '#fff' }}>{content}</Content>
       </Layout>
     </Layout>
   );
