@@ -229,6 +229,13 @@ export default function ConsoleLayout() {
                   label: '个人中心',
                   onClick: () => navigate('/profile'),
                 },
+                // 操作手册（全员可读）
+                {
+                  key: 'manual',
+                  icon: <BookOutlined />,
+                  label: '操作手册',
+                  onClick: () => navigate('/manual'),
+                },
                 // 系统设置（平台功能 · 管理员，个人中心下面）
                 ...(isAdmin
                   ? [
