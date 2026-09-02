@@ -5,7 +5,7 @@
  * 内容源：docs/manualContent.ts（改内容无需动组件）。
  */
 import { useState } from 'react';
-import { Button, Layout, Menu, Typography } from 'antd';
+import { Button, Image, Layout, Menu, Typography } from 'antd';
 import { ArrowLeftOutlined, BookOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
@@ -74,6 +74,19 @@ function ItemBlock({ item }: { item: ManualItem }) {
             ))}
           </tbody>
         </table>
+      )}
+      {item.images && item.images.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, margin: '12px 0 16px' }}>
+          {item.images.map((src, i) => (
+            <Image
+              key={i}
+              src={src}
+              width={560}
+              style={{ border: '1px solid #e8e8e8', borderRadius: 8 }}
+              alt={`${item.title} 截图 ${i + 1}`}
+            />
+          ))}
+        </div>
       )}
       {item.notes && item.notes.length > 0 && (
         <div

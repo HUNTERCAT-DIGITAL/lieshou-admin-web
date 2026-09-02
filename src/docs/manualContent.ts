@@ -7,6 +7,8 @@
 
 export interface ManualItem {
   title: string;
+  /** 截图路径（public/manual/*.jpg · 可选，多张） */
+  images?: string[];
   /** 段落 */
   paragraphs?: string[];
   /** 步骤列表 */
@@ -81,12 +83,18 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
         ],
       },
       {
+        title: '工作台（登录后首页）',
+        paragraphs: ['值班工作台：实时概况 KPI + 告警通知横幅 + 常用入口，异常一目了然。'],
+        images: ['/screenshots/manual-home.jpg'],
+      },
+      {
         title: '驾驶舱大屏',
         steps: [
           { title: '打开', detail: '顶部栏「驾驶舱」按钮' },
           { title: '查看', detail: '风险指数/温度/局放/告警占比/工单运维/电网拓扑，实时刷新' },
           { title: '交互', detail: '点击设备节点/列表行可查看详情；面板可放大；右下角全屏' },
         ],
+        images: ['/screenshots/manual-cockpit.jpg', '/screenshots/manual-topo.jpg'],
       },
     ],
   },
@@ -104,6 +112,7 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
           { title: '④ 安装运行', detail: '激活后设备可接入上报，进入「已激活」状态' },
         ],
         notes: ['出厂设备需先发货才能被客户激活', '已激活设备不再显示激活二维码', '设备激活需在客户租户下操作（厂家不能激活自己租户设备）'],
+        images: ['/screenshots/manual-devices.jpg'],
       },
       {
         title: '设备列表与详情',
@@ -111,6 +120,7 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
           '设备列表：按产品/状态筛选，支持关键字搜索；生命周期列显示 出厂/待激活/已激活。',
           '点击「详情」进入设备详情单页：基本信息 + 产品结构（主机/局放/温度节点/气体节点）+ 属性时序曲线 + 设备事件 + 告警历史 + 工单历史 + 巡检记录 + 原始报文。',
         ],
+        images: ['/screenshots/manual-device-detail.jpg'],
       },
       {
         title: '传感器配置',
@@ -120,6 +130,7 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
           { title: '保存', detail: '保存后同步到服务器（多端一致）' },
         ],
         notes: ['传感器配置落库保存，更换浏览器/设备后配置保持一致'],
+        images: ['/screenshots/manual-device-manual-sensors.jpg'],
       },
       {
         title: '静默告警（设备检修）',
@@ -157,6 +168,7 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
           { title: '转工单', detail: '确认告警后可「转工单」→ 选优先级，自动生成处置工单' },
         ],
         notes: ['已确认告警显示 确认人+确认时间（处理留痕）', '工作台异常卡点击可跳转对应告警'],
+        images: ['/screenshots/manual-alerts.jpg'],
       },
       {
         title: '告警导出',
@@ -195,6 +207,7 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
           '站点工单分布：各站点工单数与状态（工单多站点优先）',
           '列表支持 状态/优先级/关键字 筛选、序号、分页、导出 Excel',
         ],
+        images: ['/screenshots/manual-ops.jpg'],
       },
     ],
   },
@@ -221,6 +234,7 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
           '连续触发次数：同一规则同一设备连续命中 N 次才告警（抑制瞬时抖动）；>1 时达到后自动升级为「告警」',
           '告警触发后处理人手机号会收到短信（个人中心维护手机号）',
         ],
+        images: ['/screenshots/manual-rules.jpg'],
       },
     ],
   },
@@ -234,6 +248,7 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
         paragraphs: [
           '左侧「报表」进入：告警趋势（近7/30天折线）、设备健康（在线率/生命周期）、工单效率（平均处理时长/闭环率）。',
         ],
+        images: ['/screenshots/manual-reports.jpg'],
       },
       {
         title: '导出 Excel',
@@ -255,6 +270,7 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
           { title: '登记巡检', detail: '巡检页「登记巡检」→ 选设备 + 结果（正常/异常）+ 备注' },
           { title: '查看', detail: '巡检列表按结果/关键字筛选；设备详情「巡检记录」Tab 也可看该设备历史' },
         ],
+        images: ['/screenshots/manual-patrols.jpg'],
       },
       {
         title: '静默管理',
@@ -262,6 +278,7 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
           '集中查看所有设备的告警静默：设备/原因/起止时间/剩余时长/状态（生效中·已过期），可统一解除。',
           '设置入口在设备详情「静默告警」。',
         ],
+        images: ['/screenshots/manual-silences.jpg'],
       },
     ],
   },
@@ -273,6 +290,7 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
       {
         title: '进入',
         paragraphs: ['右上角头像菜单 →「系统设置」（仅管理员可见）。独立设置界面，左侧菜单分类管理平台功能。'],
+        images: ['/screenshots/manual-settings-projects.jpg'],
       },
       {
         title: '项目管理',
@@ -290,11 +308,17 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
         ],
       },
       {
+        title: '用户管理（截图）',
+        paragraphs: ['维护租户内账号（含手机号，是告警/工单短信接收地址）。'],
+        images: ['/screenshots/manual-settings-users.jpg'],
+      },
+      {
         title: '通知管理',
         paragraphs: [
           '查看租户内全部通知（接收人/类型/内容/状态）；支持 筛选、标记已读、删除、清空。',
           '通知来源：工单派单、工单超时提醒等。个人通知在右上角铃铛查看。',
         ],
+        images: ['/screenshots/manual-settings-notifications.jpg'],
       },
       {
         title: '版本更新与关于',
