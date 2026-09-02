@@ -36,20 +36,24 @@ export default function NotificationBell() {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<NotifItem[]>([]);
   const [loading, setLoading] = useState(false);
+  // 环境无通知模块（端点不存在/报错）→ 隐藏铃铛（hook 调用保持无条件、顺序稳定）
+  const [unavailable, setUnavailable] = useState(false);
 
   const refreshCount = () => {
     request<{ count: number }>({ method: 'GET', path: '/api/iot/notifications/unread-count' })
       .then((r) => setCount(r.count ?? 0))
       .catch(() => {
-        /* 通知服务未就绪静默 */
+        // 通知服务未就绪（环境无该通知模块 → 404/500）：停用铃铛，避免每 30s 轮询刷屏
+        setUnavailable(true);
       });
   };
 
   useEffect(() => {
+    if (unavailable) return; // 已确认不可用：停止轮询
     refreshCount();
     const t = setInterval(refreshCount, 30_000);
     return () => clearInterval(t);
-  }, []);
+  }, [unavailable]);
 
   const openList = () => {
     setOpen(true);
@@ -85,6 +89,9 @@ export default function NotificationBell() {
         refreshCount();
       });
   };
+
+  // 环境无通知服务 → 不渲染铃铛（所有 hook 已在顶部调用完毕）
+  if (unavailable) return null;
 
   return (
     <>

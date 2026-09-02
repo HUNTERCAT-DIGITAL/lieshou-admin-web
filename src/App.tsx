@@ -22,6 +22,7 @@ import AboutPage from './pages/AboutPage';
 import HomePage from './pages/HomePage';
 import WelcomePage from './pages/WelcomePage';
 import UsersPage from './pages/UsersPage';
+import SettingsPage from './pages/SettingsPage';
 import LoginPage from './pages/LoginPage';
 import ActivatePage from './pages/ActivatePage';
 import PortalPage from './pages/PortalPage';
@@ -142,6 +143,8 @@ export default function App() {
         <Route path="/activate" element={<ActivatePage />} />
         <Route path="/portal" element={<PortalPage />} />
         <Route element={<RequireAuth />}>
+          {/* 系统设置：独立壳（自带顶栏+侧栏），不走业务 ConsoleLayout */}
+          <Route path="settings" element={<SettingsPage />} />
           {useConsole ? <Route element={<ConsoleLayout />}>{layoutChildren}</Route> : layoutChildren}
         </Route>
         {standaloneRoutes.map((r) => (
