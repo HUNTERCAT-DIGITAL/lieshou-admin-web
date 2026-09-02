@@ -8,7 +8,7 @@
  */
 import { useState } from 'react';
 import { Button, Image, Layout, Menu, Typography } from 'antd';
-import { ArrowLeftOutlined, BookOutlined, PrinterOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, BookOutlined, DownloadOutlined, PrinterOutlined } from '@ant-design/icons';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { MANUAL_CHAPTERS, type ManualChapter, type ManualItem } from '../docs/manualContent';
@@ -194,11 +194,19 @@ export default function ManualPage() {
         <div>
           <Button
             type="primary"
+            icon={<DownloadOutlined />}
+            href="/downloads/dwjk-manual.pdf"
+            download="电网监控平台操作手册.pdf"
+            style={{ marginRight: 8 }}
+          >
+            下载 PDF
+          </Button>
+          <Button
             icon={<PrinterOutlined />}
             onClick={() => window.open('/manual?print=1', '_blank')}
             style={{ marginRight: 8 }}
           >
-            导出 PDF
+            打印视图
           </Button>
           <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => navigate('/home')} title="返回系统" />
         </div>
