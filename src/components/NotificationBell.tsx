@@ -38,13 +38,34 @@ export default function NotificationBell() {
   const [loading, setLoading] = useState(false);
   // 环境无通知模块（端点不存在/报错）→ 隐藏铃铛（hook 调用保持无条件、顺序稳定）
   const [unavailable, setUnavailable] = useState(false);
+  // 数据源：legal（智法云枢 legal 服务）优先，iot 兜底（其他客户环境）
+  const [legalMode, setLegalMode] = useState<boolean | null>(null);
+
+  const legalBase = '/api/legal/notifications';
+  const listPath = legalMode ? `${legalBase}/mine` : '/api/iot/notifications';
+  const countPath = legalMode ? `${legalBase}/mine/unread-count` : '/api/iot/notifications/unread-count';
+  const readAllPath = legalMode ? `${legalBase}/read-all` : '/api/iot/notifications/read-all';
 
   const refreshCount = () => {
-    request<{ count: number }>({ method: 'GET', path: '/api/iot/notifications/unread-count' })
+    if (legalMode === null) {
+      // 首次：探测 legal 通知服务（存在则用；404/500 → 回退 iot）
+      request<{ count: number }>({ method: 'GET', path: `${legalBase}/mine/unread-count` })
+        .then((r) => {
+          setLegalMode(true);
+          setCount(r.count ?? 0);
+        })
+        .catch(() => {
+          setLegalMode(false);
+          request<{ count: number }>({ method: 'GET', path: '/api/iot/notifications/unread-count' })
+            .then((r) => setCount(r.count ?? 0))
+            .catch(() => setUnavailable(true));
+        });
+      return;
+    }
+    request<{ count: number }>({ method: 'GET', path: countPath })
       .then((r) => setCount(r.count ?? 0))
       .catch(() => {
-        // 通知服务未就绪（环境无该通知模块 → 404/500）：停用铃铛，避免每 30s 轮询刷屏
-        setUnavailable(true);
+        /* 忽略单次轮询失败 */
       });
   };
 
@@ -53,21 +74,31 @@ export default function NotificationBell() {
     refreshCount();
     const t = setInterval(refreshCount, 30_000);
     return () => clearInterval(t);
-  }, [unavailable]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unavailable, legalMode]);
 
   const openList = () => {
     setOpen(true);
     setLoading(true);
-    request<NotifItem[]>({ method: 'GET', path: '/api/iot/notifications' })
-      .then(setItems)
+    request<NotifItem[]>({ method: 'GET', path: listPath })
+      .then((list) => setItems(list.map((n) => ({ ...n, read: n.read, content: n.content ?? '' }))))
       .catch(() => setItems([]))
       .finally(() => setLoading(false));
   };
 
   const [detail, setDetail] = useState<NotificationDetail | null>(null);
 
-  // 点击通知 → 对话框查看详情（不再直接跳转）
+  // 点击通知：legal 模式直接标记已读；iot 模式弹详情
   const onOpenItem = (n: NotifItem) => {
+    if (legalMode) {
+      request({ method: 'POST', path: `${legalBase}/${n.id}/read` })
+        .catch(() => undefined)
+        .finally(() => {
+          setItems((list) => list.map((x) => (x.id === n.id ? { ...x, read: true } : x)));
+          refreshCount();
+        });
+      return;
+    }
     setDetail({
       id: n.id,
       type: n.type,
@@ -80,7 +111,7 @@ export default function NotificationBell() {
   };
 
   const markAll = () => {
-    request({ method: 'PATCH', path: '/api/iot/notifications/read-all' })
+    request({ method: legalMode ? 'POST' : 'PATCH', path: readAllPath })
       .catch(() => {
         /* ignore */
       })
@@ -110,7 +141,7 @@ export default function NotificationBell() {
         width={360}
         extra={
           <>
-            <Button size="small" type="link" onClick={() => navigate('/settings?tab=notifications')}>
+            <Button size="small" type="link" onClick={() => navigate(legalMode ? '/notifications' : '/settings?tab=notifications')}>
               查看全部
             </Button>
             {count > 0 && (
