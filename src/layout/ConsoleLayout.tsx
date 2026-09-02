@@ -30,6 +30,7 @@ import {
   FileTextOutlined,
   ClockCircleOutlined,
   BookOutlined,
+  RocketOutlined,
   RobotOutlined,
 } from '@ant-design/icons';
 import type { MenuDataItem } from '@ant-design/pro-components';
@@ -235,6 +236,12 @@ export default function ConsoleLayout() {
                   icon: <BookOutlined />,
                   label: '操作手册',
                   onClick: () => navigate('/manual'),
+                },
+                {
+                  key: 'features',
+                  icon: <RocketOutlined />,
+                  label: '功能进度',
+                  onClick: () => navigate('/features'),
                 },
                 // 系统设置（平台功能 · 管理员，个人中心下面）
                 ...(isAdmin
