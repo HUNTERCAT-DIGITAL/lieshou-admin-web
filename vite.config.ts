@@ -23,6 +23,8 @@ export default defineConfig({
       { find: /^@lieshoucloud\/charts($|\/)/, replacement: path.resolve(__dirname, 'open/charts/src') + '$1' },
       // 设备激活二维码：dwjk 包不在 workspace，qrcode.react 显式 alias 到顶层软链（同 react-router-dom 处理）
       { find: 'qrcode.react', replacement: path.resolve(__dirname, 'node_modules/qrcode.react') },
+      // 报表导出 Excel：同 qrcode.react 处理
+      { find: 'xlsx', replacement: path.resolve(__dirname, 'node_modules/xlsx') },
       { find: '@lieshoucloud/i18n', replacement: path.resolve(__dirname, 'open/i18n/src') },
       // 第三方依赖显式 alias（嵌套 workspace：客户包 packages/dwjk 在仓外，从它向上解析不到端内 node_modules → 强制指向端内顶层软链 · E13）
       { find: /^react($|\/)/, replacement: path.resolve(__dirname, 'node_modules/react') + '$1' },
