@@ -5,8 +5,8 @@
  * 内容源：docs/featuresContent.ts（维护数据即更新页面）。
  */
 import { Button, Card, Col, Progress, Row, Space, Statistic, Table, Tag, Typography } from 'antd';
-import { ArrowLeftOutlined, RocketOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { ArrowLeftOutlined, DownloadOutlined, RocketOutlined } from '@ant-design/icons';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { FEATURE_DONE, FEATURE_TODO } from '../docs/featuresContent';
 
@@ -23,6 +23,8 @@ const TODO_COLOR: Record<string, string> = {
 
 export default function FeaturesPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const printMode = searchParams.get('print') === '1';
 
   const done = FEATURE_DONE.length;
   const todoHigh = FEATURE_TODO.filter((t) => t.priority === '高').length;
@@ -30,13 +32,27 @@ export default function FeaturesPage() {
 
   return (
     <div style={{ maxWidth: 960, margin: '0 auto', padding: '20px 28px 60px', background: '#fff', minHeight: '100vh' }}>
-      <Button type="text" icon={<ArrowLeftOutlined />} style={{ marginBottom: 8 }} onClick={() => navigate('/home')}>
-        返回系统
-      </Button>
-      <Typography.Title level={3} style={{ color: '#02429B', marginTop: 0 }}>
-        <RocketOutlined style={{ marginRight: 8 }} />
-        平台功能进度
-      </Typography.Title>
+      {printMode && (
+        <style>{`
+          @media print { body { background: #fff !important; } }
+        `}</style>
+      )}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <Button type="text" icon={<ArrowLeftOutlined />} style={{ marginBottom: 4 }} onClick={() => navigate('/home')}>
+            返回系统
+          </Button>
+          <Typography.Title level={3} style={{ color: '#02429B', marginTop: 0 }}>
+            <RocketOutlined style={{ marginRight: 8 }} />
+            平台功能进度
+          </Typography.Title>
+        </div>
+        {!printMode && (
+          <Button type="primary" icon={<DownloadOutlined />} href="/downloads/dwjk-features.pdf" download="电网监控平台功能进度.pdf">
+            下载 PDF
+          </Button>
+        )}
+      </div>
       <Typography.Paragraph type="secondary">
         电网监控物联网平台功能完成情况一览（持续更新 · 最后统计 {new Date().toLocaleDateString('zh-CN')}）
       </Typography.Paragraph>
