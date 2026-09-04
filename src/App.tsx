@@ -107,14 +107,25 @@ export default function App() {
   const useConsole = shouldUseConsole(edition);
   const fallbackPath = edition.homePath ?? '/home';
 
-  // 工作台/首页：客户可注入 path='/' 或 '/home' 覆盖骨架 HomePage
-  const homeRoute = extraRoutes.find((r) => r.path === '/' || r.path === '/home');
+  // 工作台/首页：客户可注入 path='/' 或 '/home' 覆盖骨架 HomePage（仅非 standalone）
+  const homeRoute = extraRoutes.find(
+    (r) => !r.standalone && (r.path === '/' || r.path === '/home'),
+  );
   const homeElement = homeRoute ? <LazyRoute load={homeRoute.load} /> : <HomePage />;
 
   const layoutRoutes = extraRoutes.filter(
     (r) => !r.standalone && r.path !== '/' && r.path !== '/home',
   );
-  const standaloneRoutes = extraRoutes.filter((r) => r.standalone);
+  // Edition 注入的 standalone 公开页可覆盖骨架 欢迎页/门户页/登录页（additive · 客户自定义槽位）
+  const publicOverrides = {
+    '/': extraRoutes.find((r) => r.standalone && r.path === '/'),
+    '/portal': extraRoutes.find((r) => r.standalone && r.path === '/portal'),
+    '/login': extraRoutes.find((r) => r.standalone && r.path === '/login'),
+  };
+  const overridePaths = ['/', '/portal', '/login'];
+  const standaloneRoutes = extraRoutes.filter(
+    (r) => r.standalone && !overridePaths.includes(r.path),
+  );
 
   const layoutChildren = (
     <>
@@ -138,10 +149,23 @@ export default function App() {
       {/* 会话过期主动检测（无请求页面也到点退出） */}
       <SessionGuard />
       <Routes>
-        <Route path="/" element={<WelcomePage />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/"
+          element={publicOverrides['/'] ? <LazyRoute load={publicOverrides['/'].load} /> : <WelcomePage />}
+        />
+        <Route
+          path="/login"
+          element={
+            publicOverrides['/login'] ? <LazyRoute load={publicOverrides['/login'].load} /> : <LoginPage />
+          }
+        />
         <Route path="/activate" element={<ActivatePage />} />
-        <Route path="/portal" element={<PortalPage />} />
+        <Route
+          path="/portal"
+          element={
+            publicOverrides['/portal'] ? <LazyRoute load={publicOverrides['/portal'].load} /> : <PortalPage />
+          }
+        />
         <Route element={<RequireAuth />}>
           {/* 系统设置：独立壳（自带顶栏+侧栏），不走业务 ConsoleLayout */}
           <Route path="settings" element={<SettingsPage />} />
