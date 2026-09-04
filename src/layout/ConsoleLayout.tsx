@@ -45,6 +45,7 @@ import { useAuthStore } from '@lieshoucloud/core-web';
 import type { EditionConfig, EditionExtraRoute } from '@lieshoucloud/contract-types';
 
 import { getEdition } from '../config/editions';
+import { readThemeColor, setThemeColor, THEME_PRESETS } from '../config/themePresets';
 import NotificationBell from '../components/NotificationBell';
 import ProjectSwitcher from '../components/ProjectSwitcher';
 
@@ -228,6 +229,25 @@ export default function ConsoleLayout() {
           <Dropdown
             menu={{
               items: [
+                {
+                  type: 'group',
+                  label: '主题色',
+                  children: THEME_PRESETS.map((p) => ({
+                    key: `theme-${p.color}`,
+                    label: (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ width: 12, height: 12, borderRadius: 6, background: p.color, display: 'inline-block', border: readThemeColor() === p.color ? '2px solid rgba(0,0,0,0.45)' : '1px solid rgba(0,0,0,0.12)' }} />
+                        {p.name}
+                      </span>
+                    ),
+                    onClick: () => {
+                      if (readThemeColor() === p.color) return;
+                      setThemeColor(p.color);
+                      window.location.reload();
+                    },
+                  })),
+                },
+                { type: 'divider' },
                 {
                   key: 'profile',
                   icon: <UserOutlined />,

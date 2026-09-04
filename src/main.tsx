@@ -18,6 +18,7 @@ import {
 import App from './App';
 import AppErrorBoundary from './components/AppErrorBoundary';
 import { getEdition } from './config/editions';
+import { readThemeColor } from './config/themePresets';
 import './styles/global.css';
 
 // —— contract-api 模块级单例配置（客户包 dwjk/api 等走模块级 request 需要；ApiPort 走实例不受影响）——
@@ -108,7 +109,7 @@ ReactDOM.createRoot(rootEl).render(
   <React.StrictMode>
     <ConfigProvider
       locale={zhCN}
-      theme={{ token: { colorPrimary: edition.primaryColor ?? '#1677ff' } }}
+      theme={{ token: { colorPrimary: readThemeColor() ?? edition.primaryColor ?? '#1677ff' } }}
     >
       {/* antd App 上下文（2026-08-31：缺此包裹时 App.useApp() 的 messageApi 为空壳，
           新建规则等保存成功但提示/关闭中断 → 表现“保存没反应”） */}
