@@ -185,6 +185,10 @@ export default function ConsoleLayout() {
   const logout = useAuthStore((s) => s.logout);
 
   const edition = getEdition();
+  // 控制台左上品牌：edition.logo 有则展示图片（客户品牌化），否则文字标题
+  const headerLogo = edition.logo
+    ? `${import.meta.env.BASE_URL.replace(/\/$/, '')}/${edition.logo.replace(/^\//, '')}`
+    : false;
   const extraRoutes = edition.extraRoutes ?? [];
   const badges = useMenuBadges(extraRoutes);
   // 管理员（平台超管/租户管理员）可见「项目管理」（平台功能 · 右上角）
@@ -197,7 +201,7 @@ export default function ConsoleLayout() {
   return (
     <ProLayout
       title={edition.brandName}
-      logo={false}
+      logo={headerLogo}
       headerTitleRender={(logoDom, titleDom) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {logoDom}
